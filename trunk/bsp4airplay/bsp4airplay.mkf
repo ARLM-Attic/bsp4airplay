@@ -1,0 +1,15 @@
+includepaths
+{
+	"source"
+}
+
+files
+{
+	("source")
+}
+subprojects
+{
+	iwgraphics
+	iwgx
+	iwutil
+}

@@ -1,0 +1,30 @@
+#!/usr/bin/env i3d_make_build.py
+
+option 
+{
+	strict
+	s3e-data-dir="../data" 
+}
+assets
+{
+	(./data-ram/data-gles1)
+	#music.group.bin
+}
+files
+{
+	[Source]
+	(./source)
+	main.cpp
+
+	[Data]
+	(../data)
+	#music.group
+}
+subprojects
+{
+	derbh
+	iwgraphics
+	iwgx
+	iwutil
+	bsp4airplay.mkf
+}
