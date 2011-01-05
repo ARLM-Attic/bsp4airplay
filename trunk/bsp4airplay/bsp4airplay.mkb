@@ -7,7 +7,7 @@ option
 }
 assets
 {
-	(./data-ram/data-gles1)
+	#(./data-ram/data-gles1)
 	#music.group.bin
 }
 files
@@ -17,8 +17,8 @@ files
 	main.cpp
 
 	[Data]
-	(../data)
-	#music.group
+	(../data/models)
+	sample.group
 }
 subprojects
 {

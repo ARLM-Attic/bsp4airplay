@@ -6,10 +6,8 @@ using BspFileFormat.Math;
 
 namespace BspFileFormat
 {
-	public class BspGeometry
+	public class BspGeometryMaterial
 	{
-		public IList<BspGeometryVertex> Vertices;
-		public IList<BspGeometryFace> Faces;
-		public IList<BspGeometryMaterial> Materials;
+		public string TextureName;
 	}
 }

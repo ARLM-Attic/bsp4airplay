@@ -11,5 +11,7 @@ namespace BspFileFormat
 		public int Vertex0;
 		public int Vertex1;
 		public int Vertex2;
+		public int MaterialIndex;
+		public int LightmapIndex;
 	}
 }

@@ -9,5 +9,7 @@ namespace BspFileFormat
 	{
 		public string name;
 		public Bitmap[] mipMaps;
+		public int Width;
+		public int Height;
 	}
 }

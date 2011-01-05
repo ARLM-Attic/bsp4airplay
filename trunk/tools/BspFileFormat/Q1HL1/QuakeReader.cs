@@ -22,6 +22,7 @@ namespace BspFileFormat.Q1HL1
 		protected List<node_t> nodes;
 		protected List<dleaf_t> dleaves;
 		protected List<surface_t> surfaces;
+		protected Dictionary<int, int> lighmapSize = new Dictionary<int, int>();
 		protected byte[] visilist;
 		protected byte[] lightmap;
 		protected ushort[] listOfFaces;
@@ -60,23 +61,31 @@ namespace BspFileFormat.Q1HL1
 				foreach (var model in models)
 					dest.AddModel(BuildGeometry(model));
 		}
-
+		int lightmapTestCounter = 0;
 		private BspGeometry BuildGeometry(model_t model)
 		{
-			var res = new BspGeometry() { Vertices = new List<BspGeometryVertex>(), Faces = new List<BspGeometryFace>() };
+			var res = new BspGeometry() { Vertices = new List<BspGeometryVertex>(), Faces = new List<BspGeometryFace>(), Materials = new List<BspGeometryMaterial>() };
 			//Dictionary<BspGeometryVertex,int> vertices = new Dictionary<BspGeometryVertex,int>();
+			foreach (var tex in textures)
+			{
+				res.Materials.Add(new BspGeometryMaterial() { TextureName = tex.name });
+			}
+
 			for (uint i = model.face_id; i < model.face_id + model.face_num; ++i)
 			{
 				var face = faces[listOfFaces[i]];
 				if (face.ledge_num == 0)
 					continue;
-
-				var n = planes[face.plane_id].normal;
+				plane_t plane = planes[face.plane_id];
 				var surf = surfaces[face.texinfo_id];
-				var faceVertices = new short[face.ledge_num];
+				var faceVertices = new BspGeometryVertex[face.ledge_num];
 
+				Vector2 minUV0 = new Vector2(float.MaxValue, float.MaxValue);
+				Vector2 minUV1 = new Vector2(float.MaxValue, float.MaxValue);
+				Vector2 maxUV1 = new Vector2(float.MinValue, float.MinValue);
 				for (int j = 0; j < (int)face.ledge_num; ++j)
 				{
+
 					var listOfEdgesIndex = (int)face.ledge_id +j;
 					if (listOfEdgesIndex >= listOfEdges.Length)
 						throw new ApplicationException(string.Format("Edge list index {0} is out of range [0..{1}]", listOfEdgesIndex, listOfEdges.Length - 1));
@@ -99,32 +108,103 @@ namespace BspFileFormat.Q1HL1
 					var edgesvertex1 = edge.vertex1;
 					if (edgesvertex1 >= vertices.Count)
 						throw new ApplicationException(string.Format("Vertex index {0} is out of range [0..{1}]", edgesvertex1, vertices.Count - 1));
-					faceVertices[j] = (short)edgesvertex0;
+					BspGeometryVertex vertex = BuildVertex(vertices[(short)edgesvertex0], plane, ref surf);
+                    faceVertices[j] = vertex;
+					if (minUV0.X > vertex.UV0.X)
+						minUV0.X = vertex.UV0.X;
+					if (minUV0.Y > vertex.UV0.Y)
+						minUV0.Y = vertex.UV0.Y;
+					if (minUV1.X > vertex.UV1.X)
+						minUV1.X = vertex.UV1.X;
+					if (minUV1.Y > vertex.UV1.Y)
+						minUV1.Y = vertex.UV1.Y;
+					if (maxUV1.X < vertex.UV1.X)
+						maxUV1.X = vertex.UV1.X;
+					if (maxUV1.Y < vertex.UV1.Y)
+						maxUV1.Y = vertex.UV1.Y;
+					
 				}
+				minUV0.X = (float)System.Math.Floor(minUV0.X);
+				minUV0.Y = (float)System.Math.Floor(minUV0.Y);
 
-				var vert0 = BuildVertex(vertices[faceVertices[0]], n, ref surf);
+				minUV1.X = (float)System.Math.Floor(minUV1.X);
+				minUV1.Y = (float)System.Math.Floor(minUV1.Y);
+				maxUV1.X = (float)System.Math.Ceiling(maxUV1.X);
+				maxUV1.Y = (float)System.Math.Ceiling(maxUV1.Y);
+				var sizeLightmap = maxUV1 - minUV1 + new Vector2(1, 1);
+				for (int j = 0; j < (int)face.ledge_num; ++j)
+				{
+					faceVertices[j].UV0 = faceVertices[j].UV0 - minUV0;
+					faceVertices[j].UV1.X = (faceVertices[j].UV1.X - minUV1.X)/sizeLightmap.X;
+					faceVertices[j].UV1.Y = (faceVertices[j].UV1.Y - minUV1.Y) / sizeLightmap.Y;
+				}
+				Bitmap lightMap = null;
+				if (face.lightmap != -1)
+				{
+					var size = lighmapSize[face.lightmap];
+					var size2 = (sizeLightmap.X) * (sizeLightmap.Y);
+					lightMap = BuildFaceLightmap(face.lightmap, (int)sizeLightmap.X, (int)sizeLightmap.Y);
+					//var size2 = System.Math.Ceiling(maxUV1.X+1) * System.Math.Ceiling(maxUV1.Y);
+					lightMap.Save(string.Format("./textures/lightmap{0}.png", lightmapTestCounter));
+					++lightmapTestCounter;
+				}
+				
+				var vert0 = faceVertices[0];
 				for (int j = 1; j < faceVertices.Length-1; ++j)
 				{
-					BspGeometryVertex vert1 = BuildVertex(vertices[faceVertices[j]], n, ref surf);
-					BspGeometryVertex vert2 = BuildVertex(vertices[faceVertices[j + 1]], n, ref surf);
+					BspGeometryVertex vert1 = faceVertices[j];
+					BspGeometryVertex vert2 = faceVertices[j + 1];
 					var faceIndex = res.Vertices.Count;
 					res.Vertices.Add(vert0);
 					res.Vertices.Add(vert1);
 					res.Vertices.Add(vert2);
-					var geoFace = new BspGeometryFace() { Vertex0 = faceIndex, Vertex1 = faceIndex+1, Vertex2 = faceIndex+2 };
+					var geoFace = new BspGeometryFace() { Vertex0 = faceIndex, Vertex1 = faceIndex + 1, Vertex2 = faceIndex + 2, MaterialIndex = (int)surfaces[face.texinfo_id].texture_id, LightmapIndex = 0 };
 					res.Faces.Add(geoFace);
 				}
 			}
 			return res;
 		}
 
-		private BspGeometryVertex BuildVertex(Vector3 vector3, Vector3 n, ref surface_t surf)
+		public virtual Bitmap BuildFaceLightmap(int p, int w, int h)
+		{
+			var b = new Bitmap(w, h);
+			for (int y=0; y<h;++y)
+				for (int x = 0; x < w; ++x)
+				{
+					b.SetPixel(x, y, Color.FromArgb(lightmap[p], lightmap[p], lightmap[p]));
+					++p;
+				}
+			return b;
+		}
+
+		private BspGeometryVertex BuildVertex(Vector3 vector3, plane_t plane, ref surface_t surf)
 		{
 			var res = new BspGeometryVertex();
 			res.Position = vector3;
-			res.Normal = n;
+			res.Normal = plane.normal;
+			//res.UV0 = new Vector2(vector3.X, vector3.Y);
 			res.UV0 = new Vector2(Vector3.Dot(surf.vectorS, vector3) + surf.distS, Vector3.Dot(surf.vectorT, vector3) + surf.distT);
-			res.UV1 = Vector2.Zero;
+			res.UV1 = new Vector2(res.UV0.X / 16.0f, res.UV0.Y/16.0f);
+			/*
+			switch (plane.type)
+			{
+				case 0: //PLANE_X
+				case 3: //PLANE_ANYX
+					res.UV1 = new Vector2(vector3.Y / 16.0f, vector3.Z / 16.0f);
+					break;
+				case 1:
+				case 4:
+					res.UV1 = new Vector2(vector3.X / 16.0f, vector3.Z / 16.0f);
+					break;
+				case 2:
+				case 5:
+					res.UV1 = new Vector2(vector3.X / 16.0f, vector3.Y / 16.0f);
+					break;
+				default:
+					throw new ApplicationException("Unknown plane type");
+			}
+			*/
+			res.UV0 = new Vector2(res.UV0.X / (float)textures[(int)surf.texture_id].Width, res.UV0.Y / (float)textures[(int)surf.texture_id].Height);
 			return res;
 		}
 		private void ReadListOfEdges(BinaryReader source)
@@ -185,7 +265,7 @@ namespace BspFileFormat.Q1HL1
 				miptex_t miptex = new miptex_t();
 				var texPos = source.BaseStream.Position;
 				miptex.Read(source);
-				var tex = new EmbeddedTexture() { name = miptex.name };
+				var tex = new EmbeddedTexture() { name = miptex.name, Width = (int)miptex.width, Height = (int)miptex.height };
 				if (miptex.offset1 > 0)
 				{
 
@@ -319,14 +399,23 @@ namespace BspFileFormat.Q1HL1
 				throw new Exception();
 			int size = (int)(header.faces.size / 20);
 			int maxUsedEdgeListIndex = 0;
+			List<int> lighmapBorders = new List<int>();
+			
 			faces = new List<face_t>(size);
 			for (int i = 0; i < size; ++i)
 			{
 				var v = new face_t();
 				v.Read(source);
-				if (maxUsedEdgeListIndex < v.ledge_id + v.ledge_num) maxUsedEdgeListIndex = v.ledge_id + v.ledge_num;
+				if (v.lightmap != -1)
+					lighmapBorders.Add(v.lightmap);
+				if (maxUsedEdgeListIndex < v.ledge_id + v.ledge_num) 
+					maxUsedEdgeListIndex = v.ledge_id + v.ledge_num;
 				faces.Add(v);
 			}
+			lighmapBorders.Sort();
+			for (int i = 0; i < lighmapBorders.Count - 1; ++i)
+				lighmapSize[lighmapBorders[i]] = lighmapBorders[i + 1] - lighmapBorders[i];
+			lighmapSize[lighmapBorders[lighmapBorders.Count - 1]] = lightmap.Length - lighmapBorders[lighmapBorders.Count-1];
 			if (source.BaseStream.Position + startOfTheFile != header.faces.size + header.faces.offset)
 				throw new Exception();
 		}

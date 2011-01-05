@@ -53,7 +53,7 @@ int main()
 
 			CIwMat view;
 			view.LookAt(CIwVec3(0,0,IW_GEOM_ONE),CIwVec3(0,0,0),CIwVec3(0,IW_GEOM_ONE,0));
-			view.SetTrans(CIwVec3(0,0,2048));
+			view.SetTrans(CIwVec3(512,512,1048));
 			CIwMat modelMatrix;
 			modelMatrix.SetIdentity();
 
