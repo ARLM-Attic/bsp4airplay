@@ -13,11 +13,19 @@ namespace BspFileFormat
 	public class BspDocument
 	{
 		List<EmbeddedTexture> embeddedTextures = new List<EmbeddedTexture>();
-		public List<EmbeddedTexture> EmbeddedTextures
+		public IList<EmbeddedTexture> EmbeddedTextures
 		{
 			get
 			{
 				return embeddedTextures;
+			}
+		}
+		List<BspGeometry> models = new List<BspGeometry>();
+		public IList<BspGeometry> Models
+		{
+			get
+			{
+				return models;
 			}
 		}
 
@@ -68,6 +76,11 @@ namespace BspFileFormat
 		public void AddTexture(EmbeddedTexture tex)
 		{
 			embeddedTextures.Add(tex);
+		}
+
+		public void AddModel(BspGeometry bspGeometry)
+		{
+			models.Add(bspGeometry);
 		}
 	}
 }

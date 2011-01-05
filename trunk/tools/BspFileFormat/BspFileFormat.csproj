@@ -39,6 +39,8 @@
   <ItemGroup>
     <Compile Include="BspDocument.cs" />
     <Compile Include="BspGeometry.cs" />
+    <Compile Include="BspGeometryFace.cs" />
+    <Compile Include="BspGeometryVertex.cs" />
     <Compile Include="BspTreeElement.cs" />
     <Compile Include="BspTreeLeaf.cs" />
     <Compile Include="BspTreeNode.cs" />

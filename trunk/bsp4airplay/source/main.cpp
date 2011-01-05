@@ -1,5 +1,6 @@
 #include <s3e.h>
 #include <IwGx.h>
+#include <IwGraphics.h>
 
 
 //-----------------------------------------------------------------------------
@@ -9,11 +10,14 @@ int main()
 {
 	IwGxInit();
 	IwResManagerInit();
+	IwGraphicsInit();
 
-	IwGxSetColClear(0xff, 0xff, 0xff, 0xff);
+	IwGxSetColClear(0x7f, 0x7f, 0x7f, 0x7f);
 	IwGxPrintSetColour(128, 128, 128);
 
-	//CIwResGroup* music = IwGetResManager()->LoadGroup("music.group");
+	CIwResGroup* group = IwGetResManager()->LoadGroup("models/sample.group");
+	CIwModel* model = static_cast<CIwModel*>(group->GetResNamed("q1_0", "CIwModel"));
+
 	//CTune* tune = static_cast<CTune*>(music->GetResNamed("drumkit", TUNE4AIRPLAY_RESTYPE_TUNE));
 	//ISampler * sample = tune->GetSample(0);
 
@@ -46,10 +50,26 @@ int main()
 				break;
 
 			IwGxClear(IW_GX_COLOUR_BUFFER_F | IW_GX_DEPTH_BUFFER_F);
+
+			CIwMat view;
+			view.LookAt(CIwVec3(0,0,IW_GEOM_ONE),CIwVec3(0,0,0),CIwVec3(0,IW_GEOM_ONE,0));
+			view.SetTrans(CIwVec3(0,0,2048));
+			CIwMat modelMatrix;
+			modelMatrix.SetIdentity();
+
+			IwGxSetPerspMul(IwGxGetScreenWidth()/2);
+			IwGxSetFarZNearZ(4096,16);
+
+			IwGxSetViewMatrix(&view);
+			IwGxSetModelMatrix(&modelMatrix);
+			IwGxLightingOff();
+			
+			model->Render();
 			IwGxFlush();
 			IwGxSwapBuffers();
 		}
 	}
+	IwGraphicsTerminate();
 	IwResManagerTerminate();
 	IwGxTerminate();
 	return 0;

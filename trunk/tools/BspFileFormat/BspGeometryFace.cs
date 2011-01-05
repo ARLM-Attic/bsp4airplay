@@ -6,9 +6,10 @@ using BspFileFormat.Math;
 
 namespace BspFileFormat
 {
-	public class BspGeometry
+	public class BspGeometryFace
 	{
-		public IList<BspGeometryVertex> Vertices;
-		public IList<BspGeometryFace> Faces;
+		public int Vertex0;
+		public int Vertex1;
+		public int Vertex2;
 	}
 }

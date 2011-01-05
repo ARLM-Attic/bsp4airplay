@@ -6,5 +6,6 @@ namespace AirplaySDKFileFormats
 {
 	public class CIwResGroup
 	{
+		public IList<CIwResource> Resources { get; set; }
 	}
 }

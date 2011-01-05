@@ -36,9 +36,23 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CIwColour.cs" />
     <Compile Include="CIwManaged.cs" />
+    <Compile Include="CIwMaterial.cs" />
+    <Compile Include="CIwModel.cs" />
     <Compile Include="CIwResGroup.cs" />
     <Compile Include="CIwResource.cs" />
+    <Compile Include="CIwTexture.cs" />
+    <Compile Include="CIwVec2.cs" />
+    <Compile Include="CIwVec3.cs" />
+    <Compile Include="Model\CMesh.cs" />
+    <Compile Include="Model\CSurface.cs" />
+    <Compile Include="Model\CTris.cs" />
+    <Compile Include="Model\CUVs.cs" />
+    <Compile Include="Model\CVertCols.cs" />
+    <Compile Include="Model\CVertNorms.cs" />
+    <Compile Include="Model\CVerts.cs" />
+    <Compile Include="Model\ModelWriter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

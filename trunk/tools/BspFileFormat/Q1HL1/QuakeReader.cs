@@ -21,10 +21,12 @@ namespace BspFileFormat.Q1HL1
 		protected List<plane_t> planes;
 		protected List<node_t> nodes;
 		protected List<dleaf_t> dleaves;
+		protected List<surface_t> surfaces;
 		protected byte[] visilist;
 		protected byte[] lightmap;
 		protected ushort[] listOfFaces;
-		protected ushort[] listOfEdges;
+		protected short[] listOfEdges;
+		private int maxUsedEdge;
 
 		public void ReadBsp(System.IO.BinaryReader source, BspDocument dest)
 		{
@@ -33,6 +35,7 @@ namespace BspFileFormat.Q1HL1
 			ReadHeader(source);
 			ReadPlanes(source);
 			ReadTextures(source);
+			ReadTextureInfos(source);
 			ReadVisilist(source);
 			ReadEdges(source);
 			ReadNodes(source);
@@ -52,15 +55,89 @@ namespace BspFileFormat.Q1HL1
 			{
 				var n = BuildNode(nodes[0]);
 			}
+
+			if (models != null)
+				foreach (var model in models)
+					dest.AddModel(BuildGeometry(model));
+		}
+
+		private BspGeometry BuildGeometry(model_t model)
+		{
+			var res = new BspGeometry() { Vertices = new List<BspGeometryVertex>(), Faces = new List<BspGeometryFace>() };
+			//Dictionary<BspGeometryVertex,int> vertices = new Dictionary<BspGeometryVertex,int>();
+			for (uint i = model.face_id; i < model.face_id + model.face_num; ++i)
+			{
+				var face = faces[listOfFaces[i]];
+				if (face.ledge_num == 0)
+					continue;
+
+				var n = planes[face.plane_id].normal;
+				var surf = surfaces[face.texinfo_id];
+				var faceVertices = new short[face.ledge_num];
+
+				for (int j = 0; j < (int)face.ledge_num; ++j)
+				{
+					var listOfEdgesIndex = (int)face.ledge_id +j;
+					if (listOfEdgesIndex >= listOfEdges.Length)
+						throw new ApplicationException(string.Format("Edge list index {0} is out of range [0..{1}]", listOfEdgesIndex, listOfEdges.Length - 1));
+					var edgeIndex = listOfEdges[listOfEdgesIndex];
+					if (edgeIndex >= edges.Count)
+						throw new ApplicationException(string.Format("Edge index {0} is out of range [0..{1}]", edgeIndex, edges.Count - 1));
+					edge_t edge;
+					if (edgeIndex >= 0)
+					{
+						edge = edges[edgeIndex];
+					}
+					else
+					{
+						var flippedEdge = edges[-edgeIndex];
+						edge = new edge_t() { vertex0 = flippedEdge.vertex1, vertex1 = flippedEdge.vertex0 };
+					}
+					var edgesvertex0 = edge.vertex0;
+					if (edgesvertex0 >= vertices.Count)
+						throw new ApplicationException(string.Format("Vertex index {0} is out of range [0..{1}]", edgesvertex0, vertices.Count - 1));
+					var edgesvertex1 = edge.vertex1;
+					if (edgesvertex1 >= vertices.Count)
+						throw new ApplicationException(string.Format("Vertex index {0} is out of range [0..{1}]", edgesvertex1, vertices.Count - 1));
+					faceVertices[j] = (short)edgesvertex0;
+				}
+
+				var vert0 = BuildVertex(vertices[faceVertices[0]], n, ref surf);
+				for (int j = 1; j < faceVertices.Length-1; ++j)
+				{
+					BspGeometryVertex vert1 = BuildVertex(vertices[faceVertices[j]], n, ref surf);
+					BspGeometryVertex vert2 = BuildVertex(vertices[faceVertices[j + 1]], n, ref surf);
+					var faceIndex = res.Vertices.Count;
+					res.Vertices.Add(vert0);
+					res.Vertices.Add(vert1);
+					res.Vertices.Add(vert2);
+					var geoFace = new BspGeometryFace() { Vertex0 = faceIndex, Vertex1 = faceIndex+1, Vertex2 = faceIndex+2 };
+					res.Faces.Add(geoFace);
+				}
+			}
+			return res;
+		}
+
+		private BspGeometryVertex BuildVertex(Vector3 vector3, Vector3 n, ref surface_t surf)
+		{
+			var res = new BspGeometryVertex();
+			res.Position = vector3;
+			res.Normal = n;
+			res.UV0 = new Vector2(Vector3.Dot(surf.vectorS, vector3) + surf.distS, Vector3.Dot(surf.vectorT, vector3) + surf.distT);
+			res.UV1 = Vector2.Zero;
+			return res;
 		}
 		private void ReadListOfEdges(BinaryReader source)
 		{
 			SeekDir(source, header.ledges);
-			int size = (int)(header.ledges.size / 2);
-			listOfFaces = new ushort[size];
+			int size = (int)(header.ledges.size / 4);
+			listOfEdges = new short[size];
+			maxUsedEdge = 0;
 			for (int i = 0; i < size; ++i)
 			{
-				listOfEdges[i] = source.ReadUInt16();
+				listOfEdges[i] = (short)source.ReadInt32();
+				if (listOfEdges[i] > maxUsedEdge)
+					maxUsedEdge = listOfEdges[i];
 			}
 		}
 		private void ReadListOfFaces(BinaryReader source)
@@ -150,6 +227,24 @@ namespace BspFileFormat.Q1HL1
 				textures.Add(tex);
 			}
 		}
+		private void ReadTextureInfos(BinaryReader source)
+		{
+			SeekDir(source, header.texinfo);
+			if (header.texinfo.size % 40 != 0)
+				throw new Exception();
+
+			int size = (int)(header.texinfo.size / 40);
+
+			surfaces = new List<surface_t>(size);
+			for (int i = 0; i < size; ++i)
+			{
+				var v = new surface_t();
+				v.Read(source);
+				surfaces.Add(v);
+			}
+			if (source.BaseStream.Position + startOfTheFile != header.texinfo.size + header.texinfo.offset)
+				throw new Exception();
+		}
 
 		private void ReadNodes(BinaryReader source)
 		{
@@ -223,11 +318,13 @@ namespace BspFileFormat.Q1HL1
 			if (header.faces.size % 20 != 0)
 				throw new Exception();
 			int size = (int)(header.faces.size / 20);
+			int maxUsedEdgeListIndex = 0;
 			faces = new List<face_t>(size);
 			for (int i = 0; i < size; ++i)
 			{
 				var v = new face_t();
 				v.Read(source);
+				if (maxUsedEdgeListIndex < v.ledge_id + v.ledge_num) maxUsedEdgeListIndex = v.ledge_id + v.ledge_num;
 				faces.Add(v);
 			}
 			if (source.BaseStream.Position + startOfTheFile != header.faces.size + header.faces.offset)

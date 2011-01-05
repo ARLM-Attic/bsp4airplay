@@ -6,14 +6,28 @@ using BspFileFormat.Math;
 
 namespace BspFileFormat.Q1HL1
 {
-	struct surface_t
+	public struct surface_t
 	{
-		Vector3 vectorS;            // S vector, horizontal in texture space)
-		float distS;              // horizontal offset in texture space
-		Vector3 vectorT;            // T vector, vertical in texture space
-		float distT;              // vertical offset in texture space
-		uint texture_id;         // Index of Mip Texture
+		public Vector3 vectorS;            // S vector, horizontal in texture space)
+		public float distS;              // horizontal offset in texture space
+		public Vector3 vectorT;            // T vector, vertical in texture space
+		public float distT;              // vertical offset in texture space
+		public uint texture_id;         // Index of Mip Texture
 		//           must be in [0,numtex[
-		uint animated;           // 0 for ordinary textures, 1 for water 
+		public uint animated;           // 0 for ordinary textures, 1 for water 
+
+		internal void Read(System.IO.BinaryReader source)
+		{
+			vectorS.X = source.ReadSingle();
+			vectorS.Y = source.ReadSingle();
+			vectorS.Z = source.ReadSingle();
+			distS = source.ReadSingle();
+			vectorT.X = source.ReadSingle();
+			vectorT.Y = source.ReadSingle();
+			vectorT.Z = source.ReadSingle();
+			distT = source.ReadSingle();
+			texture_id = source.ReadUInt32();
+			animated = source.ReadUInt32();
+		}
 	} ;
 }

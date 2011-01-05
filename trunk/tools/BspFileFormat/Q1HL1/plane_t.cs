@@ -8,11 +8,11 @@ namespace BspFileFormat.Q1HL1
 {
 	public struct plane_t
 	{
-		Vector3 normal;               // Vector orthogonal to plane (Nx,Ny,Nz)
+		public Vector3 normal;               // Vector orthogonal to plane (Nx,Ny,Nz)
 		// with Nx2+Ny2+Nz2 = 1
-		float dist;               // Offset to plane, along the normal vector.
+		public float dist;               // Offset to plane, along the normal vector.
 		// Distance from (0,0,0) to the plane
-		int type;                // Type of plane, depending on normal vector.
+		public int type;                // Type of plane, depending on normal vector.
 
 		internal void Read(System.IO.BinaryReader source)
 		{

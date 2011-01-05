@@ -8,18 +8,18 @@ namespace BspFileFormat.Q1HL1
 {
 	public struct face_t
 	{
-		ushort plane_id;            // The plane in which the face lies
+		public ushort plane_id;            // The plane in which the face lies
 		//           must be in [0,numplanes[ 
-		ushort side;                // 0 if in front of the plane, 1 if behind the plane
-		int ledge_id;               // first edge in the List of edges
+		public ushort side;                // 0 if in front of the plane, 1 if behind the plane
+		public int ledge_id;               // first edge in the List of edges
 		//           must be in [0,numledges[
-		ushort ledge_num;           // number of edges in the List of edges
-		ushort texinfo_id;          // index of the Texture info the face is part of
+		public ushort ledge_num;           // number of edges in the List of edges
+		public ushort texinfo_id;          // index of the Texture info the face is part of
 		//           must be in [0,numtexinfos[ 
-		byte typelight;            // type of lighting, for the face
-		byte baselight;            // from 0xFF (dark) to 0 (bright)
-		byte[] light;             // two additional light models  [2]
-		int lightmap;               // Pointer inside the general light map, or -1
+		public byte typelight;            // type of lighting, for the face
+		public byte baselight;            // from 0xFF (dark) to 0 (bright)
+		public byte[] light;             // two additional light models  [2]
+		public int lightmap;               // Pointer inside the general light map, or -1
 		// this define the start of the face light map
 
 		internal void Read(System.IO.BinaryReader source)
