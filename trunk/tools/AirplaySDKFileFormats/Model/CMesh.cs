@@ -2,7 +2,11 @@ using System.Collections.Generic;
 
 namespace AirplaySDKFileFormats.Model
 {
-	public class CMesh
+	/// <summary>
+	/// CMesh
+	/// Airplay SDK implements this through ParseMesh helper class
+	/// </summary>
+	public class CMesh : CIwParseable
 	{
 		public string Name;
 		public float Scale;

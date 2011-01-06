@@ -4,7 +4,8 @@ using System.Text;
 
 namespace AirplaySDKFileFormats
 {
-	public class CIwResource
+	public class CIwResource: CIwManaged
 	{
+		
 	}
 }

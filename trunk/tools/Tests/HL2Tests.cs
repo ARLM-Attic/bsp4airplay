@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using NUnit.Framework;
 using BspFileFormat;
+using Bsp2AirplayAdapter;
 
 namespace Tests
 {
@@ -12,7 +13,7 @@ namespace Tests
 		[Test]
 		public void TestHL2()
 		{
-			var doc = BspDocument.Load(@"..\data\maps\leonHL2_1.bsp");
+			(new Adapter()).Convert(@"..\data\maps\leonHL2_1.bsp", @"..\data\maps\leonHL2_1.group");
 		}
 	}
 }

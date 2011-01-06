@@ -6,6 +6,19 @@ includepaths
 files
 {
 	("source")
+	b4aLevel.cpp 
+	b4aLevel.h
+	b4aLeaf.cpp 
+	b4aLeaf.h
+	b4aNode.cpp 
+	b4aNode.h
+	b4aEntity.cpp 
+	b4aEntity.h
+	b4aSolidGeometry.h
+	b4aSolidGeometry.cpp
+	Bsp4Airplay.cpp
+	Bsp4Airplay.h 
+
 }
 subprojects
 {

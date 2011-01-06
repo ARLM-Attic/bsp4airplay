@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using NUnit.Framework;
 using BspFileFormat;
+using Bsp2AirplayAdapter;
 
 namespace Tests
 {
@@ -12,7 +13,7 @@ namespace Tests
 		[Test]
 		public void TestQ3()
 		{
-			var doc = BspDocument.Load(@"..\data\maps\q3shw18.bsp");
+			(new Adapter()).Convert(@"..\data\maps\q3shw18.bsp", @"..\data\maps\q3shw18.group");
 		}
 	}
 }

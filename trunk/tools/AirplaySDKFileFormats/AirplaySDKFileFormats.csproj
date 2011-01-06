@@ -36,15 +36,26 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AirplaySDKMath.cs" />
+    <Compile Include="Cb4aEntity.cs" />
+    <Compile Include="Cb4aLeaf.cs" />
+    <Compile Include="Cb4aLevel.cs" />
+    <Compile Include="Cb4aNode.cs" />
+    <Compile Include="Cb4aTreeElement.cs" />
     <Compile Include="CIwColour.cs" />
     <Compile Include="CIwManaged.cs" />
+    <Compile Include="CIwManagedList.cs" />
     <Compile Include="CIwMaterial.cs" />
     <Compile Include="CIwModel.cs" />
+    <Compile Include="CIwModelBlock.cs" />
+    <Compile Include="CIwParseable.cs" />
     <Compile Include="CIwResGroup.cs" />
     <Compile Include="CIwResource.cs" />
+    <Compile Include="CIwTextParserITX.cs" />
     <Compile Include="CIwTexture.cs" />
     <Compile Include="CIwVec2.cs" />
     <Compile Include="CIwVec3.cs" />
+    <Compile Include="CTextWriter.cs" />
     <Compile Include="Model\CMesh.cs" />
     <Compile Include="Model\CSurface.cs" />
     <Compile Include="Model\CTris.cs" />

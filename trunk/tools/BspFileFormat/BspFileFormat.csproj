@@ -40,15 +40,16 @@
     <Compile Include="BspDocument.cs" />
     <Compile Include="BspGeometry.cs" />
     <Compile Include="BspGeometryFace.cs" />
-    <Compile Include="BspGeometryMaterial.cs" />
     <Compile Include="BspGeometryVertex.cs" />
+    <Compile Include="BspTexture.cs" />
+    <Compile Include="BspTextureReference.cs" />
     <Compile Include="BspTreeElement.cs" />
     <Compile Include="BspTreeLeaf.cs" />
     <Compile Include="BspTreeNode.cs" />
     <Compile Include="HL2\HL2Reader.cs" />
-    <Compile Include="Math\MathHelper.cs" />
-    <Compile Include="Math\Vector2.cs" />
-    <Compile Include="Math\Vector3.cs" />
+    <Compile Include="BspMath\MathHelper.cs" />
+    <Compile Include="BspMath\Vector2.cs" />
+    <Compile Include="BspMath\Vector3.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Q1HL1\bboxshort_t.cs" />
     <Compile Include="Q1HL1\boundbox_t.cs" />
@@ -70,7 +71,7 @@
     <Compile Include="Q1HL1\surface_t.cs" />
     <Compile Include="Q2\Quake2Reader.cs" />
     <Compile Include="Q3\Quake3Reader.cs" />
-    <Compile Include="EmbeddedTexture.cs" />
+    <Compile Include="BspEmbeddedTexture.cs" />
     <Compile Include="Utils\IBspReader.cs" />
   </ItemGroup>
   <ItemGroup />

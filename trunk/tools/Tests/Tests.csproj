@@ -71,6 +71,10 @@
       <Project>{BA52206A-6C08-4E21-8327-6E6CE2AD9076}</Project>
       <Name>AirplaySDKFileFormats</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Bsp2AirplayAdapter\Bsp2AirplayAdapter.csproj">
+      <Project>{2A3CAC87-19E2-47B2-992B-66F7FB177073}</Project>
+      <Name>Bsp2AirplayAdapter</Name>
+    </ProjectReference>
     <ProjectReference Include="..\BspFileFormat\BspFileFormat.csproj">
       <Project>{AE0150A6-6DCB-4F21-8656-F0C19326590E}</Project>
       <Name>BspFileFormat</Name>

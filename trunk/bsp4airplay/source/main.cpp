@@ -1,6 +1,7 @@
 #include <s3e.h>
 #include <IwGx.h>
 #include <IwGraphics.h>
+#include <Bsp4Airplay.h>
 
 
 //-----------------------------------------------------------------------------
@@ -11,29 +12,15 @@ int main()
 	IwGxInit();
 	IwResManagerInit();
 	IwGraphicsInit();
+	Bsp4Airplay::Bsp4AirpayInit();
 
 	IwGxSetColClear(0x7f, 0x7f, 0x7f, 0x7f);
 	IwGxPrintSetColour(128, 128, 128);
 
-	CIwResGroup* group = IwGetResManager()->LoadGroup("models/sample.group");
-	CIwModel* model = static_cast<CIwModel*>(group->GetResNamed("q1_0", "CIwModel"));
-
-	//CTune* tune = static_cast<CTune*>(music->GetResNamed("drumkit", TUNE4AIRPLAY_RESTYPE_TUNE));
-	//ISampler * sample = tune->GetSample(0);
-
-	//int32 freq = (int32)sample->GetC5Speed();
-	//s3eSoundSetInt(S3E_SOUND_DEFAULT_FREQ, freq);
-
+	CIwResGroup* group = IwGetResManager()->LoadGroup("maps/sg0503.group");
+	//Cb4aLevel* model = static_cast<Cb4aLevel*>(group->GetResNamed("sg0503", "Cb4aLevel"));
 	{
-		//CTuneMixer mixer;
-		//mixer.Play(tune);
-
-		//int channel = s3eSoundGetFreeChannel();
-		//s3eSoundChannelPlay(channel,sample->GetData(0),sample->GetSamples(),0,0);
-
-		
-		
-
+	
 		while (1)
 		{
 			s3eDeviceYield(0);
@@ -64,11 +51,12 @@ int main()
 			IwGxSetModelMatrix(&modelMatrix);
 			IwGxLightingOff();
 			
-			model->Render();
+			//model->Render();
 			IwGxFlush();
 			IwGxSwapBuffers();
 		}
 	}
+	Bsp4Airplay::Bsp4AirpayTerminate();
 	IwGraphicsTerminate();
 	IwResManagerTerminate();
 	IwGxTerminate();

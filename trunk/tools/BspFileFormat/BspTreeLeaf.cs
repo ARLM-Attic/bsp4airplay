@@ -7,5 +7,6 @@ namespace BspFileFormat
 {
 	public class BspTreeLeaf : BspTreeElement
 	{
+		public List<BspTreeLeaf> VisibleLeaves = new List<BspTreeLeaf>();
 	}
 }

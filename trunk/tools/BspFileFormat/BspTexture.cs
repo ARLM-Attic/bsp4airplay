@@ -1,14 +1,13 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Drawing;
 
 namespace BspFileFormat
 {
-	public class EmbeddedTexture
+	public class BspTexture
 	{
-		public string name;
-		public Bitmap[] mipMaps;
+		public string Name;
 		public int Width;
 		public int Height;
 	}

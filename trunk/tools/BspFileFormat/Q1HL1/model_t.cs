@@ -1,4 +1,4 @@
-using BspFileFormat.Math;
+using BspFileFormat.BspMath;
 
 namespace BspFileFormat.Q1HL1
 {

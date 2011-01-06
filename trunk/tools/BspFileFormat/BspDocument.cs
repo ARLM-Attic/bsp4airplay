@@ -12,14 +12,15 @@ namespace BspFileFormat
 {
 	public class BspDocument
 	{
-		List<EmbeddedTexture> embeddedTextures = new List<EmbeddedTexture>();
-		public IList<EmbeddedTexture> EmbeddedTextures
+		List<BspEntity> entities = new List<BspEntity>();
+		public IList<BspEntity> Entities
 		{
 			get
 			{
-				return embeddedTextures;
+				return entities;
 			}
 		}
+
 		List<BspGeometry> models = new List<BspGeometry>();
 		public IList<BspGeometry> Models
 		{
@@ -29,16 +30,26 @@ namespace BspFileFormat
 			}
 		}
 
+		public BspTreeElement Tree
+		{
+			get;
+			set;
+		}
+
 		public BspDocument()
 		{
 		}
 
 		public static BspDocument Load(string p)
 		{
-			return Load(File.OpenRead(p));
+			string name = Path.GetFileNameWithoutExtension(p);
+			var r = Load(File.OpenRead(p));
+			if (r.Name == null)
+				r.Name = name;
+			return r;
 		}
 
-		private static BspDocument Load(FileStream fileStream)
+		private static BspDocument Load(Stream fileStream)
 		{
 			using (BinaryReader r = new BinaryReader(fileStream))
 			{
@@ -73,14 +84,11 @@ namespace BspFileFormat
 			return res;
 		}
 
-		public void AddTexture(EmbeddedTexture tex)
-		{
-			embeddedTextures.Add(tex);
-		}
-
 		public void AddModel(BspGeometry bspGeometry)
 		{
 			models.Add(bspGeometry);
 		}
+
+		public string Name { get; set; }
 	}
 }
