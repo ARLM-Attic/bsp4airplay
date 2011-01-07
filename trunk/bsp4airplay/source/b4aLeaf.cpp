@@ -14,6 +14,8 @@ namespace Bsp4Airplay
 //Constructor
 Cb4aLeaf::Cb4aLeaf()
 {
+	modelHash = 0;
+	model = 0;
 }
 
 //Desctructor
@@ -24,6 +26,24 @@ Cb4aLeaf::~Cb4aLeaf()
 // Reads/writes a binary file using IwSerialise interface. 
 void  Cb4aLeaf::Serialise ()
 {
+	IwSerialiseUInt32(modelHash);
+
+	visible_leaves.SerialiseHeader();
+	for (uint32 i=0; i<visible_leaves.size(); ++i)
+		IwSerialiseInt32(visible_leaves[i]);
+
+}
+
+void Cb4aLeaf::Render()
+{
+	if (!model)
+	{
+		if (!modelHash)
+			return;
+		model = (CIwModel*)IwGetResManager()->GetResHashed(modelHash, "CIwModel");
+	}
+
+	model->Render();
 }
 #ifdef IW_BUILD_RESOURCES
 void* Bsp4Airplay::Cb4aLeafFactory()
@@ -54,6 +74,11 @@ bool ParseLeaf::ParseAttribute(CIwTextParserITX *pParser, const char *pAttrName)
 		int32 n;
 		pParser->ReadInt32(&n);
 		_this->visible_leaves.push_back(n);
+		return true;
+	}
+	if (!strcmp("model", pAttrName))
+	{
+		pParser->ReadStringHash(&_this->modelHash);
 		return true;
 	}
 	return CIwManaged::ParseAttribute(pParser,pAttrName);

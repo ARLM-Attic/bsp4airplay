@@ -66,56 +66,16 @@ namespace BspFileFormat.Q1HL1
 			BuildVisibilityList();
 
 			if (models != null)
-				foreach (var model in models)
-					dest.AddModel(BuildGeometry(model));
-
-			BuildEntities(dest);
-		}
-
-		private void BuildEntities(BspDocument dest)
-		{
-			var lines = entities.Split(new char[]{'\n','\r'}, StringSplitOptions.RemoveEmptyEntries);
-			BspEntity entity = null;
-			foreach (var rawline in lines)
 			{
-				var line = rawline.Trim();
-				if (line == "{")
-				{
-					entity = new BspEntity();
-					dest.Entities.Add(entity);
-					continue;
-				}
-				if (line == "}")
-				{
-					entity = null;
-					continue;
-				}
-				int keyStartsAt = line.IndexOf('\"')+1;
-				if (keyStartsAt <= 0)
-					continue;
-				int keyEndsAt = line.IndexOf('\"', keyStartsAt);
-				int valueStartsAt = line.IndexOf('\"', keyEndsAt+1)+1;
-				var key = line.Substring(keyStartsAt, keyEndsAt - keyStartsAt);
-				var val = line.Substring(valueStartsAt, line.Length - 1 - valueStartsAt);
-				if (key == "classname")
-				{
-					entity.ClassName = val;
-				}
-				else if (key == "origin")
-				{
-					var vals = val.Split(new char[]{' '});
-					entity.Origin = new Vector3(
-						float.Parse(vals[0], CultureInfo.InvariantCulture),
-						float.Parse(vals[1], CultureInfo.InvariantCulture),
-						float.Parse(vals[2], CultureInfo.InvariantCulture)
-						);
-				}
-				else
-				{
-					entity.Values.Add(new KeyValuePair<string, string>(key,val));
-				}
+				//foreach (var model in models)
+				for (int i = 1; i < models.Count; ++i)
+					dest.AddModel(BuildGeometry(models[i]));
 			}
+
+			ReaderHelper.BuildEntities(entities, dest);
 		}
+
+		
 
 		private void ReadEntities(BinaryReader source)
 		{
@@ -125,11 +85,11 @@ namespace BspFileFormat.Q1HL1
 		}
 
 		int lightmapTestCounter = 0;
-		private BspGeometry BuildGeometry(model_t model)
+		private BspGeometry BuildGeometry(uint fromFace, uint numFaces)
 		{
 			var res = new BspGeometry() { Faces = new List<BspGeometryFace>() };
 
-			for (uint i = model.face_id; i < model.face_id + model.face_num; ++i)
+			for (uint i = fromFace; i < fromFace + numFaces; ++i)
 			{
 				var face = faces[listOfFaces[i]];
 				if (face.ledge_num == 0)
@@ -144,7 +104,7 @@ namespace BspFileFormat.Q1HL1
 				for (int j = 0; j < (int)face.ledge_num; ++j)
 				{
 
-					var listOfEdgesIndex = (int)face.ledge_id +j;
+					var listOfEdgesIndex = (int)face.ledge_id + j;
 					if (listOfEdgesIndex >= listOfEdges.Length)
 						throw new ApplicationException(string.Format("Edge list index {0} is out of range [0..{1}]", listOfEdgesIndex, listOfEdges.Length - 1));
 					var edgeIndex = listOfEdges[listOfEdgesIndex];
@@ -167,7 +127,7 @@ namespace BspFileFormat.Q1HL1
 					if (edgesvertex1 >= vertices.Count)
 						throw new ApplicationException(string.Format("Vertex index {0} is out of range [0..{1}]", edgesvertex1, vertices.Count - 1));
 					BspGeometryVertex vertex = BuildVertex(vertices[(short)edgesvertex0], plane, ref surf);
-                    faceVertices[j] = vertex;
+					faceVertices[j] = vertex;
 					if (minUV0.X > vertex.UV0.X)
 						minUV0.X = vertex.UV0.X;
 					if (minUV0.Y > vertex.UV0.Y)
@@ -180,7 +140,7 @@ namespace BspFileFormat.Q1HL1
 						maxUV1.X = vertex.UV1.X;
 					if (maxUV1.Y < vertex.UV1.Y)
 						maxUV1.Y = vertex.UV1.Y;
-					
+
 				}
 				minUV0.X = (float)System.Math.Floor(minUV0.X);
 				minUV0.Y = (float)System.Math.Floor(minUV0.Y);
@@ -193,7 +153,7 @@ namespace BspFileFormat.Q1HL1
 				for (int j = 0; j < (int)face.ledge_num; ++j)
 				{
 					faceVertices[j].UV0 = faceVertices[j].UV0 - minUV0;
-					faceVertices[j].UV1.X = (faceVertices[j].UV1.X - minUV1.X)/sizeLightmap.X;
+					faceVertices[j].UV1.X = (faceVertices[j].UV1.X - minUV1.X) / sizeLightmap.X;
 					faceVertices[j].UV1.Y = (faceVertices[j].UV1.Y - minUV1.Y) / sizeLightmap.Y;
 				}
 				BspTexture lightMap = null;
@@ -208,9 +168,9 @@ namespace BspFileFormat.Q1HL1
 						Height = (int)sizeLightmap.Y
 					};
 				}
-				
+
 				var vert0 = faceVertices[0];
-				for (int j = 1; j < faceVertices.Length-1; ++j)
+				for (int j = 1; j < faceVertices.Length - 1; ++j)
 				{
 					BspGeometryVertex vert1 = faceVertices[j];
 					BspGeometryVertex vert2 = faceVertices[j + 1];
@@ -219,6 +179,11 @@ namespace BspFileFormat.Q1HL1
 				}
 			}
 			return res;
+		}
+		private BspGeometry BuildGeometry(model_t model)
+		{
+			return BuildGeometry(model.face_id, model.face_num);
+			
 		}
 
 		public virtual Bitmap BuildFaceLightmap(int p, int w, int h)
@@ -348,6 +313,7 @@ namespace BspFileFormat.Q1HL1
 		private BspTreeLeaf BuildLeaf(dleaf_t dleaf)
 		{
 			var res = new BspTreeLeaf();
+			res.Geometry = BuildGeometry(dleaf.lface_id, dleaf.lface_num);
 			return res;
 		}
 

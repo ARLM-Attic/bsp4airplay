@@ -46,6 +46,8 @@
     <Compile Include="BspTreeElement.cs" />
     <Compile Include="BspTreeLeaf.cs" />
     <Compile Include="BspTreeNode.cs" />
+    <Compile Include="HL2\dentry_t.cs" />
+    <Compile Include="HL2\header_t.cs" />
     <Compile Include="HL2\HL2Reader.cs" />
     <Compile Include="BspMath\MathHelper.cs" />
     <Compile Include="BspMath\Vector2.cs" />
@@ -69,10 +71,15 @@
     <Compile Include="Q1HL1\Quake1Reader.cs" />
     <Compile Include="Q1HL1\QuakeReader.cs" />
     <Compile Include="Q1HL1\surface_t.cs" />
+    <Compile Include="Q2\dentry_t.cs" />
+    <Compile Include="Q2\header_t.cs" />
     <Compile Include="Q2\Quake2Reader.cs" />
+    <Compile Include="Q3\dentry_t.cs" />
+    <Compile Include="Q3\header_t.cs" />
     <Compile Include="Q3\Quake3Reader.cs" />
     <Compile Include="BspEmbeddedTexture.cs" />
     <Compile Include="Utils\IBspReader.cs" />
+    <Compile Include="Utils\ReaderHelper.cs" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

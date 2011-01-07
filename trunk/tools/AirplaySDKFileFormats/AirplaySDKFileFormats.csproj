@@ -59,6 +59,7 @@
     <Compile Include="Model\CMesh.cs" />
     <Compile Include="Model\CSurface.cs" />
     <Compile Include="Model\CTris.cs" />
+    <Compile Include="Model\CTrisElement.cs" />
     <Compile Include="Model\CUVs.cs" />
     <Compile Include="Model\CVertCols.cs" />
     <Compile Include="Model\CVertNorms.cs" />

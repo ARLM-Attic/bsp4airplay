@@ -14,16 +14,33 @@ namespace AirplaySDKFileFormats
 
 		bool isLineOpened;
 		int depth = 0;
-
+		public string FileName
+		{
+			get
+			{
+				return filePath;
+			}
+		}
+		public string FileDirectory
+		{
+			get
+			{
+				return Path.GetDirectoryName(Path.GetFullPath(filePath));
+			}
+		}
 		public CTextWriter(string groupFilePath)
 		{
 			filePath = groupFilePath;
 			writer = new StreamWriter(File.Create(filePath));
 		}
+		public void Write(string text)
+		{
+			writer.Write(text);
+		}
 		public void WriteLine(string text)
 		{
 			BeginWriteLine();
-			writer.Write(text);
+			Write(text);
 			EndWriteLine();
 		}
 		public void WriteKeyVal(string name, object val)
@@ -32,7 +49,8 @@ namespace AirplaySDKFileFormats
 		}
 		public void WriteString(string name, string val)
 		{
-			WriteKeyVal(name, string.Format("\"{0}\"", val.Replace("\"", "\\\"")));
+			if (val != null)
+				WriteKeyVal(name, string.Format("\"{0}\"", val.Replace("\"", "\\\"")));
 		}
 		public void OpenChild(string name)
 		{
@@ -78,9 +96,20 @@ namespace AirplaySDKFileFormats
 
 		public void WriteVec3(string name, CIwVec3 val)
 		{
-			WriteKeyVal(name, string.Format(CultureInfo.InvariantCulture, "{{{0}, {1}, {2}}}", val.x, val.y, val.z));
+			WriteArray(name, new int[]{val.x, val.y, val.z});
 		}
-
+		public void WriteVec2(string name, CIwVec2 val)
+		{
+			WriteArray(name, new int[] { val.x, val.y });
+		}
+		public void WriteVec3Fixed(string name, CIwVec3 val)
+		{
+			WriteArray(name, new float[] { val.x / 4096.0f, val.y / 4096.0f, val.z / 4096.0f });
+		}
+		public void WriteVec2Fixed(string name, CIwVec2 val)
+		{
+			WriteArray(name, new float[] { val.x / 4096.0f, val.y / 4096.0f });
+		}
 		internal void WriteArray(string name, IList array)
 		{
 			BeginWriteLine();
@@ -96,6 +125,11 @@ namespace AirplaySDKFileFormats
 			
 			writer.Write("}");
 			EndWriteLine();
+		}
+
+		internal void WriteVec2FixedFloat(string p, CIwVec2 p_2)
+		{
+			throw new NotImplementedException();
 		}
 	}
 }

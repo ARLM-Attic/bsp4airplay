@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Text;
 using BspFileFormat;
 using AirplaySDKFileFormats;
+using AirplaySDKFileFormats.Model;
+using System.IO;
 
 namespace Bsp2AirplayAdapter
 {
@@ -10,19 +12,22 @@ namespace Bsp2AirplayAdapter
 	{
 		Dictionary<BspTreeNode, int> nodeIndices = new Dictionary<BspTreeNode, int>();
 		Dictionary<BspTreeLeaf, int> leafIndices = new Dictionary<BspTreeLeaf, int>();
-
+		Dictionary<BspTexture, int> textureIndices = new Dictionary<BspTexture, int>();
+		CIwResGroup group;
+		Cb4aLevel level;
 		public void Convert(BspDocument bsp, CIwResGroup group)
 		{
-			var l = new Cb4aLevel();
-			l.Name = bsp.Name;
-			group.AddRes(l);
+			this.group = group;
+			this.level = new Cb4aLevel();
+			level.Name = bsp.Name;
+			group.AddRes(level);
 
 			foreach (var e in bsp.Entities)
 			{
-				l.Entities.Add(new Cb4aEntity() { classname=e.ClassName, origin=GetVec3(e.Origin), values=e.Values });
+				level.Entities.Add(new Cb4aEntity() { classname = e.ClassName, origin = GetVec3(e.Origin), values = e.Values });
 			}
 			if (bsp.Tree != null)
-				AddTreeElement(l, bsp.Tree);
+				AddTreeElement(level, bsp.Tree);
 		}
 		
 		private int AddTreeElement(Cb4aLevel l, BspTreeElement bspTreeElement)
@@ -41,12 +46,58 @@ namespace Bsp2AirplayAdapter
 				var leaf = new Cb4aLeaf() { Index = i };
 				leafIndices[bspTreeLeaf] = i;
 				l.Leaves.Add(leaf);
+				if (bspTreeLeaf.Geometry != null && bspTreeLeaf.Geometry.Faces.Count > 0)
+				{
+					leaf.Model = l.Name + "/leaf" + i;
+					var geo = new CIwModel() { Name = leaf.Model };
+					geo.Mesh.Name = geo.Name;
+					var modelWriter = new ModelWriter(geo.Mesh);
+					WriteGeometry(bspTreeLeaf.Geometry, modelWriter);
+					group.AddRes(geo);
+				}
 				foreach (var vis in bspTreeLeaf.VisibleLeaves)
 				{
-					leaf.VisibleLeaves.Add(AddTreeLeaf(l,vis));
+					leaf.VisibleLeaves.Add(AddTreeLeaf(l, vis));
 				}
 			}
 			return i;
+		}
+
+		private void WriteGeometry(BspGeometry bspGeometry, ModelWriter modelWriter)
+		{
+			foreach (var face in bspGeometry.Faces)
+			{
+				WriteMaterial(face.Texture, modelWriter);
+				var surface = modelWriter.GetSurfaceIndex(face.Texture.Name);
+				BspGeometryVertex vertex = face.Vertex0;
+				var v0 = modelWriter.GetVertex(GetVec3(vertex.Position), GetVec3Fixed(vertex.Normal), GetVec2Fixed(vertex.UV0), GetVec2Fixed(vertex.UV1), CIwColour.White);
+				vertex = face.Vertex1;
+				var v1 = modelWriter.GetVertex(GetVec3(vertex.Position), GetVec3Fixed(vertex.Normal), GetVec2Fixed(vertex.UV0), GetVec2Fixed(vertex.UV1), CIwColour.White);
+				vertex = face.Vertex2;
+				var v2 = modelWriter.GetVertex(GetVec3(vertex.Position), GetVec3Fixed(vertex.Normal), GetVec2Fixed(vertex.UV0), GetVec2Fixed(vertex.UV1), CIwColour.White);
+				modelWriter.AddTriangle(surface, v0, v1, v2);
+			}
+		}
+
+		private void WriteMaterial(BspTexture bspTexture, ModelWriter modelWriter)
+		{
+			int i;
+			if (textureIndices.TryGetValue(bspTexture, out i))
+				return;
+			textureIndices[bspTexture] = 0;
+			var mtl = new CIwMaterial() { Name = bspTexture.Name, Texture0 = "./checkers.png" };
+			//if (bspTexture is BspEmbeddedTexture)
+			//{
+			//    var filePath = Path.GetDirectoryName(level.SourceFileName);
+			//    filePath = Path.Combine(filePath, level.Name);
+			//    if (filePath != null)
+			//        return null;
+			//}
+			//else if (bspTexture is BspTextureReference)
+			//{
+			//    var filePath = ((BspTextureReference)bspTexture).FilePath;
+			//}
+			group.AddRes(mtl);
 		}
 
 		private int AddTreeNode(Cb4aLevel l, BspTreeNode bspTreeNode)
@@ -74,6 +125,13 @@ namespace Bsp2AirplayAdapter
 				(int)(vector3.X*AirplaySDKMath.IW_GEOM_ONE),
 				(int)(vector3.Y*AirplaySDKMath.IW_GEOM_ONE),
 				(int)(vector3.Z*AirplaySDKMath.IW_GEOM_ONE)
+				);
+		}
+		private CIwVec2 GetVec2Fixed(BspFileFormat.BspMath.Vector2 vector3)
+		{
+			return new CIwVec2(
+				(int)(vector3.X * AirplaySDKMath.IW_GEOM_ONE),
+				(int)(vector3.Y * AirplaySDKMath.IW_GEOM_ONE)
 				);
 		}
 

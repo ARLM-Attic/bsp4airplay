@@ -24,8 +24,27 @@ Cb4aNode::~Cb4aNode()
 // Reads/writes a binary file using IwSerialise interface. 
 void  Cb4aNode::Serialise ()
 {
+	IwSerialiseInt32(plane_distance);
+	plane_normal.Serialise();
+	IwSerialiseBool(is_front_leaf);
+	IwSerialiseInt32(front);
+	IwSerialiseBool(is_back_leaf);
+	IwSerialiseInt32(back);
 }
-
+bool Cb4aNode::WalkNode(const CIwVec3 & viewer, int32* nextNode) const
+{
+	bool positive = plane_distance < viewer.x * plane_normal.x +viewer.y * plane_normal.y+viewer.z*plane_normal.z;
+	if (positive)
+	{
+		*nextNode = front;
+		return is_front_leaf;
+	}
+	else
+	{
+		*nextNode = back;
+		return is_back_leaf;
+	}
+}
 #ifdef IW_BUILD_RESOURCES
 void* Bsp4Airplay::Cb4aNodeFactory()
 {
