@@ -44,6 +44,10 @@
       <Project>{BA52206A-6C08-4E21-8327-6E6CE2AD9076}</Project>
       <Name>AirplaySDKFileFormats</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Atlasing\Atlasing.csproj">
+      <Project>{7797BE91-936E-4D42-A2D9-32C5C2EDE50A}</Project>
+      <Name>Atlasing</Name>
+    </ProjectReference>
     <ProjectReference Include="..\BspFileFormat\BspFileFormat.csproj">
       <Project>{AE0150A6-6DCB-4F21-8656-F0C19326590E}</Project>
       <Name>BspFileFormat</Name>

@@ -90,6 +90,10 @@ int main()
 
 	CIwResGroup* group = IwGetResManager()->LoadGroup("maps/sg0503.group");
 	Bsp4Airplay::Cb4aLevel* level = static_cast<Bsp4Airplay::Cb4aLevel*>(group->GetResNamed("sg0503", "Cb4aLevel"));
+	
+	//CIwResGroup* group = IwGetResManager()->LoadGroup("maps/madcrabs.group");
+	//Bsp4Airplay::Cb4aLevel* level = static_cast<Bsp4Airplay::Cb4aLevel*>(group->GetResNamed("madcrabs", "Cb4aLevel"));
+
 	int spawnEntIndex = level->FindEntityByClassName("info_player_start");
 	if (spawnEntIndex < 0)
 		spawnEntIndex = level->FindEntityByClassName("info_player_deathmatch");
@@ -114,7 +118,8 @@ int main()
 				)
 				break;
 
-			IwGxClear(IW_GX_COLOUR_BUFFER_F | IW_GX_DEPTH_BUFFER_F);
+			IwGxClear(IW_GX_DEPTH_BUFFER_F);
+			//IwGxClear(IW_GX_COLOUR_BUFFER_F | IW_GX_DEPTH_BUFFER_F);
 
 			CIwMat view;
 			//if (spawnEnt >= 0)

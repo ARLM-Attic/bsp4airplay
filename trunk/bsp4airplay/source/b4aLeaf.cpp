@@ -20,6 +20,7 @@ Cb4aLeaf::Cb4aLeaf()
 	modelHash = 0;
 	model = 0;
 	modelMesh = -1;
+	cluster = -1;
 }
 
 //Desctructor
@@ -32,19 +33,24 @@ void  Cb4aLeaf::Serialise ()
 {
 	IwSerialiseUInt32(modelHash);
 	IwSerialiseInt32(modelMesh);
-
+	IwSerialiseInt32(cluster);
 	visible_leaves.SerialiseHeader();
 	for (uint32 i=0; i<visible_leaves.size(); ++i)
 		IwSerialiseInt32(visible_leaves[i]);
 
 }
 
-void Cb4aLeaf::Render()
+void Cb4aLeaf::Render(Cb4aLevel*l)
 {
 	if (!model)
 	{
 		if (!modelHash)
+		{
+			if (cluster<0)
+				return;
+			l->RenderCluster(cluster);
 			return;
+		}
 		model = (CIwModel*)IwGetResManager()->GetResHashed(modelHash, "CIwModel");
 	}
 	
@@ -88,6 +94,11 @@ bool ParseLeaf::ParseAttribute(CIwTextParserITX *pParser, const char *pAttrName)
 	if (!strcmp("mesh", pAttrName))
 	{
 		pParser->ReadInt32(&_this->modelMesh);
+		return true;
+	}
+	if (!strcmp("cluster", pAttrName))
+	{
+		pParser->ReadInt32(&_this->cluster);
 		return true;
 	}
 	if (!strcmp("model", pAttrName))

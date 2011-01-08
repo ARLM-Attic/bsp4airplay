@@ -8,6 +8,12 @@ files
 	("source")
 	b4aLevel.cpp 
 	b4aLevel.h
+	b4aLevelVB.cpp 
+	b4aLevelVB.h
+	b4aLevelVBCluster.cpp
+	b4aLevelVBCluster.h
+	b4aLevelVBSubcluster.cpp
+	b4aLevelVBSubcluster.h
 	b4aLeaf.cpp 
 	b4aLeaf.h
 	b4aNode.cpp 

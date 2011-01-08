@@ -94,6 +94,10 @@ namespace AirplaySDKFileFormats
 
 		#endregion
 
+		public void WriteColour(string name, CIwColour val)
+		{
+			WriteArray(name, new byte[] { val.r, val.g, val.b, val.a });
+		}
 		public void WriteVec3(string name, CIwVec3 val)
 		{
 			WriteArray(name, new int[]{val.x, val.y, val.z});

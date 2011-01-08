@@ -99,4 +99,102 @@ namespace AirplaySDKFileFormats.Model
 			targetMesh.Surfaces[surface].Triangles.Elements.Add(t);
 		}
 	}
+	public class LevelVBWriter
+	{
+		Dictionary<LevelVBItem, int> map = new Dictionary<LevelVBItem, int>();
+		
+		private Cb4aLevel level;
+
+		public LevelVBWriter(Cb4aLevel level)
+		{
+			// TODO: Complete member initialization
+			this.level = level;
+		}
+
+		public int Write(LevelVBItem levelVBItem)
+		{
+			int index;
+			if (!map.TryGetValue(levelVBItem, out index))
+			{
+				index = level.vb.Count;
+				level.vb.Add(levelVBItem);
+			}
+			return index;
+		}
+	}
+	public class Cb4aLevelVBSubcluster: CIwParseable
+	{
+		public List<int> Indices = new List<int>();
+
+		public override void WrtieBodyToStream(CTextWriter writer)
+		{
+			base.WrtieBodyToStream(writer);
+			writer.WriteKeyVal("num_indices", Indices.Count);
+			foreach (var i in Indices)
+				writer.WriteKeyVal("t",i);
+		}
+	}
+	public class Cb4aLevelVBCluster: CIwParseable
+	{
+		public List<Cb4aLevelVBSubcluster> Subclusters = new List<Cb4aLevelVBSubcluster>();
+
+		public override void WrtieBodyToStream(CTextWriter writer)
+		{
+			base.WrtieBodyToStream(writer);
+			writer.WriteKeyVal("num_subclusters", Subclusters.Count);
+			foreach (var i in Subclusters)
+				i.WrtieToStream(writer);
+		}
+	}
+	public struct LevelVBItem
+	{
+		public CIwVec3 Position;
+		public CIwVec3 Normal;
+		public CIwVec2 UV0;
+		public CIwVec2 UV1;
+		public CIwColour Colour;
+
+		public override int GetHashCode()
+		{
+			return Position.GetHashCode() ^ Normal.GetHashCode() ^ UV0.GetHashCode() ^ UV1.GetHashCode() ^ Colour.GetHashCode();
+		}
+		public override bool Equals(object obj)
+		{
+			if (!(obj is LevelVBItem))
+				return false;
+
+			return this.Equals((LevelVBItem)obj);
+		}
+		public bool Equals(LevelVBItem other)
+		{
+			return
+				Position == other.Position &&
+				Normal == other.Normal &&
+				UV0 == other.UV0 &&
+				UV1 == other.UV1 &&
+				Colour == other.Colour
+				;
+		}
+		public static bool operator ==(LevelVBItem left, LevelVBItem right)
+		{
+			return left.Equals(right);
+		}
+		public static bool operator !=(LevelVBItem left, LevelVBItem right)
+		{
+			return !left.Equals(right);
+		}
+		//public override string ToString()
+		//{
+		//    return String.Format(CultureInfo.InvariantCulture, "{{{0},{1},{2}}}", x, y, z);
+		//}
+
+		internal void WrtieToStream(CTextWriter writer)
+		{
+			writer.WriteVec3("v", Position);
+			writer.WriteVec3("vn", Normal);
+			writer.WriteVec2("uv0", UV0);
+			writer.WriteVec2("uv1", UV1);
+			writer.WriteColour("col", Colour);
+		}
+	}
 }
