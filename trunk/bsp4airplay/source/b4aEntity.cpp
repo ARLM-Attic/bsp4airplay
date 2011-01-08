@@ -8,7 +8,9 @@ using namespace Bsp4Airplay;
 
 namespace Bsp4Airplay
 {
+#ifdef IW_BUILD_RESOURCES
 	ParseEntity g_parseEntity;
+#endif
 }
 
 //Constructor

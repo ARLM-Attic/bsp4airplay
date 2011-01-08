@@ -1,6 +1,7 @@
 #include <IwTextParserITX.h>
 #include <IwResManager.h>
 #include <IwResGroup.h>
+#include <IwModelBlock.h>
 #include "b4aLeaf.h"
 #include "b4aLevel.h"
 
@@ -8,7 +9,9 @@ using namespace Bsp4Airplay;
 
 namespace Bsp4Airplay
 {
+#ifdef IW_BUILD_RESOURCES
 	ParseLeaf g_parseLeaf;
+#endif
 }
 
 //Constructor
@@ -16,6 +19,7 @@ Cb4aLeaf::Cb4aLeaf()
 {
 	modelHash = 0;
 	model = 0;
+	modelMesh = -1;
 }
 
 //Desctructor
@@ -27,6 +31,7 @@ Cb4aLeaf::~Cb4aLeaf()
 void  Cb4aLeaf::Serialise ()
 {
 	IwSerialiseUInt32(modelHash);
+	IwSerialiseInt32(modelMesh);
 
 	visible_leaves.SerialiseHeader();
 	for (uint32 i=0; i<visible_leaves.size(); ++i)
@@ -42,8 +47,11 @@ void Cb4aLeaf::Render()
 			return;
 		model = (CIwModel*)IwGetResManager()->GetResHashed(modelHash, "CIwModel");
 	}
-
-	model->Render();
+	
+	if (modelMesh >= 0)
+		static_cast<CIwModelBlock*>(model->m_Blocks[modelMesh])->Render(model, model->GetFlags());
+	else
+		model->Render();
 }
 #ifdef IW_BUILD_RESOURCES
 void* Bsp4Airplay::Cb4aLeafFactory()
@@ -74,6 +82,12 @@ bool ParseLeaf::ParseAttribute(CIwTextParserITX *pParser, const char *pAttrName)
 		int32 n;
 		pParser->ReadInt32(&n);
 		_this->visible_leaves.push_back(n);
+		return true;
+	}
+	
+	if (!strcmp("mesh", pAttrName))
+	{
+		pParser->ReadInt32(&_this->modelMesh);
 		return true;
 	}
 	if (!strcmp("model", pAttrName))

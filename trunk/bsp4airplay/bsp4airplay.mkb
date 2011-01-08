@@ -7,8 +7,8 @@ option
 }
 assets
 {
-	#(./data-ram/data-gles1)
-	#music.group.bin
+	(../data-ram/data-gles1)
+	#maps/sg0503.group.bin
 }
 files
 {

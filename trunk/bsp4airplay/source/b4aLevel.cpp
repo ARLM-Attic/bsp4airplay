@@ -41,6 +41,25 @@ int Cb4aLevel::FindEntityByClassName(const char* name) const
 			return (int)i;
 	return -1;
 }
+void Cb4aLevel::Render(const CIwVec3 & viewer)
+{
+	CIwMat modelMatrix;
+	modelMatrix.SetIdentity();
+	IwGxSetModelMatrix(&modelMatrix);
+	IwGxLightingOff();
+
+	int node = 0;
+	while (!nodes[node].WalkNode(viewer, &node));
+
+	leaves[node].Render();
+	for (uint32 i=0;i<leaves[node].visible_leaves.size(); ++i)
+		leaves[leaves[node].visible_leaves[i]].Render();
+}
+void Cb4aLevel::Render()
+{
+	const CIwMat& m = IwGxGetViewMatrix();
+	Render(m.t);
+}
 #ifdef IW_BUILD_RESOURCES
 Cb4aLeaf* Cb4aLevel::AllocateLeaf()
 {
@@ -84,25 +103,7 @@ bool Cb4aLevel::ParseAttribute(CIwTextParserITX *pParser, const char *pAttrName)
 	
 	return CIwResource::ParseAttribute(pParser, pAttrName);
 }
-void Cb4aLevel::Render(const CIwVec3 & viewer)
-{
-	CIwMat modelMatrix;
-	modelMatrix.SetIdentity();
-	IwGxSetModelMatrix(&modelMatrix);
-	IwGxLightingOff();
 
-	int node = 0;
-	while (!nodes[node].WalkNode(viewer, &node));
-
-	leaves[node].Render();
-	for (uint32 i=0;i<leaves[node].visible_leaves.size(); ++i)
-		leaves[leaves[node].visible_leaves[i]].Render();
-}
-void Cb4aLevel::Render()
-{
-	const CIwMat& m = IwGxGetViewMatrix();
-	Render(m.t);
-}
 
 // function invoked by the text parser when the object definition end is encountered
 void Cb4aLevel::ParseClose(CIwTextParserITX* pParser)
