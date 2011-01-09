@@ -88,11 +88,11 @@ int main()
 	IwGxSetColClear(0x7f, 0x7f, 0x7f, 0x7f);
 	IwGxPrintSetColour(128, 128, 128);
 
-	CIwResGroup* group = IwGetResManager()->LoadGroup("maps/hldemo1.group");
-	Bsp4Airplay::Cb4aLevel* level = static_cast<Bsp4Airplay::Cb4aLevel*>(group->GetResNamed("hldemo1", "Cb4aLevel"));
+	//CIwResGroup* group = IwGetResManager()->LoadGroup("maps/hldemo1.group");
+	//Bsp4Airplay::Cb4aLevel* level = static_cast<Bsp4Airplay::Cb4aLevel*>(group->GetResNamed("hldemo1", "Cb4aLevel"));
 
-	//CIwResGroup* group = IwGetResManager()->LoadGroup("maps/sg0503.group");
-	//Bsp4Airplay::Cb4aLevel* level = static_cast<Bsp4Airplay::Cb4aLevel*>(group->GetResNamed("sg0503", "Cb4aLevel"));
+	CIwResGroup* group = IwGetResManager()->LoadGroup("maps/sg0503.group");
+	Bsp4Airplay::Cb4aLevel* level = static_cast<Bsp4Airplay::Cb4aLevel*>(group->GetResNamed("sg0503", "Cb4aLevel"));
 	
 	//CIwResGroup* group = IwGetResManager()->LoadGroup("maps/madcrabs.group");
 	//Bsp4Airplay::Cb4aLevel* level = static_cast<Bsp4Airplay::Cb4aLevel*>(group->GetResNamed("madcrabs", "Cb4aLevel"));

@@ -96,7 +96,7 @@ void Cb4aLevelVertexBuffer::Flush(Cb4aLevel* l)
 	uint32 totalItems = renderQueue.size();
 
 	// Debug mode!!
-	if (totalItems > 100)		totalItems= 100;
+	//if (totalItems > 100)		totalItems= 100;
 
 	uint32 start = 0;
 	while (start< totalItems)
