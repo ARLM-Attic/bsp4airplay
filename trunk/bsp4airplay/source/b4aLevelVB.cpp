@@ -65,6 +65,44 @@ void Cb4aLevelVertexBuffer::ScheduleCluster(Cb4aLevelVBSubcluster* cluster)
 {
 	renderQueue.push_back(cluster);
 }
+
+void Cb4aLevelVertexBuffer::FlushQueueDynamicBlock(Cb4aLevel* l,uint32 from, uint32 end)
+{
+	uint32 totalIndices = 0;
+	for (uint32 i=from; i<end; ++i)
+	{
+		totalIndices +=renderQueue[i]->GetIndices().size();
+	}
+	if (totalIndices == 0)
+		return;
+	l->BindMaterial(renderQueue[from]->GetMaterial());
+	CIwSVec3* temp_positions = IW_GX_ALLOC(CIwSVec3,totalIndices);
+	CIwSVec3* temp_normals = IW_GX_ALLOC(CIwSVec3,totalIndices);
+	CIwSVec2* temp_uv0s = IW_GX_ALLOC(CIwSVec2,totalIndices);
+	CIwSVec2* temp_uv1s = IW_GX_ALLOC(CIwSVec2,totalIndices);
+	int offset = 0;
+	for (uint32 i=from; i<end; ++i)
+	{
+		const CIwArray<uint16>& indices = renderQueue[i]->GetIndices();
+		for (uint32 i=0; i<indices.size(); ++i)
+		{
+			temp_positions[offset] = GetPosition(indices[i]);
+			temp_normals[offset] = GetNormal(indices[i]);
+			temp_uv0s[offset] = GetUV0(indices[i]);
+			temp_uv1s[offset] = GetUV1(indices[i]);
+			++offset;
+		}
+	}
+
+	IwGxSetVertStream(temp_positions, totalIndices);
+	IwGxSetNormStream(temp_normals, totalIndices);
+	IwGxSetUVStream(temp_uv0s, 0);
+	IwGxSetUVStream(temp_uv1s, 1);
+	//IwGxSetColStream(temp_colours, );
+	IwGxSetColStream(0);
+
+	IwGxDrawPrims(IW_GX_TRI_LIST,0,totalIndices);
+}
 void Cb4aLevelVertexBuffer::FlushQueueBlock(Cb4aLevel* l,uint32 from, uint32 end)
 {
 	uint32 totalIndices = 0;
@@ -91,25 +129,36 @@ void Cb4aLevelVertexBuffer::Flush(Cb4aLevel* l)
 		return;
 
 	std::sort(renderQueue.begin(),renderQueue.end(), SortByMaterial);
-	PreRender();
 
-	uint32 totalItems = renderQueue.size();
-
-	// Debug mode!!
-	//if (totalItems > 100)		totalItems= 100;
-
-	uint32 start = 0;
-	while (start< totalItems)
+	if (false)
 	{
-		uint32 end = start;
-		while (end < totalItems && renderQueue[end]->GetMaterial() == renderQueue[start]->GetMaterial()) ++end;
+		PreRender();
 
-		FlushQueueBlock(l,start,end);
-		start = end;
+		uint32 totalItems = renderQueue.size();
+		uint32 start = 0;
+		while (start< totalItems)
+		{
+			uint32 end = start;
+			while (end < totalItems && renderQueue[end]->GetMaterial() == renderQueue[start]->GetMaterial()) ++end;
+			FlushQueueBlock(l,start,end);
+			start = end;
+		}
+
+
+		PostRender();
 	}
-
-
-	PostRender();
+	else
+	{
+		uint32 totalItems = renderQueue.size();
+		uint32 start = 0;
+		while (start< totalItems)
+		{
+			uint32 end = start;
+			while (end < totalItems && renderQueue[end]->GetMaterial() == renderQueue[start]->GetMaterial()) ++end;
+			FlushQueueDynamicBlock(l,start,end);
+			start = end;
+		}
+	}
 	renderQueue.clear();
 }
 

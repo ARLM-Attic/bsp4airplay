@@ -48,8 +48,14 @@ namespace Bsp4Airplay
 		void Serialise();
 		void ScheduleCluster(Cb4aLevelVBSubcluster* );
 		void Flush(Cb4aLevel* l);
+		inline const CIwSVec3 & GetPosition(uint i) const {return positions[i];}
+		inline const CIwSVec3 & GetNormal(uint i) const {return normals[i];}
+		inline const CIwSVec2 & GetUV0(uint i) const {return uv0s[i];}
+		inline const CIwSVec2 & GetUV1(uint i) const {return uv1s[i];}
+		inline const CIwColour & GetColour(uint i) const {return colours[i];}
 	protected:
 		void FlushQueueBlock(Cb4aLevel* l,uint32 from, uint32 end);
+		void FlushQueueDynamicBlock(Cb4aLevel* l,uint32 from, uint32 end);
 		void PreRender();
 		void PostRender();
 	};

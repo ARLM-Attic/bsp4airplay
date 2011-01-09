@@ -6,7 +6,7 @@ using BspFileFormat.BspMath;
 
 namespace BspFileFormat.Q1HL1
 {
-	public struct face_t
+	public class face_t
 	{
 		public ushort plane_id;            // The plane in which the face lies
 		//           must be in [0,numplanes[ 
@@ -20,6 +20,12 @@ namespace BspFileFormat.Q1HL1
 		public byte baselight;            // from 0xFF (dark) to 0 (bright)
 		public byte[] light;             // two additional light models  [2]
 		public int lightmap;               // Pointer inside the general light map, or -1
+
+		/// <summary>
+		/// Model ID
+		/// Used to filter faces in leaves since model faces are belong to models
+		/// </summary>
+		public int modelId = 0;
 		// this define the start of the face light map
 
 		internal void Read(System.IO.BinaryReader source)

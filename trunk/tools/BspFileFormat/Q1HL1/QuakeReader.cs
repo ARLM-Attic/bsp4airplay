@@ -57,6 +57,14 @@ namespace BspFileFormat.Q1HL1
 			//    foreach (var tex in textures)
 			//        dest.AddTexture(tex);
 
+			if (models != null)
+			{
+				//foreach (var model in models)
+				for (int i = 1; i < models.Count; ++i)
+					dest.AddModel(BuildGeometry(models[i], i));
+				//BuildGeometry(models[0], 0);
+			}
+
 			BuildLeaves();
 			if (nodes != null && nodes.Count > 0)
 			{
@@ -65,12 +73,6 @@ namespace BspFileFormat.Q1HL1
 
 			BuildVisibilityList();
 
-			if (models != null)
-			{
-				//foreach (var model in models)
-				for (int i = 1; i < models.Count; ++i)
-					dest.AddModel(BuildGeometry(models[i]));
-			}
 
 			ReaderHelper.BuildEntities(entities, dest);
 		}
@@ -85,13 +87,17 @@ namespace BspFileFormat.Q1HL1
 		}
 
 		int lightmapTestCounter = 0;
-		private BspGeometry BuildGeometry(uint fromFace, uint numFaces)
+		private BspGeometry BuildGeometry(uint fromFace, uint numFaces, int modelId = 0, bool setModelId = false)
 		{
 			var res = new BspGeometry() { Faces = new List<BspGeometryFace>() };
 
 			for (uint i = fromFace; i < fromFace + numFaces; ++i)
 			{
 				var face = faces[listOfFaces[i]];
+				if (setModelId)
+					face.modelId = modelId;
+				//else if (face.modelId != modelId)
+				//    continue;
 				if (face.ledge_num == 0)
 					continue;
 				plane_t plane = planes[face.plane_id];
@@ -180,9 +186,9 @@ namespace BspFileFormat.Q1HL1
 			}
 			return res;
 		}
-		private BspGeometry BuildGeometry(model_t model)
+		private BspGeometry BuildGeometry(model_t model, int modelid)
 		{
-			return BuildGeometry(model.face_id, model.face_num);
+			return BuildGeometry(model.face_id, model.face_num, modelid,true);
 			
 		}
 
