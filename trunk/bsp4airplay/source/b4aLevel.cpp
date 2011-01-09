@@ -11,6 +11,7 @@ IW_MANAGED_IMPLEMENT(Cb4aLevel)
 //Constructor
 Cb4aLevel::Cb4aLevel()
 {
+	defaultTextureHash = IwHashString("checkers");
 }
 
 //Desctructor
@@ -22,7 +23,15 @@ void  Cb4aLevel::Serialise ()
 {
 	CIwResource::Serialise();
 
-	buffer.Serialise();
+	IwSerialiseUInt32(defaultTextureHash);
+
+	materials.SerialiseHeader();
+	for (uint32 i=0; i<materials.size(); ++i)
+		materials[i].Serialise();
+
+	buffers.SerialiseHeader();
+	for (uint32 i=0; i<buffers.size(); ++i)
+		buffers[i].Serialise();
 
 	clusters.SerialiseHeader();
 	for (uint32 i=0; i<clusters.size(); ++i)
@@ -40,9 +49,13 @@ void  Cb4aLevel::Serialise ()
 	for (uint32 i=0; i<entities.size(); ++i)
 		entities[i].Serialise();
 }
-int Cb4aLevel::FindEntityByClassName(const char* name) const
+CIwTexture* Cb4aLevel::GetDefaultTextrure()
 {
-	for (uint32 i=0; i<entities.size(); ++i)
+	return (CIwTexture*)IwGetResManager()->GetResHashed(defaultTextureHash, "CIwTexture", IW_RES_PERMIT_NULL_F | IW_RES_SEARCH_ALL_F);
+}
+int Cb4aLevel::FindEntityByClassName(const char* name, int startFrom) const
+{
+	for (uint32 i=startFrom; i<entities.size(); ++i)
 		if (entities[i].GetClassName() == name)
 			return (int)i;
 	return -1;
@@ -69,11 +82,15 @@ void Cb4aLevel::Render(const CIwVec3 & viewer)
 	if (t)
 		m->SetTexture(t);
 	IwGxSetMaterial(m);
-	buffer.PreRender();
 	leaves[node].Render(this);
 	for (uint32 i=0;i<leaves[node].visible_leaves.size(); ++i)
 		leaves[leaves[node].visible_leaves[i]].Render(this);
-	buffer.PostRender();
+	for (uint32 i=0;i<buffers.size(); ++i)
+		buffers[i].Flush(this);
+}
+void Cb4aLevel::ScheduleRender(int32 i, Cb4aLevelVBSubcluster*c)
+{
+	buffers[i].ScheduleCluster(c);
 }
 void Cb4aLevel::Render()
 {
@@ -101,6 +118,16 @@ Cb4aLevelVBCluster* Cb4aLevel::AllocateCluster()
 	clusters.push_back();
 	return &clusters.back();
 }
+Cb4aLevelVertexBuffer* Cb4aLevel::AllocateLevelVertexBuffer()
+{
+	buffers.push_back();
+	return &buffers.back();
+}
+Cb4aLevelMaterial* Cb4aLevel::AllocateLevelMaterial()
+{
+	materials.push_back();
+	return &materials.back();
+}
 
 // function invoked by the text parser when parsing attributes for objects of this type
 bool Cb4aLevel::ParseAttribute(CIwTextParserITX *pParser, const char *pAttrName)
@@ -126,11 +153,11 @@ bool Cb4aLevel::ParseAttribute(CIwTextParserITX *pParser, const char *pAttrName)
 		entities.set_capacity(num_nodes);
 		return true;
 	}
-	if (!strcmp("num_vertices", pAttrName))
+	if (!strcmp("num_materials", pAttrName))
 	{
-		uint32 num_verts;
-		pParser->ReadUInt32(&num_verts);
-		buffer.SetCapacity(num_verts);
+		int num_materials;
+		pParser->ReadInt32(&num_materials);
+		materials.set_capacity(num_materials);
 		return true;
 	}
 	if (!strcmp("num_clusters", pAttrName))
@@ -140,43 +167,14 @@ bool Cb4aLevel::ParseAttribute(CIwTextParserITX *pParser, const char *pAttrName)
 		clusters.set_capacity(num_clusters);
 		return true;
 	}
-	if (!strcmp("v", pAttrName))
+	if (!strcmp("num_vbs", pAttrName))
 	{
-		CIwSVec3 v;
-		pParser->ReadInt16Array(&v.x,3);
-		buffer.positions.push_back(v);
+		uint32 num_vbs;
+		pParser->ReadUInt32(&num_vbs);
+		buffers.set_capacity(num_vbs);
 		return true;
 	}
-	if (!strcmp("vn", pAttrName))
-	{
-		CIwSVec3 vn;
-		pParser->ReadInt16Array(&vn.x,3);
-		buffer.normals.push_back(vn);
-		return true;
-	}
-	if (!strcmp("uv0", pAttrName))
-	{
-		CIwSVec2 uv0;
-		pParser->ReadInt16Array(&uv0.x,2);
-		buffer.uv0s.push_back(uv0);
-		return true;
-	}
-	if (!strcmp("uv1", pAttrName))
-	{
-		CIwSVec2 uv1;
-		pParser->ReadInt16Array(&uv1.x,2);
-		buffer.uv1s.push_back(uv1);
-		return true;
-	}
-	if (!strcmp("col", pAttrName))
-	{
-		uint8 col[4];
-		pParser->ReadUInt8Array(&col[0],4);
-		CIwColour c;
-		c.Set(col[0],col[1],col[2],col[3]);
-		buffer.colours.push_back(c);
-		return true;
-	}
+	
 	
 	return CIwResource::ParseAttribute(pParser, pAttrName);
 }

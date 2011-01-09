@@ -11,6 +11,8 @@ void Bsp4Airplay::Bsp4AirpayInit()
 	IwClassFactoryAdd("Cb4aEntity", Cb4aEntityFactory, 0);
 	IwClassFactoryAdd("Cb4aLevelVBCluster", Cb4aLevelVBClusterFactory, 0);
 	IwClassFactoryAdd("Cb4aLevelVBSubcluster", Cb4aLevelVBSubclusterFactory, 0);
+	IwClassFactoryAdd("Cb4aLevelVertexBuffer", Cb4aLevelVertexBufferFactory, 0);
+	IwClassFactoryAdd("Cb4aLevelMaterial", Cb4aLevelMaterialFactory, 0);
 	#endif
 
 	IW_CLASS_REGISTER(Cb4aLevel);

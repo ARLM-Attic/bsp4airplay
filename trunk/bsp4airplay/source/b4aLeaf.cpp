@@ -52,6 +52,7 @@ void Cb4aLeaf::Render(Cb4aLevel*l)
 			return;
 		}
 		model = (CIwModel*)IwGetResManager()->GetResHashed(modelHash, "CIwModel");
+		
 	}
 	
 	if (modelMesh >= 0)

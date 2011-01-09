@@ -17,6 +17,7 @@ namespace Bsp4Airplay
 //Constructor
 Cb4aLevelVBCluster::Cb4aLevelVBCluster()
 {
+	vertexbuffer = 0;
 }
 
 //Desctructor
@@ -27,6 +28,7 @@ Cb4aLevelVBCluster::~Cb4aLevelVBCluster()
 // Reads/writes a binary file using IwSerialise interface. 
 void  Cb4aLevelVBCluster::Serialise ()
 {
+	IwSerialiseUInt32(vertexbuffer);
 	subclusters.SerialiseHeader();
 	for (uint32 i=0; i<subclusters.size(); ++i)
 		subclusters[i].Serialise();
@@ -35,8 +37,11 @@ void  Cb4aLevelVBCluster::Serialise ()
 
 void Cb4aLevelVBCluster::Render(Cb4aLevel* l)
 {
+	if (subclusters.empty())
+		return;
 	for (uint32 i=0; i<subclusters.size(); ++i)
-		subclusters[i].Render(l);
+		if (subclusters[i].IsVisible())
+			l->ScheduleRender(vertexbuffer, &subclusters[i]);
 }
 #ifdef IW_BUILD_RESOURCES
 Cb4aLevelVBSubcluster* ParseLevelVBCluster::AllocateSubcluster()
@@ -60,6 +65,12 @@ void  ParseLevelVBCluster::ParseOpen (CIwTextParserITX *pParser)
 // function invoked by the text parser when parsing attributes for objects of this type
 bool ParseLevelVBCluster::ParseAttribute(CIwTextParserITX *pParser, const char *pAttrName)
 {
+	
+	if (!strcmp("vertexbuffer", pAttrName))
+	{
+		pParser->ReadUInt32(&_this->vertexbuffer);
+		return true;
+	}
 	if (!strcmp("num_subclusters", pAttrName))
 	{
 		int32 n;

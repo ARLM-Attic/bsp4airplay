@@ -34,6 +34,7 @@ namespace Bsp4Airplay
 #endif
 	public:
 		CIwArray<Cb4aLevelVBSubcluster> subclusters;
+		uint32 vertexbuffer;
 	public:
 
 		//Constructor
@@ -44,6 +45,8 @@ namespace Bsp4Airplay
 		void  Serialise ();
 
 		void Render(Cb4aLevel*);
+
+
 	};
 
 }

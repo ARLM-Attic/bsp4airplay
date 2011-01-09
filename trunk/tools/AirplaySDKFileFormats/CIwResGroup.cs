@@ -22,6 +22,8 @@ namespace AirplaySDKFileFormats
 			base.WrtieBodyToStream(writer);
 
 			writer.WriteLine("shared true");
+			//TODO: do it right
+			writer.WriteLine("\"./checkers.png\"");
 
 			var materials = new List<CIwMaterial>();
 			var geos = new List<CIwModel>();
@@ -40,6 +42,13 @@ namespace AirplaySDKFileFormats
 			}
 			string name = Path.GetFileNameWithoutExtension(writer.FileName);
 			string subdir = Path.Combine(writer.FileDirectory,name);
+			if (textures.Count > 0)
+			{
+				foreach (var l in textures)
+				{
+					l.WrtieToStream(writer);
+				}
+			}
 			if (materials.Count > 0)
 			{
 				writer.WriteLine(string.Format("\"./{0}.mtl\"", name));

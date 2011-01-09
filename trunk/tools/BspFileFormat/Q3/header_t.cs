@@ -33,6 +33,7 @@ namespace BspFileFormat.Q3
 			magic = source.ReadUInt32();
 			version = source.ReadUInt32();
 			entities.Read(source);
+			textures.Read(source);
 			planes.Read(source); //Planes used by map geometry.
 			nodes.Read(source); //BSP tree nodes.
 			leafs.Read(source); //BSP tree leaves.

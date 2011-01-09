@@ -8,10 +8,11 @@ namespace BspFileFormat
 {
 	public class BspGeometryVertex
 	{
-		public Vector3 Position;
-		public Vector3 Normal;
-		public Vector2 UV0;
-		public Vector2 UV1;
+		public Vector3 Position = Vector3.Zero;
+		public Vector3 Normal = Vector3.UnitZ;
+		public Vector2 UV1 = Vector2.Zero;
+		public Vector2 UV0 = Vector2.Zero;
+		public Color Color = Color.FromArgb(255,255,255,255);
 
 		public override int GetHashCode()
 		{

@@ -1,5 +1,7 @@
 #pragma once
 #include <IwResource.h>
+#include <IwTexture.h>
+#include <IwGx.h>
 
 namespace Bsp4Airplay
 {
@@ -31,6 +33,8 @@ namespace Bsp4Airplay
 #endif
 	public:
 		CIwArray<uint16> indices;
+		CIwSphere sphere;
+		uint32 material;
 	public:
 
 		//Constructor
@@ -40,7 +44,12 @@ namespace Bsp4Airplay
 
 		void  Serialise ();
 
-		void Render(Cb4aLevel*);
+		//void Render(Cb4aLevel*);
+
+		bool IsVisible() const;
+
+		inline const CIwArray<uint16> & GetIndices () const { return indices;};
+		inline uint32 GetMaterial () const { return material;};
 	};
 
 }

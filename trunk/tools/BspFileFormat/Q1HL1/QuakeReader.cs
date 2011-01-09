@@ -157,17 +157,17 @@ namespace BspFileFormat.Q1HL1
 					faceVertices[j].UV1.Y = (faceVertices[j].UV1.Y - minUV1.Y) / sizeLightmap.Y;
 				}
 				BspTexture lightMap = null;
-				if (face.lightmap != -1)
-				{
-					var size = lighmapSize[face.lightmap];
-					var size2 = (sizeLightmap.X) * (sizeLightmap.Y);
-					lightMap = new BspEmbeddedTexture()
-					{
-						mipMaps = new Bitmap[] { BuildFaceLightmap(face.lightmap, (int)sizeLightmap.X, (int)sizeLightmap.Y) },
-						Width = (int)sizeLightmap.X,
-						Height = (int)sizeLightmap.Y
-					};
-				}
+				//if (face.lightmap != -1)
+				//{
+				//    var size = lighmapSize[face.lightmap];
+				//    var size2 = (sizeLightmap.X) * (sizeLightmap.Y);
+				//    lightMap = new BspEmbeddedTexture()
+				//    {
+				//        mipMaps = new Bitmap[] { BuildFaceLightmap(face.lightmap, (int)sizeLightmap.X, (int)sizeLightmap.Y) },
+				//        Width = (int)sizeLightmap.X,
+				//        Height = (int)sizeLightmap.Y
+				//    };
+				//}
 
 				var vert0 = faceVertices[0];
 				for (int j = 1; j < faceVertices.Length - 1; ++j)
@@ -243,13 +243,7 @@ namespace BspFileFormat.Q1HL1
 		}
 		private void ReadListOfFaces(BinaryReader source)
 		{
-			SeekDir(source, header.lface);
-			int size = (int)(header.lface.size/2);
-			listOfFaces = new ushort[size];
-			for (int i = 0; i < size; ++i)
-			{
-				listOfFaces[i] = source.ReadUInt16();
-			}
+			listOfFaces = ReaderHelper.ReadUInt16Array(source, header.lface.size, header.lface.offset);
 		}
 		private void BuildLeaves()
 		{
@@ -331,6 +325,7 @@ namespace BspFileFormat.Q1HL1
 				miptex_t miptex = new miptex_t();
 				var texPos = source.BaseStream.Position;
 				miptex.Read(source);
+				
 				var tex = new BspEmbeddedTexture() { Name = miptex.name, Width = (int)miptex.width, Height = (int)miptex.height };
 				if (miptex.offset1 > 0)
 				{

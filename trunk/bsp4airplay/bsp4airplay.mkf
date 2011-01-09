@@ -8,6 +8,8 @@ files
 	("source")
 	b4aLevel.cpp 
 	b4aLevel.h
+	b4aLevelMaterial.cpp 
+	b4aLevelMaterial.h
 	b4aLevelVB.cpp 
 	b4aLevelVB.h
 	b4aLevelVBCluster.cpp

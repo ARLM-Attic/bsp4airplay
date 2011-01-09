@@ -6,7 +6,7 @@ using BspFileFormat.BspMath;
 
 namespace BspFileFormat.Q1HL1
 {
-	public struct miptex_t                // Mip Texture
+	public class miptex_t                // Mip Texture
 	{
 		public string name;             // Name of the texture.[16]
 		public uint width;                // width of picture, must be a multiple of 8
@@ -19,7 +19,13 @@ namespace BspFileFormat.Q1HL1
 		public void Read(System.IO.BinaryReader source)
 		{
 			var n = source.ReadBytes(16);
-			name = Encoding.ASCII.GetString(n).Trim('\0');
+			name = Encoding.ASCII.GetString(n);
+			for (int i=0; i<name.Length; ++i)
+				if (name[i] == '\0')
+				{
+					name = name.Substring(0,i);
+					break;
+				}
 			width = source.ReadUInt32();
 			height = source.ReadUInt32();
 			offset1 = source.ReadUInt32();

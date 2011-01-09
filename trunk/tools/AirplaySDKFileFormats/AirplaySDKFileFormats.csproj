@@ -33,6 +33,7 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Data" />
+    <Reference Include="System.Drawing" />
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
@@ -40,6 +41,7 @@
     <Compile Include="Cb4aEntity.cs" />
     <Compile Include="Cb4aLeaf.cs" />
     <Compile Include="Cb4aLevel.cs" />
+    <Compile Include="Cb4aLevelVertexBuffer.cs" />
     <Compile Include="Cb4aNode.cs" />
     <Compile Include="Cb4aTreeElement.cs" />
     <Compile Include="CIwColour.cs" />
@@ -56,6 +58,9 @@
     <Compile Include="CIwVec2.cs" />
     <Compile Include="CIwVec3.cs" />
     <Compile Include="CTextWriter.cs" />
+    <Compile Include="Model\Cb4aLevelMaterial.cs" />
+    <Compile Include="Model\Cb4aLevelVBCluster.cs" />
+    <Compile Include="Model\Cb4aLevelVBSubcluster.cs" />
     <Compile Include="Model\CMesh.cs" />
     <Compile Include="Model\CSurface.cs" />
     <Compile Include="Model\CTris.cs" />
@@ -64,6 +69,8 @@
     <Compile Include="Model\CVertCols.cs" />
     <Compile Include="Model\CVertNorms.cs" />
     <Compile Include="Model\CVerts.cs" />
+    <Compile Include="Model\LevelVBItem.cs" />
+    <Compile Include="Model\LevelVBWriter.cs" />
     <Compile Include="Model\ModelWriter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

@@ -3,6 +3,28 @@
 
 namespace Bsp4Airplay
 {
+	class Cb4aLevelVertexBuffer;
+	class Cb4aLevelVBSubcluster;
+	class Cb4aLevel;
+#ifdef IW_BUILD_RESOURCES
+	void* Cb4aLevelVertexBufferFactory();
+
+	class ParseLevelVertexBuffer: public CIwManaged
+	{
+		Cb4aLevelVertexBuffer* _this;
+		public:
+		// ---- Text resources ----
+		// Parse from text file: start block.
+		virtual void  ParseOpen (CIwTextParserITX *pParser);
+
+		// function invoked by the text parser when parsing attributes for objects of this type
+		virtual bool ParseAttribute(CIwTextParserITX *pParser, const char *pAttrName);
+
+		// function invoked by the text parser when the object definition end is encountered
+		virtual void ParseClose(CIwTextParserITX* pParser);
+	};
+#endif
+
 	class Cb4aLevelVertexBuffer
 	{
 		CIwGxStream sharedStream;
@@ -11,17 +33,23 @@ namespace Bsp4Airplay
 		CIwGxStream uv0Stream;
 		CIwGxStream uv1Stream;
 		CIwGxStream coloursStream;
+
 	public:
 		CIwArray<CIwSVec3> positions;
 		CIwArray<CIwSVec3> normals;
 		CIwArray<CIwSVec2> uv0s;
 		CIwArray<CIwSVec2> uv1s;
 		CIwArray<CIwColour> colours;
+		CIwArray<Cb4aLevelVBSubcluster*> renderQueue;
 	public:
 		Cb4aLevelVertexBuffer();
 		~Cb4aLevelVertexBuffer();
 		void SetCapacity(uint32);
 		void Serialise();
+		void ScheduleCluster(Cb4aLevelVBSubcluster* );
+		void Flush(Cb4aLevel* l);
+	protected:
+		void FlushQueueBlock(Cb4aLevel* l,uint32 from, uint32 end);
 		void PreRender();
 		void PostRender();
 	};

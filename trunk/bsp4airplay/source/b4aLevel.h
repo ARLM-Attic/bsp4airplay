@@ -5,18 +5,23 @@
 #include "b4aEntity.h"
 #include "b4aLevelVB.h"
 #include "b4aLevelVBCluster.h"
+#include "b4aLevelMaterial.h"
 
 #define BSP4AIRPLAY_RESTYPE_LEVEL	"Cb4aLevel"
 
 namespace Bsp4Airplay
 {
+	
+
 	class Cb4aLevel : public CIwResource
 	{
-		Cb4aLevelVertexBuffer buffer;
+		CIwArray<Cb4aLevelVertexBuffer> buffers;
 		CIwArray<Cb4aLeaf> leaves;
 		CIwArray<Cb4aNode> nodes;
 		CIwArray<Cb4aEntity> entities;
+		CIwArray<Cb4aLevelMaterial> materials;
 		CIwArray<Cb4aLevelVBCluster> clusters;
+		uint32 defaultTextureHash;
 	public:
 		//Declare managed class
 		IW_MANAGED_DECLARE(Cb4aLevel);
@@ -31,16 +36,20 @@ namespace Bsp4Airplay
 		void Render();
 		void Render(const CIwVec3 & viewer);
 		void RenderCluster(int32 i);
-		int FindEntityByClassName(const char* name) const;
+		inline void BindMaterial(uint32 i) {materials[i].Bind(this);};
+		
+		int FindEntityByClassName(const char* name,int startFrom=0) const;
 		inline const Cb4aEntity* GetEntityAt(int32 i) const {return &entities[i];}
-
+		CIwTexture* GetDefaultTextrure();
+		void ScheduleRender(int32 i, Cb4aLevelVBSubcluster*);
 		// ---- Text resources ----
 #ifdef IW_BUILD_RESOURCES
 		Cb4aLeaf* AllocateLeaf();
 		Cb4aNode* AllocateNode();
 		Cb4aEntity* AllocateEntity();
 		Cb4aLevelVBCluster* AllocateCluster();
-
+		Cb4aLevelVertexBuffer* AllocateLevelVertexBuffer();
+		Cb4aLevelMaterial* AllocateLevelMaterial();
 		// function invoked by the text parser when parsing attributes for objects of this type
 		virtual bool ParseAttribute(CIwTextParserITX *pParser, const char *pAttrName);
 

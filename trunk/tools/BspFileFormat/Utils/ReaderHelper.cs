@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using BspFileFormat.BspMath;
 using System.Globalization;
+using System.IO;
 
 namespace BspFileFormat.Utils
 {
@@ -51,6 +52,51 @@ namespace BspFileFormat.Utils
 					entity.Values.Add(new KeyValuePair<string, string>(key,val));
 				}
 			}
+		}
+
+		public static List<T> ReadStructs<T>(System.IO.BinaryReader source, uint size, long offset, uint itemSize) where T:new()
+		{
+			source.BaseStream.Seek(offset, SeekOrigin.Begin);
+			if (size % itemSize != 0)
+				throw new ArgumentException("Wrong size "+itemSize+" for " + typeof(T).Name);
+			int numItems = (int)(size / itemSize);
+			var planes = new List<T>(numItems);
+			var Read = typeof(T).GetMethod("Read");
+			if (Read == null)
+				throw new ArgumentException("No Read(stream) method in "+typeof(T).Name);
+			for (int i = 0; i < numItems; ++i)
+			{
+				var v = new T();
+				Read.Invoke(v, new object[] { source });
+				//v.Read(source);
+				planes.Add(v);
+			}
+			if (source.BaseStream.Position != size + offset)
+				throw new Exception();
+			return planes;
+		}
+
+		internal static ushort[] ReadUInt16Array(BinaryReader source, uint bufSize, uint offset)
+		{
+			source.BaseStream.Seek(offset, SeekOrigin.Begin);
+			int size = (int)(bufSize / 2);
+			var listOfFaces = new ushort[size];
+			for (int i = 0; i < size; ++i)
+			{
+				listOfFaces[i] = source.ReadUInt16();
+			}
+			return listOfFaces;
+		}
+		internal static uint[] ReadUInt32Array(BinaryReader source, uint bufSize, uint offset)
+		{
+			source.BaseStream.Seek(offset, SeekOrigin.Begin);
+			int size = (int)(bufSize / 4);
+			var listOfFaces = new uint[size];
+			for (int i = 0; i < size; ++i)
+			{
+				listOfFaces[i] = source.ReadUInt32();
+			}
+			return listOfFaces;
 		}
 	}
 }

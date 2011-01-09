@@ -13,6 +13,7 @@ namespace Bsp2AirplayAdapter
 		Dictionary<BspTreeNode, int> nodeIndices = new Dictionary<BspTreeNode, int>();
 		Dictionary<BspTreeLeaf, int> leafIndices = new Dictionary<BspTreeLeaf, int>();
 		Dictionary<BspTexture, int> textureIndices = new Dictionary<BspTexture, int>();
+		//Dictionary<BspTexture, int> lightmapIndices = new Dictionary<BspTexture, int>();
 		CIwResGroup group;
 		Cb4aLevel level;
 		//CIwModel model;
@@ -24,6 +25,7 @@ namespace Bsp2AirplayAdapter
 			level.Name = bsp.Name;
 			writer = new LevelVBWriter(level);
 			group.AddRes(level);
+			//level.Materials.Add(new Cb4aLevelMaterial() { Texture="checkers" });
 
 			foreach (var e in bsp.Entities)
 			{
@@ -52,24 +54,6 @@ namespace Bsp2AirplayAdapter
 				if (bspTreeLeaf.Geometry != null && bspTreeLeaf.Geometry.Faces.Count > 0)
 				{
 					leaf.Cluster = WriteVB(bspTreeLeaf, writer);
-					//if (model == null)
-					//{
-					//    model = new CIwModel() { Name = l.Name };
-					//    group.AddRes(model);
-					//}
-					//leaf.Model = model.Name;
-
-					////leaf.Model = l.Name + "/leaf" + i;
-					////var geo = new CIwModel() { Name = leaf.Model };
-					////geo.Mesh.Name = geo.Name;
-					////group.AddRes(geo);
-
-					//var mesh = new CMesh() { Name = model.Name + "/leaf" + i };
-					//leaf.Mesh = model.ModelBlocks.Count;
-					//model.ModelBlocks.Add(mesh);
-
-					//var modelWriter = new ModelWriter(mesh);
-					//WriteGeometry(bspTreeLeaf.Geometry, modelWriter);
 				}
 				foreach (var vis in bspTreeLeaf.VisibleLeaves)
 				{
@@ -77,6 +61,26 @@ namespace Bsp2AirplayAdapter
 				}
 			}
 			return i;
+		}
+		void RegisterTexture(BspTexture t)
+		{
+			if (t == null)
+				return;
+			if (textureIndices.ContainsKey(t))
+				return;
+			textureIndices[t] = 0;
+			if (t is BspEmbeddedTexture)
+			{
+				var embeddedTex = (BspEmbeddedTexture)t;
+				if (embeddedTex.mipMaps != null && embeddedTex.mipMaps.Length > 0)
+				{
+					embeddedTex.Name = level.Name + "_" + embeddedTex.Name;
+					foreach (var c in Path.GetInvalidFileNameChars())
+						embeddedTex.Name = embeddedTex.Name.Replace(c, '_');
+					string subfolder = "textures";
+					group.AddRes(new CIwTexture() { FilePath = "./"+subfolder + "/" + embeddedTex.Name + ".png", Bitmap = embeddedTex.mipMaps[0] });
+				}
+			}
 		}
 
 		private int WriteVB(BspTreeLeaf bspTreeLeaf, LevelVBWriter writer)
@@ -91,39 +95,86 @@ namespace Bsp2AirplayAdapter
 			var cluster = new Cb4aLevelVBCluster();
 			level.clusters.Add(cluster);
 
-			Dictionary<BspTexture, bool> materialMap = new Dictionary<BspTexture, bool>();
+			writer.PrepareVertexBuffer(bspTreeLeaf.Geometry.Faces.Count * 3);
+			cluster.VertexBuffer = level.VertexBuffers.Count - 1;
+			Dictionary<int, bool> materialMap = new Dictionary<int, bool>();
+			List<int> materialInices = new List<int>(bspTreeLeaf.Geometry.Faces.Count);
 			foreach (var f in bspTreeLeaf.Geometry.Faces)
 			{
-				materialMap[f.Texture] = true;
+				RegisterTexture(f.Texture);
+				RegisterTexture(f.Lightmap);
+				int matIndex = writer.WriteMaterial(new Cb4aLevelMaterial((f.Texture != null) ? f.Texture.Name : null, (f.Lightmap != null)?f.Lightmap.Name:null));
+                materialInices.Add(matIndex);
+				materialMap[matIndex] = true;
 			}
-			foreach (BspTexture t in materialMap.Keys)
+			foreach (int t in materialMap.Keys)
 			{
 				var sub = new Cb4aLevelVBSubcluster();
+				sub.Material = t;
 				cluster.Subclusters.Add(sub);
-				
-				foreach (var f in bspTreeLeaf.Geometry.Faces)
+				CIwVec3 mins = new CIwVec3(int.MaxValue, int.MaxValue, int.MaxValue);
+				CIwVec3 maxs = new CIwVec3(int.MinValue, int.MinValue, int.MinValue);
+				for (int i=0; i<materialInices.Count; ++i)
 				{
-					if (f.Texture == t)
+					if (materialInices[i] == t)
 					{
+						var f = bspTreeLeaf.Geometry.Faces[i];
+
 						//TODO: slice face into more faces
 						while (f.Vertex0.UV0.X >= 8 || f.Vertex1.UV0.X >= 8 || f.Vertex2.UV0.X >= 8)
 						{
-							f.Vertex0.UV0.X -= 1; if (f.Vertex0.UV0.X < -8) f.Vertex0.UV0.X = -8;
-							f.Vertex1.UV0.X -= 1; if (f.Vertex1.UV0.X < -8) f.Vertex1.UV0.X = -8;
-							f.Vertex2.UV0.X -= 1; if (f.Vertex2.UV0.X < -8) f.Vertex2.UV0.X = -8;
+							f.Vertex0.UV0.X -= 1; 
+							f.Vertex1.UV0.X -= 1; 
+							f.Vertex2.UV0.X -= 1; 
 						}
 						while (f.Vertex0.UV0.Y >= 8 || f.Vertex1.UV0.Y >= 8 || f.Vertex2.UV0.Y >= 8)
 						{
-							f.Vertex0.UV0.Y -= 1; if (f.Vertex0.UV0.Y < -8) f.Vertex0.UV0.Y = -8;
-							f.Vertex1.UV0.Y -= 1; if (f.Vertex1.UV0.Y < -8) f.Vertex1.UV0.Y = -8;
-							f.Vertex2.UV0.Y -= 1; if (f.Vertex2.UV0.Y < -8) f.Vertex2.UV0.Y = -8;
+							f.Vertex0.UV0.Y -= 1; 
+							f.Vertex1.UV0.Y -= 1; 
+							f.Vertex2.UV0.Y -= 1; 
 						}
+						if (f.Vertex0.UV0.X < -8) f.Vertex0.UV0.X = -8;
+						if (f.Vertex1.UV0.X < -8) f.Vertex1.UV0.X = -8;
+						if (f.Vertex2.UV0.X < -8) f.Vertex2.UV0.X = -8;
+						if (f.Vertex0.UV0.Y < -8) f.Vertex0.UV0.Y = -8;
+						if (f.Vertex1.UV0.Y < -8) f.Vertex1.UV0.Y = -8;
+						if (f.Vertex2.UV0.Y < -8) f.Vertex2.UV0.Y = -8;
+
+						if (f.Vertex0.Position.X < mins.x) mins.x = (int)f.Vertex0.Position.X;
+						if (f.Vertex1.Position.X < mins.x) mins.x = (int)f.Vertex1.Position.X;
+						if (f.Vertex2.Position.X < mins.x) mins.x = (int)f.Vertex2.Position.X;
+						if (f.Vertex0.Position.Y < mins.y) mins.y = (int)f.Vertex0.Position.Y;
+						if (f.Vertex1.Position.Y < mins.y) mins.y = (int)f.Vertex1.Position.Y;
+						if (f.Vertex2.Position.Y < mins.y) mins.y = (int)f.Vertex2.Position.Y;
+						if (f.Vertex0.Position.Z < mins.z) mins.z = (int)f.Vertex0.Position.Z;
+						if (f.Vertex1.Position.Z < mins.z) mins.z = (int)f.Vertex1.Position.Z;
+						if (f.Vertex2.Position.Z < mins.z) mins.z = (int)f.Vertex2.Position.Z;
+
+						if (f.Vertex0.Position.X > maxs.x) maxs.x = (int)f.Vertex0.Position.X;
+						if (f.Vertex1.Position.X > maxs.x) maxs.x = (int)f.Vertex1.Position.X;
+						if (f.Vertex2.Position.X > maxs.x) maxs.x = (int)f.Vertex2.Position.X;
+						if (f.Vertex0.Position.Y > maxs.y) maxs.y = (int)f.Vertex0.Position.Y;
+						if (f.Vertex1.Position.Y > maxs.y) maxs.y = (int)f.Vertex1.Position.Y;
+						if (f.Vertex2.Position.Y > maxs.y) maxs.y = (int)f.Vertex2.Position.Y;
+						if (f.Vertex0.Position.Z > maxs.z) maxs.z = (int)f.Vertex0.Position.Z;
+						if (f.Vertex1.Position.Z > maxs.z) maxs.z = (int)f.Vertex1.Position.Z;
+						if (f.Vertex2.Position.Z > maxs.z) maxs.z = (int)f.Vertex2.Position.Z;
+
 						sub.Indices.Add(writer.Write(GetLevelVBItem(f.Vertex2)));
 						sub.Indices.Add(writer.Write(GetLevelVBItem(f.Vertex1)));
 						sub.Indices.Add(writer.Write(GetLevelVBItem(f.Vertex0)));
 					}
 				}
-				
+				sub.SphereR = Math.Max(Math.Max(maxs.x - mins.x, maxs.y - mins.y), maxs.z - mins.z) / 2;
+				if (sub.SphereR < 0)
+				{
+					sub.SpherePos = CIwVec3.g_Zero;
+					sub.SphereR = 0;
+				}
+				else
+				{
+					sub.SpherePos = new CIwVec3((mins.x + maxs.x) / 2, (mins.y + maxs.y) / 2, (mins.z + maxs.z) / 2);
+				}
 			}
 			
 			return clusterIndex;
@@ -135,7 +186,7 @@ namespace Bsp2AirplayAdapter
 									   Normal = GetVec3Fixed(bspGeometryVertex.Normal),
 									   UV0 = GetVec2Fixed(bspGeometryVertex.UV0),
 									   UV1 = GetVec2Fixed(bspGeometryVertex.UV1),
-									   Colour = CIwColour.White
+									   Colour = GetColour(bspGeometryVertex.Color)
 			};
 		}
 
@@ -218,9 +269,9 @@ namespace Bsp2AirplayAdapter
 				(int)(vector3.Z*AirplaySDKMath.IW_GEOM_ONE)
 				);
 		}
-		private CIwColour GetColour(object col)
+		private CIwColour GetColour(System.Drawing.Color col)
 		{
-			return new CIwColour() { };
+			return new CIwColour() { r=col.R, g=col.G,b=col.B,a=col.A };
 		}
 		private CIwVec2 GetVec2Fixed(BspFileFormat.BspMath.Vector2 vector3)
 		{

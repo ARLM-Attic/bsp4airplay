@@ -11,12 +11,16 @@ namespace BspFileFormat.Q2
 		protected long startOfTheFile;
 		protected header_t header;
 		protected string entities;
+		protected List<plane_t> planes;
+		protected List<face_t> faces;
 
 		public void ReadBsp(System.IO.BinaryReader source, BspDocument dest)
 		{
 			startOfTheFile = source.BaseStream.Position;
 			ReadHeader(source);
 			ReadEntities(source);
+			ReadPlanes(source);
+			ReadFaces(source);
 
 			ReaderHelper.BuildEntities(entities, dest);
 		}
@@ -30,6 +34,14 @@ namespace BspFileFormat.Q2
 			SeekDir(source, header.entities);
 			int size = (int)(header.entities.size);
 			entities = Encoding.ASCII.GetString(source.ReadBytes(size));
+		}
+		private void ReadFaces(BinaryReader source)
+		{
+			faces = ReaderHelper.ReadStructs<face_t>(source, header.faces.size, header.faces.offset + startOfTheFile, 2+2+4+2+2+4+4);
+		}
+		private void ReadPlanes(BinaryReader source)
+		{
+			planes = ReaderHelper.ReadStructs<plane_t>(source, header.planes.size, header.planes.offset + startOfTheFile, 20);
 		}
 		private void SeekDir(BinaryReader source, dentry_t dir)
 		{

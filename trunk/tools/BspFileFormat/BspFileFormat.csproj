@@ -72,12 +72,21 @@
     <Compile Include="Q1HL1\QuakeReader.cs" />
     <Compile Include="Q1HL1\surface_t.cs" />
     <Compile Include="Q2\dentry_t.cs" />
+    <Compile Include="Q2\face_t.cs" />
     <Compile Include="Q2\header_t.cs" />
+    <Compile Include="Q2\plane_t.cs" />
     <Compile Include="Q2\Quake2Reader.cs" />
+    <Compile Include="Q3\cluster_t.cs" />
     <Compile Include="Q3\dentry_t.cs" />
+    <Compile Include="Q3\face_t.cs" />
     <Compile Include="Q3\header_t.cs" />
+    <Compile Include="Q3\leaf_t.cs" />
+    <Compile Include="Q3\node_t.cs" />
+    <Compile Include="Q3\plane_t.cs" />
     <Compile Include="Q3\Quake3Reader.cs" />
     <Compile Include="BspEmbeddedTexture.cs" />
+    <Compile Include="Q3\texture_t.cs" />
+    <Compile Include="Q3\vertex_t.cs" />
     <Compile Include="Utils\IBspReader.cs" />
     <Compile Include="Utils\ReaderHelper.cs" />
   </ItemGroup>

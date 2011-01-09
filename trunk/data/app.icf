@@ -19,9 +19,10 @@
 [s3e]
 #FixScreenOrientation=2
 MemSizeDebug=67108864
-MemSize=16777216
+MemSize=67108864
 
 [GX]
 DisplayFrameRate=1
-DataCacheSize=262144
-VertCacheSize=262144
+DataCacheSize=4194304
+VertCacheSize=2097152
+PolyBufferSize=2097152
