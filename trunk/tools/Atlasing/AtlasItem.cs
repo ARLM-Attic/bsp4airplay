@@ -29,5 +29,25 @@ namespace Atlasing
 				return atlas;
 			}
 		}
+		Point position;
+		public Point Position
+		{
+			get
+			{
+				atlas.BuildAtlas();
+				return position;
+			}
+			set
+			{
+				position = value;
+			}
+		}
+		public Size Size
+		{
+			get
+			{
+				return bitmap.Size;
+			}
+		}
 	}
 }

@@ -5,6 +5,8 @@ using BspFileFormat;
 using AirplaySDKFileFormats;
 using AirplaySDKFileFormats.Model;
 using System.IO;
+using Atlasing;
+using System.Drawing;
 
 namespace Bsp2AirplayAdapter
 {
@@ -12,14 +14,19 @@ namespace Bsp2AirplayAdapter
 	{
 		Dictionary<BspTreeNode, int> nodeIndices = new Dictionary<BspTreeNode, int>();
 		Dictionary<BspTreeLeaf, int> leafIndices = new Dictionary<BspTreeLeaf, int>();
+		List<BspTreeLeaf> allLeaves = new List<BspTreeLeaf>();
 		Dictionary<BspTexture, int> textureIndices = new Dictionary<BspTexture, int>();
 		//Dictionary<BspTexture, int> lightmapIndices = new Dictionary<BspTexture, int>();
 		CIwResGroup group;
 		Cb4aLevel level;
 		//CIwModel model;
 		LevelVBWriter writer;
+		BspTexture commonLightmap;
 		public void Convert(BspDocument bsp, CIwResGroup group)
 		{
+			CollectAllLeaves(bsp.Tree);
+			BuildLightmapAtlas(bsp);
+
 			this.group = group;
 			this.level = new Cb4aLevel();
 			level.Name = bsp.Name;
@@ -31,11 +38,126 @@ namespace Bsp2AirplayAdapter
 			{
 				level.Entities.Add(new Cb4aEntity() { classname = e.ClassName, origin = GetVec3(e.Origin), values = e.Values });
 			}
+			AddLeaves(level);
 			if (bsp.Tree != null)
-				AddTreeElement(level, bsp.Tree);
+				AddTreeNode(level, bsp.Tree);
 		}
-		
-		private int AddTreeElement(Cb4aLevel l, BspTreeElement bspTreeElement)
+
+		private void AddLeaves(Cb4aLevel level)
+		{
+			for (int i=0; i<allLeaves.Count;++i)
+			{
+				var bspTreeLeaf = allLeaves[i];
+				i = level.Leaves.Count;
+				var ll = new Cb4aLeaf() { Index = i };
+				level.Leaves.Add(ll);
+				if (bspTreeLeaf.Geometry != null && bspTreeLeaf.Geometry.Faces.Count > 0)
+				{
+					ll.Cluster = WriteVB(bspTreeLeaf, writer);
+				}
+				foreach (var v in bspTreeLeaf.VisibleLeaves)
+					ll.VisibleLeaves.Add(leafIndices[v]);
+			}
+		}
+		private void BuildLightmapAtlas(BspDocument bsp)
+		{
+			Dictionary<Bitmap, bool> lightmaps = new Dictionary<Bitmap, bool>();
+			CollectAllLightmaps(lightmaps);
+
+			Atlas atlas = new Atlas();
+			foreach (var l in lightmaps.Keys)
+			{
+				atlas.Add(l);
+			}
+
+			commonLightmap = new BspEmbeddedTexture() { Name = bsp.Name + "_lightmap", mipMaps = new Bitmap[] { atlas.Bitmap } };
+			UpdateLightmap(commonLightmap, atlas);
+			
+		//    
+		//    Bitmap Lightmap = new Bitmap(128,128);
+		//    using (var g = Graphics.FromImage(Lightmap))
+		//    {
+		//        g.Clear(Color.Red);
+		//    }
+		//    BspEmbeddedTexture lm = new BspEmbeddedTexture() { Name = "lightmap", mipMaps = new Bitmap[1] { Lightmap } };
+		//    foreach (var l in leaves)
+		//    {
+		//        if (l.Geometry != null)
+		//            foreach (var f in l.Geometry.Faces)
+		//                if (f.Lightmap != null)
+		//                    f.Lightmap = lm;
+		//    }
+		}
+
+		private void UpdateLightmap(BspTexture result, Atlas atlas)
+		{
+			foreach (var leaf in allLeaves)
+			{
+				if (leaf.Geometry == null)
+					continue;
+				Size dstSize = new Size(atlas.Bitmap.Width, atlas.Bitmap.Height);
+				for (int i = 0; i < leaf.Geometry.Faces.Count; ++i)
+				{
+					var f = leaf.Geometry.Faces[i];
+					if (f.Lightmap != null)
+					{
+						if (f.Lightmap.Equals(result))
+							continue;
+						var item = atlas.GetItem(((BspEmbeddedTexture)f.Lightmap).mipMaps[0]);
+						var ff = new BspGeometryFace() { Texture = f.Texture, Lightmap = result };
+						ff.Vertex0 = CorrectLightmapCoords(f.Vertex0, dstSize, item);
+						ff.Vertex1 = CorrectLightmapCoords(f.Vertex1, dstSize, item);
+						ff.Vertex2 = CorrectLightmapCoords(f.Vertex2, dstSize, item);
+						leaf.Geometry.Faces[i] = ff;
+					}
+				}
+			}
+		}
+
+		private BspGeometryVertex CorrectLightmapCoords(BspGeometryVertex src, Size dstSize, AtlasItem item)
+		{
+			BspGeometryVertex res = new BspGeometryVertex();
+			res.Color = src.Color;
+			res.Normal = src.Normal;
+			res.Position = src.Position;
+			res.UV0 = src.UV0;
+			var size =item.Size;
+			var position =item.Position;
+			res.UV1.X = ((float)item.Position.X + src.UV1.X * (float)size.Width) / (float)dstSize.Width;
+			res.UV1.Y = ((float)item.Position.Y + src.UV1.Y * (float)size.Height) / (float)dstSize.Height;
+			return res;
+		}
+
+		private void CollectAllLeaves(BspTreeElement bspTreeElement)
+		{
+			if (bspTreeElement is BspTreeNode)
+			{
+				CollectAllLeaves(((BspTreeNode)bspTreeElement).Front);
+				CollectAllLeaves(((BspTreeNode)bspTreeElement).Back);
+				return;
+			}
+			var leaf = (BspTreeLeaf)bspTreeElement;
+			int i;
+			if (leafIndices.TryGetValue(leaf, out i))
+				return;
+			i = allLeaves.Count;
+			allLeaves.Add(leaf);
+			leafIndices[leaf] = i;
+			foreach (var v in leaf.VisibleLeaves)
+				CollectAllLeaves(v);
+		}
+		private void CollectAllLightmaps(Dictionary<Bitmap, bool> lightmaps)
+		{
+			foreach (var leaf in allLeaves)
+			{
+				if (leaf.Geometry == null)
+					continue;
+				foreach (var f in leaf.Geometry.Faces)
+					if (f.Lightmap != null)
+						lightmaps[((BspEmbeddedTexture)f.Lightmap).mipMaps[0]] = true;
+			}
+		}
+		private int AddTreeNode(Cb4aLevel l, BspTreeElement bspTreeElement)
 		{
 			if (bspTreeElement is BspTreeNode)
 				return AddTreeNode(l, (BspTreeNode)bspTreeElement);
@@ -44,23 +166,8 @@ namespace Bsp2AirplayAdapter
 
 		private int AddTreeLeaf(Cb4aLevel l, BspTreeLeaf bspTreeLeaf)
 		{
-			int i;
-			if (!leafIndices.TryGetValue(bspTreeLeaf, out i))
-			{
-				i = l.Leaves.Count;
-				var leaf = new Cb4aLeaf() { Index = i };
-				leafIndices[bspTreeLeaf] = i;
-				l.Leaves.Add(leaf);
-				if (bspTreeLeaf.Geometry != null && bspTreeLeaf.Geometry.Faces.Count > 0)
-				{
-					leaf.Cluster = WriteVB(bspTreeLeaf, writer);
-				}
-				foreach (var vis in bspTreeLeaf.VisibleLeaves)
-				{
-					leaf.VisibleLeaves.Add(AddTreeLeaf(l, vis));
-				}
-			}
-			return i;
+			return leafIndices[bspTreeLeaf];
+			
 		}
 		void RegisterTexture(BspTexture t)
 		{
@@ -69,18 +176,18 @@ namespace Bsp2AirplayAdapter
 			if (textureIndices.ContainsKey(t))
 				return;
 			textureIndices[t] = 0;
+			string subfolder = "textures";
+			//t.Name = t.Name;
+			foreach (var c in Path.GetInvalidFileNameChars())
+				t.Name = t.Name.Replace(c, '_');
+			Bitmap bmp = null;
 			if (t is BspEmbeddedTexture)
 			{
 				var embeddedTex = (BspEmbeddedTexture)t;
 				if (embeddedTex.mipMaps != null && embeddedTex.mipMaps.Length > 0)
-				{
-					embeddedTex.Name = level.Name + "_" + embeddedTex.Name;
-					foreach (var c in Path.GetInvalidFileNameChars())
-						embeddedTex.Name = embeddedTex.Name.Replace(c, '_');
-					string subfolder = "textures";
-					group.AddRes(new CIwTexture() { FilePath = "./"+subfolder + "/" + embeddedTex.Name + ".png", Bitmap = embeddedTex.mipMaps[0] });
-				}
+					bmp = embeddedTex.mipMaps[0];
 			}
+			group.AddRes(new CIwTexture() { FilePath = "./" + subfolder + "/" + t.Name + ".png", Bitmap = bmp });
 		}
 
 		private int WriteVB(BspTreeLeaf bspTreeLeaf, LevelVBWriter writer)
@@ -102,6 +209,8 @@ namespace Bsp2AirplayAdapter
 			foreach (var f in bspTreeLeaf.Geometry.Faces)
 			{
 				RegisterTexture(f.Texture);
+				if (f.Lightmap != null && commonLightmap != f.Lightmap)
+					throw new ApplicationException("not atlased lightmap");
 				RegisterTexture(f.Lightmap);
 				int matIndex = writer.WriteMaterial(new Cb4aLevelMaterial((f.Texture != null) ? f.Texture.Name : null, (f.Lightmap != null)?f.Lightmap.Name:null));
                 materialInices.Add(matIndex);
@@ -254,9 +363,9 @@ namespace Bsp2AirplayAdapter
 				node.PlaneDistance = bspTreeNode.PlaneDistance;
 				node.PlaneNormal = GetVec3Fixed(bspTreeNode.PlaneNormal);
 				node.IsFrontLeaf = bspTreeNode.Front is BspTreeLeaf;
-				node.Front = AddTreeElement(l, bspTreeNode.Front);
+				node.Front = AddTreeNode(l, bspTreeNode.Front);
 				node.IsBackLeaf = bspTreeNode.Back is BspTreeLeaf;
-				node.Back = AddTreeElement(l, bspTreeNode.Back);
+				node.Back = AddTreeNode(l, bspTreeNode.Back);
 			}
 			return i;
 		}

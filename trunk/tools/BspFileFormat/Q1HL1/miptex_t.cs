@@ -9,6 +9,7 @@ namespace BspFileFormat.Q1HL1
 	public class miptex_t                // Mip Texture
 	{
 		public string name;             // Name of the texture.[16]
+		public bool alphaTest = false;
 		public uint width;                // width of picture, must be a multiple of 8
 		public uint height;               // height of picture, must be a multiple of 8
 		public uint offset1;              // offset to u_char Pix[width   * height]
@@ -26,6 +27,10 @@ namespace BspFileFormat.Q1HL1
 					name = name.Substring(0,i);
 					break;
 				}
+			if (name[0] == '{')
+			{
+				alphaTest = true;
+			}
 			width = source.ReadUInt32();
 			height = source.ReadUInt32();
 			offset1 = source.ReadUInt32();

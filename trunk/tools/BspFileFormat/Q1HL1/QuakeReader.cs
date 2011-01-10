@@ -13,7 +13,6 @@ namespace BspFileFormat.Q1HL1
 	{
 		protected long startOfTheFile;
 		protected header_t header;
-		protected Color[] palette = q1palette.palette;
 		protected List<Vector3> vertices;
 		protected List<edge_t> edges;
 		protected List<BspEmbeddedTexture> textures;
@@ -52,7 +51,7 @@ namespace BspFileFormat.Q1HL1
 			ReadListOfFaces(source);
 			ReadListOfEdges(source);
 			ReadModels(source);
-
+			
 			//if (textures != null)
 			//    foreach (var tex in textures)
 			//        dest.AddTexture(tex);
@@ -70,12 +69,13 @@ namespace BspFileFormat.Q1HL1
 			{
 				dest.Tree = BuildNode(nodes[0]);
 			}
-
 			BuildVisibilityList();
 
 
 			ReaderHelper.BuildEntities(entities, dest);
 		}
+
+		
 
 		
 
@@ -85,15 +85,17 @@ namespace BspFileFormat.Q1HL1
 			int size = (int)(header.entities.size);
 			entities = Encoding.ASCII.GetString(source.ReadBytes(size));
 		}
-
+		
 		int lightmapTestCounter = 0;
+		Dictionary<int, BspTexture> faceLightmapObjects = new Dictionary<int, BspTexture>();
 		private BspGeometry BuildGeometry(uint fromFace, uint numFaces, int modelId = 0, bool setModelId = false)
 		{
 			var res = new BspGeometry() { Faces = new List<BspGeometryFace>() };
 
 			for (uint i = fromFace; i < fromFace + numFaces; ++i)
 			{
-				var face = faces[listOfFaces[i]];
+				ushort faceIndex = listOfFaces[i];
+				var face = faces[faceIndex];
 				if (setModelId)
 					face.modelId = modelId;
 				//else if (face.modelId != modelId)
@@ -163,17 +165,22 @@ namespace BspFileFormat.Q1HL1
 					faceVertices[j].UV1.Y = (faceVertices[j].UV1.Y - minUV1.Y) / sizeLightmap.Y;
 				}
 				BspTexture lightMap = null;
-				//if (face.lightmap != -1)
-				//{
-				//    var size = lighmapSize[face.lightmap];
-				//    var size2 = (sizeLightmap.X) * (sizeLightmap.Y);
-				//    lightMap = new BspEmbeddedTexture()
-				//    {
-				//        mipMaps = new Bitmap[] { BuildFaceLightmap(face.lightmap, (int)sizeLightmap.X, (int)sizeLightmap.Y) },
-				//        Width = (int)sizeLightmap.X,
-				//        Height = (int)sizeLightmap.Y
-				//    };
-				//}
+				if (face.lightmap != -1)
+				{
+					if (!faceLightmapObjects.TryGetValue(face.lightmap, out lightMap))
+					{
+						var size = lighmapSize[face.lightmap];
+						var size2 = (sizeLightmap.X) * (sizeLightmap.Y);
+						lightMap = new BspEmbeddedTexture()
+						{
+							Name = "facelightmap" + face.lightmap,
+							mipMaps = new Bitmap[] { BuildFaceLightmap(face.lightmap, (int)sizeLightmap.X, (int)sizeLightmap.Y) },
+							Width = (int)sizeLightmap.X,
+							Height = (int)sizeLightmap.Y
+						};
+						faceLightmapObjects[face.lightmap] = lightMap;
+					}
+				}
 
 				var vert0 = faceVertices[0];
 				for (int j = 1; j < faceVertices.Length - 1; ++j)
@@ -191,16 +198,21 @@ namespace BspFileFormat.Q1HL1
 			return BuildGeometry(model.face_id, model.face_num, modelid,true);
 			
 		}
-
+		//Dictionary<int, Bitmap> faceLightmaps = new Dictionary<int, Bitmap>();
 		public virtual Bitmap BuildFaceLightmap(int p, int w, int h)
 		{
-			var b = new Bitmap(w, h);
+
+			Bitmap b;
+			//if (faceLightmaps.TryGetValue(p, out b))
+			//    return b;
+			b = new Bitmap(w, h);
 			for (int y=0; y<h;++y)
 				for (int x = 0; x < w; ++x)
 				{
 					b.SetPixel(x, y, Color.FromArgb(lightmap[p], lightmap[p], lightmap[p]));
 					++p;
 				}
+			//faceLightmaps[p] = b;
 			return b;
 		}
 
@@ -325,6 +337,7 @@ namespace BspFileFormat.Q1HL1
 			mipheader_t hdr = new mipheader_t(); 
 			hdr.Read(source);
 			textures = new List<BspEmbeddedTexture>(hdr.offset.Length);
+			
 			foreach (var offset in hdr.offset)
 			{
 				source.BaseStream.Seek(startOfTheFile + header.miptex.offset + offset, SeekOrigin.Begin);
@@ -335,44 +348,44 @@ namespace BspFileFormat.Q1HL1
 				var tex = new BspEmbeddedTexture() { Name = miptex.name, Width = (int)miptex.width, Height = (int)miptex.height };
 				if (miptex.offset1 > 0)
 				{
-
 					tex.mipMaps = new Bitmap[4];
-					int x, y, w, h;
-
-					tex.mipMaps[0] = new Bitmap((int)miptex.width, (int)miptex.height);
+					int w = (int)miptex.width;
+					int h = (int)miptex.height;
 					source.BaseStream.Seek(texPos + miptex.offset1, SeekOrigin.Begin);
-					w = (int)miptex.width;
-					h = (int)miptex.height;
-					for (y = 0; y < h; ++y)
-						for (x = 0; x < w; ++x)
-							tex.mipMaps[0].SetPixel(x, y, palette[(int)source.ReadByte()]);
-
-					tex.mipMaps[1] = new Bitmap((int)miptex.width / 2, (int)miptex.height / 2);
+					var palette = GetPalette(source, miptex);
+					tex.mipMaps[0] = ReadBitmapData(source, miptex.alphaTest, w,h,palette);
+					w /= 2; h /= 2;
 					source.BaseStream.Seek(texPos + miptex.offset2, SeekOrigin.Begin);
-					w /= 2;
-					h /= 2;
-					for (y = 0; y < h; ++y)
-						for (x = 0; x < w; ++x)
-							tex.mipMaps[1].SetPixel(x, y, palette[(int)source.ReadByte()]);
-
-					tex.mipMaps[2] = new Bitmap((int)miptex.width / 4, (int)miptex.height / 4);
+					tex.mipMaps[1] = ReadBitmapData(source, miptex.alphaTest, w, h, palette);
+					w /= 2; h /= 2;
 					source.BaseStream.Seek(texPos + miptex.offset4, SeekOrigin.Begin);
-					w /= 2;
-					h /= 2;
-					for (y = 0; y < h; ++y)
-						for (x = 0; x < w; ++x)
-							tex.mipMaps[2].SetPixel(x, y, palette[(int)source.ReadByte()]);
-
-					tex.mipMaps[3] = new Bitmap((int)miptex.width / 8, (int)miptex.height / 8);
+					tex.mipMaps[2] = ReadBitmapData(source, miptex.alphaTest, w, h, palette);
+					w /= 2; h /= 2;
 					source.BaseStream.Seek(texPos + miptex.offset8, SeekOrigin.Begin);
-					w /= 2;
-					h /= 2;
-					for (y = 0; y < h; ++y)
-						for (x = 0; x < w; ++x)
-							tex.mipMaps[3].SetPixel(x, y, palette[(int)source.ReadByte()]);
+					tex.mipMaps[3] = ReadBitmapData(source, miptex.alphaTest, w, h, palette);
 				}
 				textures.Add(tex);
 			}
+		}
+
+		public virtual Color[] GetPalette(BinaryReader source, miptex_t tex)
+		{
+			return q1palette.palette;
+		}
+
+		public virtual Bitmap ReadBitmapData(BinaryReader source, bool a, int w, int h, Color[] palette)
+		{
+			var bmp = new Bitmap(w, h);
+			for (int y = 0; y < h; ++y)
+				for (int x = 0; x < w; ++x)
+				{
+					var index = (int)source.ReadByte();
+					if (a && index == 255)
+						bmp.SetPixel(x, y, Color.FromArgb(0,0,0,0));
+					else
+						bmp.SetPixel(x, y, palette[index]);
+				}
+			return bmp;
 		}
 		private void ReadTextureInfos(BinaryReader source)
 		{
@@ -452,7 +465,7 @@ namespace BspFileFormat.Q1HL1
 			visilist = source.ReadBytes(size);
 		}
 
-		private void ReadLightmap(BinaryReader source)
+		public virtual void ReadLightmap(BinaryReader source)
 		{
 			SeekDir(source, header.lightmaps);
 			int size = (int)(header.lightmaps.size);

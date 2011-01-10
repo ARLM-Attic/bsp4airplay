@@ -80,6 +80,7 @@ void Cb4aLevelVertexBuffer::FlushQueueDynamicBlock(Cb4aLevel* l,uint32 from, uin
 	CIwSVec3* temp_normals = IW_GX_ALLOC(CIwSVec3,totalIndices);
 	CIwSVec2* temp_uv0s = IW_GX_ALLOC(CIwSVec2,totalIndices);
 	CIwSVec2* temp_uv1s = IW_GX_ALLOC(CIwSVec2,totalIndices);
+	uint16* indinces = IW_GX_ALLOC(uint16,totalIndices);
 	int offset = 0;
 	for (uint32 i=from; i<end; ++i)
 	{
@@ -90,6 +91,7 @@ void Cb4aLevelVertexBuffer::FlushQueueDynamicBlock(Cb4aLevel* l,uint32 from, uin
 			temp_normals[offset] = GetNormal(indices[i]);
 			temp_uv0s[offset] = GetUV0(indices[i]);
 			temp_uv1s[offset] = GetUV1(indices[i]);
+			indinces[offset] = (uint16)offset;
 			++offset;
 		}
 	}
@@ -101,7 +103,7 @@ void Cb4aLevelVertexBuffer::FlushQueueDynamicBlock(Cb4aLevel* l,uint32 from, uin
 	//IwGxSetColStream(temp_colours, );
 	IwGxSetColStream(0);
 
-	IwGxDrawPrims(IW_GX_TRI_LIST,0,totalIndices);
+	IwGxDrawPrims(IW_GX_TRI_LIST,indinces,totalIndices);
 }
 void Cb4aLevelVertexBuffer::FlushQueueBlock(Cb4aLevel* l,uint32 from, uint32 end)
 {

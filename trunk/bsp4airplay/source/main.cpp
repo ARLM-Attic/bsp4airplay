@@ -14,12 +14,25 @@ bool moveForward = false;
 bool moveBackward = false;
 bool moveLeft = false;
 bool moveRight = false;
+bool invertMouse = false;
 int32 pointerButton (s3ePointerEvent* systemData, void* userData)
 {
 	isButtonDown = (systemData->m_Pressed)?systemData->m_Button+1:0;
 	oldMouseX = systemData->m_x;
 	oldMouseY = systemData->m_y;
 	return 0;
+}
+void RotateCamera(int dx, int dy)
+{
+	if (invertMouse)
+	{
+		dx = -dx;
+		dy = -dy;
+	}
+	angleZ = (angleZ-dx) & 4095;
+	angleBow = angleBow+dy;
+	if (angleBow < -1000) angleBow = -1000;
+	if (angleBow > 1000) angleBow = 1000;
 }
 
 int32 pointerMotion (s3ePointerMotionEvent* systemData, void* userData)
@@ -28,10 +41,7 @@ int32 pointerMotion (s3ePointerMotionEvent* systemData, void* userData)
 	{
 		int32 dx = (systemData->m_x-oldMouseX)*4096/(int32)IwGxGetScreenWidth(); oldMouseX=systemData->m_x;
 		int32 dy = (systemData->m_y-oldMouseY)*4096/(int32)IwGxGetScreenHeight(); oldMouseY=systemData->m_y;
-		angleZ = (angleZ+dx) & 4095;
-		angleBow = angleBow+dy;
-		if (angleBow < -1000) angleBow = -1000;
-		if (angleBow > 1000) angleBow = 1000;
+		RotateCamera(dx,dy);
 	}
 	return 0;
 }
@@ -39,10 +49,7 @@ int32 pointerTouchMotion (s3ePointerTouchMotionEvent* systemData, void* userData
 {
 	int32 dx = (systemData->m_x-oldMouseX)*4096/(int32)IwGxGetScreenWidth(); oldMouseX=systemData->m_x;
 	int32 dy = (systemData->m_y-oldMouseY)*4096/(int32)IwGxGetScreenHeight(); oldMouseY=systemData->m_y;
-	angleZ = (angleZ+dx) & 4095;
-	angleBow = angleBow+dy;
-	if (angleBow < -1000) angleBow = -1000;
-	if (angleBow > 1000) angleBow = 1000;
+	RotateCamera(dx,dy);
 
 	return 0;
 }
@@ -91,9 +98,12 @@ int main()
 	//CIwResGroup* group = IwGetResManager()->LoadGroup("maps/hldemo1.group");
 	//Bsp4Airplay::Cb4aLevel* level = static_cast<Bsp4Airplay::Cb4aLevel*>(group->GetResNamed("hldemo1", "Cb4aLevel"));
 
-	CIwResGroup* group = IwGetResManager()->LoadGroup("maps/sg0503.group");
-	Bsp4Airplay::Cb4aLevel* level = static_cast<Bsp4Airplay::Cb4aLevel*>(group->GetResNamed("sg0503", "Cb4aLevel"));
-	
+	//CIwResGroup* group = IwGetResManager()->LoadGroup("maps/sg0503.group");
+	//Bsp4Airplay::Cb4aLevel* level = static_cast<Bsp4Airplay::Cb4aLevel*>(group->GetResNamed("sg0503", "Cb4aLevel"));
+
+	CIwResGroup* group = IwGetResManager()->LoadGroup("maps/samplebox.group");
+	Bsp4Airplay::Cb4aLevel* level = static_cast<Bsp4Airplay::Cb4aLevel*>(group->GetResNamed("samplebox", "Cb4aLevel"));
+
 	//CIwResGroup* group = IwGetResManager()->LoadGroup("maps/madcrabs.group");
 	//Bsp4Airplay::Cb4aLevel* level = static_cast<Bsp4Airplay::Cb4aLevel*>(group->GetResNamed("madcrabs", "Cb4aLevel"));
 
@@ -110,8 +120,6 @@ int main()
 	}
 	const Bsp4Airplay::Cb4aEntity* spawnEnt = (spawnEntIndex>=0)?level->GetEntityAt(spawnEntIndex):0;
 	CIwVec3 cameraOrigin = spawnEnt ? (spawnEnt->GetOrigin()) : CIwVec3::g_Zero;
-
-
 	{
 	
 		while (1)
