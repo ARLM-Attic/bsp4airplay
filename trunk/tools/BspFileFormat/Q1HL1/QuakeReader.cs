@@ -161,8 +161,8 @@ namespace BspFileFormat.Q1HL1
 				for (int j = 0; j < (int)face.ledge_num; ++j)
 				{
 					faceVertices[j].UV0 = faceVertices[j].UV0 - minUV0;
-					faceVertices[j].UV1.X = (faceVertices[j].UV1.X - minUV1.X) / sizeLightmap.X;
-					faceVertices[j].UV1.Y = (faceVertices[j].UV1.Y - minUV1.Y) / sizeLightmap.Y;
+					faceVertices[j].UV1.X = (faceVertices[j].UV1.X - minUV1.X + 0.5f) / sizeLightmap.X;
+					faceVertices[j].UV1.Y = (faceVertices[j].UV1.Y - minUV1.Y + 0.5f) / sizeLightmap.Y;
 				}
 				BspTexture lightMap = null;
 				if (face.lightmap != -1)
