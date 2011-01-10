@@ -2,9 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using BspFileFormat.Utils;
-using BspFileFormat.BspMath;
 
-namespace BspFileFormat.Q1HL1
+namespace BspFileFormat.Q2
 {
 	public class edge_t
 	{
@@ -17,5 +16,4 @@ namespace BspFileFormat.Q1HL1
 			vertex1 = source.ReadUInt16();
 		}
 	}
-
 }

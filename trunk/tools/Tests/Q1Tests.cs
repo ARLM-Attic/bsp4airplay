@@ -21,7 +21,7 @@ namespace Tests
 		public void TestHL1()
 		{
 			//(new Adapter()).Convert(@"..\data\maps\hldemo1.bsp", @"..\data\maps\hldemo1.group");
-			(new Adapter()).Convert(@"..\data\maps\samplebox.bsp", @"..\data\maps\samplebox.group");
+			//(new Adapter()).Convert(@"..\data\maps\samplebox.bsp", @"..\data\maps\samplebox.group");
 			//(new Adapter()).Convert(@"..\data\maps\madcrabs.bsp", @"..\data\maps\madcrabs.group");
 		}
 	}

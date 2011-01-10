@@ -71,11 +71,16 @@
     <Compile Include="Q1HL1\Quake1Reader.cs" />
     <Compile Include="Q1HL1\QuakeReader.cs" />
     <Compile Include="Q1HL1\surface_t.cs" />
+    <Compile Include="Q2\cluster_t.cs" />
     <Compile Include="Q2\dentry_t.cs" />
+    <Compile Include="Q2\edge_t.cs" />
     <Compile Include="Q2\face_t.cs" />
     <Compile Include="Q2\header_t.cs" />
+    <Compile Include="Q2\leaf_t.cs" />
+    <Compile Include="Q2\node_t.cs" />
     <Compile Include="Q2\plane_t.cs" />
     <Compile Include="Q2\Quake2Reader.cs" />
+    <Compile Include="Q2\texinfo_t.cs" />
     <Compile Include="Q3\cluster_t.cs" />
     <Compile Include="Q3\dentry_t.cs" />
     <Compile Include="Q3\face_t.cs" />

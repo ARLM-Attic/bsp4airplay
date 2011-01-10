@@ -22,8 +22,7 @@ namespace AirplaySDKFileFormats
 			base.WrtieBodyToStream(writer);
 
 			writer.WriteLine("shared true");
-			//TODO: do it right
-			writer.WriteLine("\"./checkers.png\"");
+		
 
 			var materials = new List<CIwMaterial>();
 			var geos = new List<CIwModel>();

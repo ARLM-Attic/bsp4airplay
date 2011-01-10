@@ -2,6 +2,7 @@ using BspFileFormat.BspMath;
 
 namespace BspFileFormat.Q3
 {
+
 	public class node_t
 	{
 		public int planenum;

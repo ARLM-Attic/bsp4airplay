@@ -13,5 +13,16 @@ namespace BspFileFormat
 		public BspGeometryVertex Vertex2;
 		public BspTexture Texture;
 		public BspTexture Lightmap;
+
+		public float MaxUV0Distance
+		{
+			get
+			{
+				return Math.Max(
+			   Math.Max(Math.Max(Math.Abs(Vertex0.UV0.X - Vertex1.UV0.X), Math.Abs(Vertex0.UV0.X - Vertex2.UV0.X)), Math.Abs(Vertex1.UV0.X - Vertex2.UV0.X)),
+			   Math.Max(Math.Max(Math.Abs(Vertex0.UV0.Y - Vertex1.UV0.Y), Math.Abs(Vertex0.UV0.Y - Vertex2.UV0.Y)), Math.Abs(Vertex1.UV0.Y - Vertex2.UV0.Y)))
+			   ;
+			}
+		}
 	}
 }

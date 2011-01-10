@@ -86,7 +86,7 @@ namespace BspFileFormat.Q1HL1
 			entities = Encoding.ASCII.GetString(source.ReadBytes(size));
 		}
 		
-		int lightmapTestCounter = 0;
+		
 		Dictionary<int, BspTexture> faceLightmapObjects = new Dictionary<int, BspTexture>();
 		private BspGeometry BuildGeometry(uint fromFace, uint numFaces, int modelId = 0, bool setModelId = false)
 		{
@@ -221,28 +221,9 @@ namespace BspFileFormat.Q1HL1
 			var res = new BspGeometryVertex();
 			res.Position = vector3;
 			res.Normal = plane.normal;
-			//res.UV0 = new Vector2(vector3.X, vector3.Y);
 			res.UV0 = new Vector2(Vector3.Dot(surf.vectorS, vector3) + surf.distS, Vector3.Dot(surf.vectorT, vector3) + surf.distT);
 			res.UV1 = new Vector2(res.UV0.X / 16.0f, res.UV0.Y/16.0f);
-			/*
-			switch (plane.type)
-			{
-				case 0: //PLANE_X
-				case 3: //PLANE_ANYX
-					res.UV1 = new Vector2(vector3.Y / 16.0f, vector3.Z / 16.0f);
-					break;
-				case 1:
-				case 4:
-					res.UV1 = new Vector2(vector3.X / 16.0f, vector3.Z / 16.0f);
-					break;
-				case 2:
-				case 5:
-					res.UV1 = new Vector2(vector3.X / 16.0f, vector3.Y / 16.0f);
-					break;
-				default:
-					throw new ApplicationException("Unknown plane type");
-			}
-			*/
+			
 			res.UV0 = new Vector2(res.UV0.X / (float)textures[(int)surf.texture_id].Width, res.UV0.Y / (float)textures[(int)surf.texture_id].Height);
 			return res;
 		}
@@ -478,43 +459,21 @@ namespace BspFileFormat.Q1HL1
 			if (header.faces.size % 20 != 0)
 				throw new Exception();
 			int size = (int)(header.faces.size / 20);
-			int maxUsedEdgeListIndex = 0;
-			List<int> lighmapBorders = new List<int>();
 			
 			faces = new List<face_t>(size);
 			for (int i = 0; i < size; ++i)
 			{
 				var v = new face_t();
 				v.Read(source);
-				if (v.lightmap != -1)
-					lighmapBorders.Add(v.lightmap);
-				if (maxUsedEdgeListIndex < v.ledge_id + v.ledge_num) 
-					maxUsedEdgeListIndex = v.ledge_id + v.ledge_num;
 				faces.Add(v);
 			}
-			lighmapBorders.Sort();
-			for (int i = 0; i < lighmapBorders.Count - 1; ++i)
-				lighmapSize[lighmapBorders[i]] = lighmapBorders[i + 1] - lighmapBorders[i];
-			lighmapSize[lighmapBorders[lighmapBorders.Count - 1]] = lightmap.Length - lighmapBorders[lighmapBorders.Count-1];
 			if (source.BaseStream.Position + startOfTheFile != header.faces.size + header.faces.offset)
 				throw new Exception();
 		}
 
 		private void ReadEdges(BinaryReader source)
 		{
-			SeekDir(source, header.edges);
-			if (header.edges.size % 4 != 0)
-				throw new Exception();
-			int size = (int)(header.edges.size / 4);
-			edges = new List<edge_t>(size);
-			for (int i = 0; i < size; ++i)
-			{
-				var v = new edge_t();
-				v.Read(source);
-				edges.Add(v);
-			}
-			if (source.BaseStream.Position + startOfTheFile != header.edges.size + header.edges.offset)
-				throw new Exception();
+			edges = ReaderHelper.ReadStructs<edge_t>(source, header.edges.size, header.edges.offset + startOfTheFile, 4);
 		}
 
 		private void ReadModels(BinaryReader source)
