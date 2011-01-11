@@ -8,6 +8,7 @@ option
 assets
 {
 	(../data-ram/data-gles1)
+	maps/de_dust.group.bin
 	#maps/sg0503.group.bin
 }
 files
@@ -19,6 +20,19 @@ files
 	[Data]
 	(../data/models)
 	sample.group
+}
+deployments
+{
+	caption="BSP Demo"
+	long-caption="BSP Demo"
+	win32-pref-windowtitle="BSP Demo"
+	assets=Default
+	provider="www_101gr_com"
+	manufacturer="101gr.com"
+	copyright="101gr.com (c) 2010"
+	version="1.0.0"
+	networking=1
+	iphone-appid=com.101gr.BSPDemo
 }
 subprojects
 {

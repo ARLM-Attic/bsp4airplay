@@ -10,11 +10,11 @@ namespace Tests
 	[TestFixture]
 	public class Q2Tests
 	{
-		[Test]
+		//[Test]
 		public void TestQ2()
 		{
 			//(new Adapter()).Convert(@"..\data\maps\moo.bsp", @"..\data\maps\moo.group");
-			(new Adapter()).Convert(@"..\data\maps\match1.bsp", @"..\data\maps\match1.group");
+			//(new Adapter()).Convert(@"..\data\maps\match1.bsp", @"..\data\maps\match1.group");
 		}
 	}
 }

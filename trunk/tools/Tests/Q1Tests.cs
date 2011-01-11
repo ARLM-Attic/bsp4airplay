@@ -6,23 +6,32 @@ using BspFileFormat;
 using System.IO;
 using System.Globalization;
 using Bsp2AirplayAdapter;
+using DemFileFormat.Quake1;
+using DemFileFormat;
 
 namespace Tests
 {
 	[TestFixture]
 	public class Q1Tests
 	{
-		[Test]
+		//[Test]
 		public void TestQ1()
 		{
-			//(new Adapter()).Convert(@"..\data\maps\sg0503.bsp", @"..\data\maps\sg0503.group");
+			(new Adapter()).Convert(@"..\data\maps\sg0503.bsp", @"..\data\maps\sg0503.group");
 		}
-		[Test]
-		public void TestHL1()
+		//[Test]
+		public void TestQ1Demo()
 		{
-			//(new Adapter()).Convert(@"..\data\maps\hldemo1.bsp", @"..\data\maps\hldemo1.group");
-			//(new Adapter()).Convert(@"..\data\maps\samplebox.bsp", @"..\data\maps\samplebox.group");
-			//(new Adapter()).Convert(@"..\data\maps\madcrabs.bsp", @"..\data\maps\madcrabs.group");
+			var res = new DemoDocument();
+
+			using (var f = File.OpenRead(@"..\data\demos\demo1.dem"))
+			{
+				using (var b = new BinaryReader(f))
+				{
+					(new Quake1DemoReader()).ReadDemo(b,res);
+				}
+			}
 		}
+		
 	}
 }

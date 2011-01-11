@@ -36,6 +36,7 @@ extern void IwRend_EnableEnvMap();
 typedef void (*IwPolyRendrFunc)(uint32 *);
 extern void SetLinkPipe(int32 , IwPolyRendrFunc );
 extern void PolyRendrPOLY_GT(uint32*);
+extern void Scanloop10(ScanLine* );
 extern void Scanloop11(ScanLine* );
 
 //-------------------------------------------------------------
@@ -46,6 +47,7 @@ void IwGxInit_Bespoke()
     _IwGxFinishSWInit();
     IwRend_EnableEnvMap();
     SetLinkPipe( 37, PolyRendrPOLY_GT);
+    IwRendInitScanFunc(266, Scanloop10);
     IwRendInitScanFunc(267, Scanloop11);
     g_RendInitType = 45;
 }

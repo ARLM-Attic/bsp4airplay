@@ -10,7 +10,7 @@ namespace Tests
 	[TestFixture]
 	public class Q3Tests
 	{
-		[Test]
+		//[Test]
 		public void TestQ3()
 		{
 			//(new Adapter()).Convert(@"..\data\maps\q3shw18.bsp", @"..\data\maps\q3shw18.group");

@@ -73,6 +73,8 @@ int32 keyboardEvent (s3eKeyboardEvent* systemData, void* userData)
 	case s3eKeyRight:
 		moveRight = 0 != systemData->m_Pressed;
 		break;
+	default:
+		return 0;
 	}
 	return 0;
 }
@@ -101,8 +103,11 @@ int main()
 	//CIwResGroup* group = IwGetResManager()->LoadGroup("maps/sg0503.group");
 	//Bsp4Airplay::Cb4aLevel* level = static_cast<Bsp4Airplay::Cb4aLevel*>(group->GetResNamed("sg0503", "Cb4aLevel"));
 
-	CIwResGroup* group = IwGetResManager()->LoadGroup("maps/match1.group");
-	Bsp4Airplay::Cb4aLevel* level = static_cast<Bsp4Airplay::Cb4aLevel*>(group->GetResNamed("match1", "Cb4aLevel"));
+	CIwResGroup* group = IwGetResManager()->LoadGroup("maps/de_dust.group");
+	Bsp4Airplay::Cb4aLevel* level = static_cast<Bsp4Airplay::Cb4aLevel*>(group->GetResNamed("de_dust", "Cb4aLevel"));
+
+	//CIwResGroup* group = IwGetResManager()->LoadGroup("maps/match1.group");
+	//Bsp4Airplay::Cb4aLevel* level = static_cast<Bsp4Airplay::Cb4aLevel*>(group->GetResNamed("match1", "Cb4aLevel"));
 
 	//CIwResGroup* group = IwGetResManager()->LoadGroup("maps/samplebox.group");
 	//Bsp4Airplay::Cb4aLevel* level = static_cast<Bsp4Airplay::Cb4aLevel*>(group->GetResNamed("samplebox", "Cb4aLevel"));

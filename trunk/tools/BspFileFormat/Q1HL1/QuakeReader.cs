@@ -24,7 +24,6 @@ namespace BspFileFormat.Q1HL1
 		protected List<surface_t> surfaces;
 		protected List<BspTreeLeaf> leaves = new List<BspTreeLeaf>();
 
-		protected Dictionary<int, int> lighmapSize = new Dictionary<int, int>();
 		protected byte[] visilist;
 		protected byte[] lightmap;
 		protected ushort[] listOfFaces;
@@ -134,7 +133,7 @@ namespace BspFileFormat.Q1HL1
 					var edgesvertex1 = edge.vertex1;
 					if (edgesvertex1 >= vertices.Count)
 						throw new ApplicationException(string.Format("Vertex index {0} is out of range [0..{1}]", edgesvertex1, vertices.Count - 1));
-					BspGeometryVertex vertex = BuildVertex(vertices[(short)edgesvertex0], plane, ref surf);
+					BspGeometryVertex vertex = BuildVertex(vertices[(short)edgesvertex0], (face.side == 0) ? plane.normal : -plane.normal, ref surf);
 					faceVertices[j] = vertex;
 					if (minUV0.X > vertex.UV0.X)
 						minUV0.X = vertex.UV0.X;
@@ -169,7 +168,6 @@ namespace BspFileFormat.Q1HL1
 				{
 					if (!faceLightmapObjects.TryGetValue(face.lightmap, out lightMap))
 					{
-						var size = lighmapSize[face.lightmap];
 						var size2 = (sizeLightmap.X) * (sizeLightmap.Y);
 						lightMap = new BspEmbeddedTexture()
 						{
@@ -216,11 +214,11 @@ namespace BspFileFormat.Q1HL1
 			return b;
 		}
 
-		private BspGeometryVertex BuildVertex(Vector3 vector3, plane_t plane, ref surface_t surf)
+		private BspGeometryVertex BuildVertex(Vector3 vector3, Vector3 n, ref surface_t surf)
 		{
 			var res = new BspGeometryVertex();
 			res.Position = vector3;
-			res.Normal = plane.normal;
+			res.Normal = n;
 			res.UV0 = new Vector2(Vector3.Dot(surf.vectorS, vector3) + surf.distS, Vector3.Dot(surf.vectorT, vector3) + surf.distT);
 			res.UV1 = new Vector2(res.UV0.X / 16.0f, res.UV0.Y/16.0f);
 			
