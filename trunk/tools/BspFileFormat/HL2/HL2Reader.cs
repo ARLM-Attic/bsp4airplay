@@ -27,7 +27,7 @@ namespace BspFileFormat.HL2
 		protected ushort[] listOfFaces;
 		protected int[] listOfEdges;
 		protected List<cluster_t> clusters;
-		protected byte[] lightmap;
+		protected Vector3[] lightmap;
 
 		public void ReadBsp(System.IO.BinaryReader source, BspDocument dest)
 		{
@@ -229,28 +229,27 @@ namespace BspFileFormat.HL2
 				minUV0.X = (float)System.Math.Floor(minUV0.X);
 				minUV0.Y = (float)System.Math.Floor(minUV0.Y);
 
-				
-				var sizeLightmap = new Vector2(face.LightmapTextureSizeInLuxels[0]+1, face.LightmapTextureSizeInLuxels[1]+1);
+
+				var sizeLightmap = new Vector2(face.LightmapTextureSizeInLuxels[0] + 1, face.LightmapTextureSizeInLuxels[1] + 1);
 				for (int j = 0; j < (int)face.numedges; ++j)
 				{
 					faceVertices[j].UV0 = faceVertices[j].UV0 - minUV0;
 				}
 				BspTexture lightMap = null;
-				if (face.lightmap != -1 && (sizeLightmap.X > 0 && sizeLightmap.Y >0))
+				if (face.lightmap != -1 && (sizeLightmap.X > 0 && sizeLightmap.Y > 0))
 				{
-					if (minUV1.X < 0 || minUV1.Y < 0 || maxUV1.X > 1 || maxUV1.Y > 1)
-					{
-						bool a = true;
-					}
 					if (!faceLightmapObjects.TryGetValue(face.lightmap, out lightMap))
 					{
 						var size2 = (sizeLightmap.X) * (sizeLightmap.Y);
+						Bitmap faceLightmap = BuildFaceLightmap(face.lightmap, (int)sizeLightmap.X, (int)sizeLightmap.Y);
+						faceLightmap = ReaderHelper.BuildSafeLightmap(faceLightmap);
+						//faceLightmap = ReaderHelper.BuildSafeLightmapBothSides(faceLightmap); //Use safeBorderWidth = 2.0f; !!!
 						lightMap = new BspEmbeddedTexture()
 						{
 							Name = "facelightmap" + face.lightmap,
-							mipMaps = new Bitmap[] { BuildFaceLightmap(face.lightmap, (int)sizeLightmap.X, (int)sizeLightmap.Y) },
-							Width = (int)sizeLightmap.X,
-							Height = (int)sizeLightmap.Y
+							mipMaps = new Bitmap[] { faceLightmap },
+							Width = faceLightmap.Width,
+							Height = faceLightmap.Height
 						};
 						faceLightmapObjects[face.lightmap] = lightMap;
 					}
@@ -274,19 +273,22 @@ namespace BspFileFormat.HL2
 			}
 			return res;
 		}
+		float safeOffset = 0.5f;//0.5f;
+		float safeBorderWidth = 1.0f;
+
 		public Bitmap BuildFaceLightmap(int p, int w, int h)
 		{
+			p /= 4;
 			var bmp = new Bitmap(w, h);
 			for (int y = 0; y < h; ++y)
 				for (int x = 0; x < w; ++x)
 				{
-					var k = Math.Pow(2, (sbyte)lightmap[p + 3]);
-					var r = lightmap[p] * k;
-					var g = lightmap[p+1] * k;
-					var b = lightmap[p+2] * k;
+					var r = (byte)lightmap[p].X;
+					var g = (byte)lightmap[p].Y;
+					var b = (byte)lightmap[p].Z;
 
-					bmp.SetPixel(x, y, Color.FromArgb(HDR2Normal(r), HDR2Normal(g), HDR2Normal(b)));
-					p += 4; //4th is exp
+					bmp.SetPixel(x, y, Color.FromArgb(r,g,b));
+					++p;
 				}
 			return bmp;
 		}
@@ -312,8 +314,9 @@ namespace BspFileFormat.HL2
 			res.UV1 = new Vector2(
 				Vector3.Dot(surf.lm_vectorS, vector3) + surf.lm_distS - (float)f.LightmapTextureMinsInLuxels[0],
 				Vector3.Dot(surf.lm_vectorT, vector3) + surf.lm_distT - (float)f.LightmapTextureMinsInLuxels[1]);
-			res.UV1.X = (res.UV1.X) / ((float)f.LightmapTextureSizeInLuxels[0] + 1.0f);
-			res.UV1.Y = (res.UV1.Y) / ((float)f.LightmapTextureSizeInLuxels[1] + 1.0f);
+			//if (f.LightmapTextureSizeInLuxels[0] == 0)
+			res.UV1.X = (res.UV1.X + safeOffset) / ((float)f.LightmapTextureSizeInLuxels[0] + 1.0f +  safeBorderWidth);
+			res.UV1.Y = (res.UV1.Y + safeOffset) / ((float)f.LightmapTextureSizeInLuxels[1] + 1.0f + safeBorderWidth);
 			
 			BspTexture tex = textures[(int)surf.texdata];
 			res.UV0 = new Vector2(res.UV0.X / ((tex.Width != 0) ? (float)tex.Width : 256.0f), res.UV0.Y / ((tex.Height != 0) ? (float)tex.Height : 256.0f));
@@ -389,7 +392,38 @@ namespace BspFileFormat.HL2
 		{
 			SeekDir(source, header.Lighting);
 			int size = (int)(header.Lighting.size);
-			lightmap = source.ReadBytes(size);
+			var bytes = source.ReadBytes(size);
+			lightmap = new Vector3[size / 4];
+			float maxValue = float.MinValue;
+			for (uint i = 0; i < size / 4; ++i)
+			{
+				float k = (float)Math.Pow(2.0, (double)bytes[i*4+3]);
+				float v = (float)bytes[i * 4 + 0] * k;
+				if (!float.IsInfinity(v) && v > maxValue) maxValue = v;
+				lightmap[i].X = v;
+
+				v = (float)bytes[i * 4 + 1] * k;
+				if (!float.IsInfinity(v) && v > maxValue) maxValue = v;
+				lightmap[i].Y = v;
+
+				v = (float)bytes[i * 4 + 2] * k;
+				if (!float.IsInfinity(v) && v > maxValue) maxValue = v;
+				lightmap[i].Z = v;
+			}
+			for (uint i = 0; i < size / 4; ++i)
+			{
+				lightmap[i].X = ClampTo255(lightmap[i].X * 255.0f / maxValue);
+				lightmap[i].Y = ClampTo255(lightmap[i].Y * 255.0f / maxValue);
+				lightmap[i].Z = ClampTo255(lightmap[i].Z * 255.0f / maxValue);
+			}
+		}
+
+		private float ClampTo255(float p)
+		{
+			if (float.IsInfinity(p)) return 0;
+			if (p < 0) return 0;
+			if (p > 255) return 255;
+			return p;
 		}
 		private void SeekDir(BinaryReader source, dentry_t dir)
 		{

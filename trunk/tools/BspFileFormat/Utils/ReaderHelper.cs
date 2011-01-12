@@ -4,6 +4,7 @@ using System.Text;
 using BspFileFormat.BspMath;
 using System.Globalization;
 using System.IO;
+using System.Drawing;
 
 namespace BspFileFormat.Utils
 {
@@ -120,6 +121,46 @@ namespace BspFileFormat.Utils
 				buf.Add(b);
 			}
 			return Encoding.ASCII.GetString(buf.ToArray());
+		}
+
+		internal static Bitmap BuildSafeLightmap(System.Drawing.Bitmap faceLightmap)
+		{
+			var res = new Bitmap(faceLightmap.Width + 1, faceLightmap.Height + 1);
+			using (var gr = Graphics.FromImage(res))
+			{
+				gr.Clear(Color.Red);
+				gr.DrawImageUnscaledAndClipped(faceLightmap,new Rectangle(new Point(0,0), new Size(1,1)));
+				gr.DrawImageUnscaledAndClipped(faceLightmap,new Rectangle(new Point(0,1), new Size(1,faceLightmap.Height)));
+				gr.DrawImageUnscaledAndClipped(faceLightmap,new Rectangle(new Point(1,0), new Size(faceLightmap.Width,1)));
+				gr.DrawImage(faceLightmap, new Point(1, 1));
+			}
+			return res;
+		}
+
+		internal static Bitmap BuildSafeLightmapBothSides(Bitmap faceLightmap)
+		{
+			var res = new Bitmap(faceLightmap.Width + 2, faceLightmap.Height + 2);
+			using (var gr = Graphics.FromImage(res))
+			{
+				gr.Clear(Color.Red);
+				gr.DrawImage(faceLightmap, new Point(1, 1));
+				gr.Flush();
+			}
+			for (int x = 1; x <= faceLightmap.Width; ++x)
+			{
+				res.SetPixel(x, 0, Color.Red);// faceLightmap.GetPixel(x - 1, 0));
+				res.SetPixel(x, res.Height - 1, Color.Green);//faceLightmap.GetPixel(x - 1, faceLightmap.Height - 1));
+			}
+			for (int y = 1; y <= faceLightmap.Height; ++y)
+			{
+				res.SetPixel(0, y, Color.Red);// faceLightmap.GetPixel(0, y - 1));
+				res.SetPixel(res.Width - 1, y, Color.Green);// faceLightmap.GetPixel(faceLightmap.Width - 1, y - 1));
+			}
+			res.SetPixel(0, 0, Color.Red);// faceLightmap.GetPixel(0, 0));
+			res.SetPixel(0, res.Height - 1, Color.Green);// faceLightmap.GetPixel(0, faceLightmap.Height - 1));
+			res.SetPixel(res.Width - 1, res.Height - 1, Color.Green);// faceLightmap.GetPixel(faceLightmap.Width - 1, faceLightmap.Height - 1));
+			res.SetPixel(res.Width - 1, 0, Color.Green);// faceLightmap.GetPixel(faceLightmap.Width - 1, 0));
+			return res;
 		}
 	}
 }

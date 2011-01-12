@@ -69,6 +69,7 @@
     <Compile Include="Model\CVertCols.cs" />
     <Compile Include="Model\CVertNorms.cs" />
     <Compile Include="Model\CVerts.cs" />
+    <Compile Include="Model\EdgeConnectionsComparer.cs" />
     <Compile Include="Model\LevelVBItem.cs" />
     <Compile Include="Model\LevelVBWriter.cs" />
     <Compile Include="Model\ModelWriter.cs" />

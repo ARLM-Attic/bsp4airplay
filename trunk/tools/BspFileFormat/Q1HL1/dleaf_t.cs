@@ -6,7 +6,7 @@ using BspFileFormat.BspMath;
 
 namespace BspFileFormat.Q1HL1
 {
-	public struct dleaf_t
+	public class dleaf_t
 	{
 		public int type;                   // Special type of leaf
 		public int vislist;                // Beginning of visibility lists
@@ -20,7 +20,7 @@ namespace BspFileFormat.Q1HL1
 		public byte sndslime;             //   0xFF is maximum volume
 		public byte sndlava;              //
 
-		internal void Read(System.IO.BinaryReader source)
+		public void Read(System.IO.BinaryReader source)
 		{
 			type = source.ReadInt32();
 			vislist = source.ReadInt32();

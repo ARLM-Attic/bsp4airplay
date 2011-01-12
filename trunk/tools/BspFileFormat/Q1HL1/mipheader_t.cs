@@ -6,12 +6,12 @@ using BspFileFormat.BspMath;
 
 namespace BspFileFormat.Q1HL1
 {
-	struct mipheader_t               // Mip texture list header
+	public class mipheader_t               // Mip texture list header
 	{
 		public int numtex;                 // Number of textures in Mip Texture list
 		public int[] offset;         // Offset to each of the individual texture [numtex]
 
-		internal void Read(System.IO.BinaryReader source)
+		public void Read(System.IO.BinaryReader source)
 		{
 			numtex = source.ReadInt32();
 			offset = new int[numtex];

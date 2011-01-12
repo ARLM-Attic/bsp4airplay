@@ -238,7 +238,7 @@ namespace Bsp2AirplayAdapter
 						BuildFace(writer, sub, ref mins, ref maxs, f);
 					}
 				}
-				sub.SphereR = Math.Max(Math.Max(maxs.x - mins.x, maxs.y - mins.y), maxs.z - mins.z) / 2;
+				sub.SphereR = 1 + (int)Math.Sqrt((maxs.x - mins.x) * (maxs.x - mins.x) + (maxs.y - mins.y) * (maxs.y - mins.y) + (maxs.z - mins.z) * (maxs.z - mins.z));
 				if (sub.SphereR < 0)
 				{
 					sub.SpherePos = CIwVec3.g_Zero;

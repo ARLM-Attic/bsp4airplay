@@ -82,7 +82,7 @@ int32 keyboardEvent (s3eKeyboardEvent* systemData, void* userData)
 //-----------------------------------------------------------------------------
 // Main global function
 //-----------------------------------------------------------------------------
-int main()
+int main(int argc, char* argv[])
 {
 	IwGxInit();
 	IwResManagerInit();
@@ -97,33 +97,35 @@ int main()
 	IwGxSetColClear(0x7f, 0x7f, 0x7f, 0x7f);
 	IwGxPrintSetColour(128, 128, 128);
 
+	const char* defaultGroupName = "maps/samplebox.group";
+	//const char* defaultGroupName = "maps/al_test_map_02.group";
+	const char* groupName = (argc > 1)?argv[1]:defaultGroupName;
+
 	//CIwResGroup* group = IwGetResManager()->LoadGroup("maps/hldemo1.group");
 	//Bsp4Airplay::Cb4aLevel* level = static_cast<Bsp4Airplay::Cb4aLevel*>(group->GetResNamed("hldemo1", "Cb4aLevel"));
 
 	//CIwResGroup* group = IwGetResManager()->LoadGroup("maps/sg0503.group");
 	//Bsp4Airplay::Cb4aLevel* level = static_cast<Bsp4Airplay::Cb4aLevel*>(group->GetResNamed("sg0503", "Cb4aLevel"));
 
-	//CIwResGroup* group = IwGetResManager()->LoadGroup("maps/de_dust.group");
-	//Bsp4Airplay::Cb4aLevel* level = static_cast<Bsp4Airplay::Cb4aLevel*>(group->GetResNamed("de_dust", "Cb4aLevel"));
 
 	//CIwResGroup* group = IwGetResManager()->LoadGroup("maps/leonHL2_1.group");
 	//Bsp4Airplay::Cb4aLevel* level = static_cast<Bsp4Airplay::Cb4aLevel*>(group->GetResNamed("leonHL2_1", "Cb4aLevel"));
 
-	CIwResGroup* group = IwGetResManager()->LoadGroup("maps/al_test_map_02.group");
-	Bsp4Airplay::Cb4aLevel* level = static_cast<Bsp4Airplay::Cb4aLevel*>(group->GetResNamed("al_test_map_02", "Cb4aLevel"));
-	
-
 	//CIwResGroup* group = IwGetResManager()->LoadGroup("maps/match1.group");
 	//Bsp4Airplay::Cb4aLevel* level = static_cast<Bsp4Airplay::Cb4aLevel*>(group->GetResNamed("match1", "Cb4aLevel"));
-
-	//CIwResGroup* group = IwGetResManager()->LoadGroup("maps/samplebox.group");
-	//Bsp4Airplay::Cb4aLevel* level = static_cast<Bsp4Airplay::Cb4aLevel*>(group->GetResNamed("samplebox", "Cb4aLevel"));
 
 	//CIwResGroup* group = IwGetResManager()->LoadGroup("maps/madcrabs.group");
 	//Bsp4Airplay::Cb4aLevel* level = static_cast<Bsp4Airplay::Cb4aLevel*>(group->GetResNamed("madcrabs", "Cb4aLevel"));
 
 	//CIwResGroup* group = IwGetResManager()->LoadGroup("maps/q3shw18.group");
 	//Bsp4Airplay::Cb4aLevel* level = static_cast<Bsp4Airplay::Cb4aLevel*>(group->GetResNamed("q3shw18", "Cb4aLevel"));
+
+	CIwResGroup* group = IwGetResManager()->LoadGroup(groupName);
+	CIwResList* list = group->GetListNamed("Cb4aLevel");
+	Bsp4Airplay::Cb4aLevel* level = 0;
+	if (list && list->m_Resources.GetSize() > 0)
+		level = (Bsp4Airplay::Cb4aLevel*)list->m_Resources[0];
+
 
 	int spawnEntIndex = level->FindEntityByClassName("info_player_start");
 	if (spawnEntIndex < 0)

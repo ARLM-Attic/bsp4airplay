@@ -6,7 +6,7 @@ using BspFileFormat.BspMath;
 
 namespace BspFileFormat.Q1HL1
 {
-	public struct node_t
+	public class node_t
 	{
 		public int planenum;            // The plane that splits the node
 		//           must be in [0,numplanes[
@@ -19,7 +19,7 @@ namespace BspFileFormat.Q1HL1
 		public ushort face_id;             // Index of first Polygons in the node
 		public ushort face_num;            // Number of faces in the node
 
-		internal void Read(System.IO.BinaryReader source)
+		public void Read(System.IO.BinaryReader source)
 		{
 			planenum = source.ReadInt32();
 			front = source.ReadUInt16();

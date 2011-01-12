@@ -2,7 +2,7 @@ using BspFileFormat.BspMath;
 
 namespace BspFileFormat.Q1HL1
 {
-	public struct model_t
+	public class model_t
 	{
 		public boundbox_t bound;            // The bounding box of the Model
 		public Vector3 origin;               // origin of model, usually (0,0,0)
@@ -14,7 +14,7 @@ namespace BspFileFormat.Q1HL1
 		public uint face_id;                // index of Faces
 		public uint face_num;               // number of Faces
 
-		internal void Read(System.IO.BinaryReader source)
+		public void Read(System.IO.BinaryReader source)
 		{
 			bound.Read(source);
 			origin.X = source.ReadSingle();

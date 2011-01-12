@@ -3,7 +3,7 @@ using System.IO;
 
 namespace BspFileFormat.Q1HL1
 {
-	public struct plane_t
+	public class plane_t
 	{
 		public Vector3 normal;               // Vector orthogonal to plane (Nx,Ny,Nz)
 		// with Nx2+Ny2+Nz2 = 1

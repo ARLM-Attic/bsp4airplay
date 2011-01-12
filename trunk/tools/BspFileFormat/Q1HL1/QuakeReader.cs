@@ -157,11 +157,13 @@ namespace BspFileFormat.Q1HL1
 				maxUV1.X = (float)System.Math.Ceiling(maxUV1.X);
 				maxUV1.Y = (float)System.Math.Ceiling(maxUV1.Y);
 				var sizeLightmap = maxUV1 - minUV1 + new Vector2(1, 1);
+				float safeOffset = 0.5f;//0.5f;
+				float safeBorderWidth = 1;
 				for (int j = 0; j < (int)face.ledge_num; ++j)
 				{
 					faceVertices[j].UV0 = faceVertices[j].UV0 - minUV0;
-					faceVertices[j].UV1.X = (faceVertices[j].UV1.X - minUV1.X + 0.5f) / sizeLightmap.X;
-					faceVertices[j].UV1.Y = (faceVertices[j].UV1.Y - minUV1.Y + 0.5f) / sizeLightmap.Y;
+					faceVertices[j].UV1.X = (faceVertices[j].UV1.X - minUV1.X + safeOffset) / (sizeLightmap.X + safeBorderWidth);
+					faceVertices[j].UV1.Y = (faceVertices[j].UV1.Y - minUV1.Y + safeOffset) / (sizeLightmap.Y + safeBorderWidth);
 				}
 				BspTexture lightMap = null;
 				if (face.lightmap != -1)
@@ -169,12 +171,14 @@ namespace BspFileFormat.Q1HL1
 					if (!faceLightmapObjects.TryGetValue(face.lightmap, out lightMap))
 					{
 						var size2 = (sizeLightmap.X) * (sizeLightmap.Y);
+						Bitmap faceLightmap = BuildFaceLightmap(face.lightmap, (int)sizeLightmap.X, (int)sizeLightmap.Y);
+						faceLightmap = ReaderHelper.BuildSafeLightmap(faceLightmap);
 						lightMap = new BspEmbeddedTexture()
 						{
 							Name = "facelightmap" + face.lightmap,
-							mipMaps = new Bitmap[] { BuildFaceLightmap(face.lightmap, (int)sizeLightmap.X, (int)sizeLightmap.Y) },
-							Width = (int)sizeLightmap.X,
-							Height = (int)sizeLightmap.Y
+							mipMaps = new Bitmap[] { faceLightmap },
+							Width = faceLightmap.Width,
+							Height = faceLightmap.Height
 						};
 						faceLightmapObjects[face.lightmap] = lightMap;
 					}
@@ -222,12 +226,12 @@ namespace BspFileFormat.Q1HL1
 			res.UV0 = new Vector2(Vector3.Dot(surf.vectorS, vector3) + surf.distS, Vector3.Dot(surf.vectorT, vector3) + surf.distT);
 			res.UV1 = new Vector2(res.UV0.X / 16.0f, res.UV0.Y/16.0f);
 			
-			res.UV0 = new Vector2(res.UV0.X / (float)textures[(int)surf.texture_id].Width, res.UV0.Y / (float)textures[(int)surf.texture_id].Height);
+			res.UV0 = new Vector2((res.UV0.X) / (float)textures[(int)surf.texture_id].Width, (res.UV0.Y) / (float)textures[(int)surf.texture_id].Height);
 			return res;
 		}
 		private void ReadListOfEdges(BinaryReader source)
 		{
-			listOfEdges = ReaderHelper.ReadInt32Array(source, header.lface.size, header.lface.offset);
+			listOfEdges = ReaderHelper.ReadInt32Array(source, header.ledges.size, header.ledges.offset);
 			//SeekDir(source, header.ledges);
 			//int size = (int)(header.ledges.size / 4);
 			//listOfEdges = new short[size];
@@ -374,38 +378,14 @@ namespace BspFileFormat.Q1HL1
 
 		private void ReadNodes(BinaryReader source)
 		{
-			SeekDir(source, header.nodes);
-			if (header.nodes.size % 24 != 0)
-				throw new Exception();
-				
-			int size = (int)(header.nodes.size / 24);
+			nodes = ReaderHelper.ReadStructs<node_t>(source, header.nodes.size, header.nodes.offset + startOfTheFile, 24);
 			
-			nodes = new List<node_t>(size);
-			for (int i = 0; i < size; ++i)
-			{
-				var v = new node_t();
-				v.Read(source);
-				nodes.Add(v);
-			}
-			if (source.BaseStream.Position + startOfTheFile != header.nodes.size + header.nodes.offset)
-				throw new Exception();
 		}
 
 		private void ReadLeaves(BinaryReader source)
 		{
-			SeekDir(source, header.leaves);
-			if (header.leaves.size % 28 != 0)
-				throw new Exception();
-			int size = (int)(header.leaves.size / 28);
-			dleaves = new List<dleaf_t>(size);
-			for (int i = 0; i < size; ++i)
-			{
-				var v = new dleaf_t();
-				v.Read(source);
-				dleaves.Add(v);
-			}
-			if (source.BaseStream.Position + startOfTheFile != header.leaves.size + header.leaves.offset)
-				throw new Exception();
+			dleaves = ReaderHelper.ReadStructs<dleaf_t>(source, header.leaves.size, header.leaves.offset + startOfTheFile, 28);
+			
 		}
 
 		private void ReadPlanes(BinaryReader source)
@@ -438,19 +418,8 @@ namespace BspFileFormat.Q1HL1
 
 		private void ReadModels(BinaryReader source)
 		{
-			SeekDir(source, header.models);
-			if (header.models.size % 64 != 0)
-				throw new Exception();
-			int size = (int)(header.models.size / 64);
-			models = new List<model_t>(size);
-			for (int i = 0; i < size; ++i)
-			{
-				var v = new model_t();
-				v.Read(source);
-				models.Add(v);
-			}
-			if (source.BaseStream.Position + startOfTheFile != header.models.size + header.models.offset)
-				throw new Exception();
+			models = ReaderHelper.ReadStructs<model_t>(source, header.models.size, header.models.offset + startOfTheFile, 64);
+			
 		}
 
 		private void ReadVertices(BinaryReader source)

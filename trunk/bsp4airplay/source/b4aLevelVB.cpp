@@ -25,11 +25,11 @@ Cb4aLevelVertexBuffer::~Cb4aLevelVertexBuffer()
 {
 	if (positionsStream.IsSet())
 	{
-		/*positionsStream.Free();
+		positionsStream.Free();
 		normalsStream.Free();
 		uv0Stream.Free();
 		uv1Stream.Free();
-		coloursStream.Free();*/
+		coloursStream.Free();
 	}
 }
 void Cb4aLevelVertexBuffer::Serialise()
@@ -46,20 +46,14 @@ void Cb4aLevelVertexBuffer::Serialise()
 	uv0s.SerialiseHeader();
 	for (uint32 i=0; i<uv0s.size(); ++i)
 		uv0s[i].Serialise();
-	uv1s.SerialiseHeader();
-	for (uint32 i=0; i<uv1s.size(); ++i)
-		uv1s[i].Serialise();
 	colours.SerialiseHeader();
 	for (uint32 i=0; i<colours.size(); ++i)
 		colours[i].Serialise();
-}
-void Cb4aLevelVertexBuffer::SetCapacity(uint32 n)
-{
-	positions.set_capacity(n);
-	normals.set_capacity(n);
-	uv0s.set_capacity(n);
-	uv1s.set_capacity(n);
-	colours.set_capacity(n);
+	map.SerialiseHeader();
+	for (uint32 i=0; i<map.size(); ++i)
+	{
+		IwSerialiseUInt16(map[i].indices[0], 5);
+	}
 }
 void Cb4aLevelVertexBuffer::ScheduleCluster(Cb4aLevelVBSubcluster* cluster)
 {
@@ -168,23 +162,31 @@ void Cb4aLevelVertexBuffer::PreRender()
 {
 	if (!positionsStream.IsSet())
 	{
-		if (positions.empty())
+		if (map.empty())
 			return;
-		positionsStream.Set(CIwGxStream::SVEC3, &positions.front(), positions.size(), 0);
-		positionsStream.Upload(true, false);
-		normalsStream.Set(CIwGxStream::SVEC3, &normals.front(), normals.size(), 0);
-		normalsStream.Upload(true, false);
-		uv0Stream.Set(CIwGxStream::SVEC2, &uv0s.front(), uv0s.size(), 0);
-		uv0Stream.Upload(true, false);
-		uv1Stream.Set(CIwGxStream::SVEC2, &uv1s.front(), uv1s.size(), 0);
-		uv1Stream.Upload(true, false);
-		coloursStream.Set(CIwGxStream::COLOUR, &colours.front(), colours.size(), 0);
-		coloursStream.Upload(true,false);
-		/*positions.clear_optimised();
-		normals.clear_optimised();
-		uv0s.clear_optimised();
-		uv1s.clear_optimised();
-		colours.clear_optimised();*/
+		CIwSVec3* p = new CIwSVec3[map.size()];
+		CIwSVec3* n = new CIwSVec3[map.size()];
+		CIwSVec2* uv0 = new CIwSVec2[map.size()];
+		CIwSVec2* uv1 = new CIwSVec2[map.size()];
+		CIwColour* col = new CIwColour[map.size()];
+		for (uint32 i=0;i<map.size();++i)
+		{
+			p[i] = GetPosition(i);
+			n[i] = GetNormal(i);
+			uv0[i] = GetUV0(i);
+			uv1[i] = GetUV1(i);
+			col[i] = GetColour(i);
+		}
+		positionsStream.Set(CIwGxStream::SVEC3, p, map.size(), 0);
+		positionsStream.Upload(true, true);
+		normalsStream.Set(CIwGxStream::SVEC3, n, map.size(), 0);
+		normalsStream.Upload(true, true);
+		uv0Stream.Set(CIwGxStream::SVEC2, uv0, map.size(), 0);
+		uv0Stream.Upload(true, true);
+		uv1Stream.Set(CIwGxStream::SVEC2, uv1, map.size(), 0);
+		uv1Stream.Upload(true, true);
+		coloursStream.Set(CIwGxStream::COLOUR, col, map.size(), 0);
+		coloursStream.Upload(true,true);
 	}
 	IwGxSetVertStreamWorldSpace(positionsStream);
 	IwGxSetNormStream(normalsStream);
@@ -226,13 +228,42 @@ void  ParseLevelVertexBuffer::ParseOpen (CIwTextParserITX *pParser)
 // function invoked by the text parser when parsing attributes for objects of this type
 bool ParseLevelVertexBuffer::ParseAttribute(CIwTextParserITX *pParser, const char *pAttrName)
 {
+	if (!strcmp("num_pos", pAttrName))
+	{
+		uint32 num_verts;
+		pParser->ReadUInt32(&num_verts);
+		_this->positions.set_capacity(num_verts);
+		return true;
+	}
+	if (!strcmp("num_n", pAttrName))
+	{
+		uint32 num_verts;
+		pParser->ReadUInt32(&num_verts);
+		_this->normals.set_capacity(num_verts);
+		return true;
+	}
+	if (!strcmp("num_uvs", pAttrName))
+	{
+		uint32 num_verts;
+		pParser->ReadUInt32(&num_verts);
+		_this->uv0s.set_capacity(num_verts);
+		return true;
+	}
+	if (!strcmp("num_cols", pAttrName))
+	{
+		uint32 num_verts;
+		pParser->ReadUInt32(&num_verts);
+		_this->colours.set_capacity(num_verts);
+		return true;
+	}
 	if (!strcmp("num_vertices", pAttrName))
 	{
 		uint32 num_verts;
 		pParser->ReadUInt32(&num_verts);
-		_this->SetCapacity(num_verts);
+		_this->map.set_capacity(num_verts);
 		return true;
-	}if (!strcmp("v", pAttrName))
+	}
+	if (!strcmp("v", pAttrName))
 	{
 		CIwSVec3 v;
 		pParser->ReadInt16Array(&v.x,3);
@@ -246,18 +277,11 @@ bool ParseLevelVertexBuffer::ParseAttribute(CIwTextParserITX *pParser, const cha
 		_this->normals.push_back(vn);
 		return true;
 	}
-	if (!strcmp("uv0", pAttrName))
+	if (!strcmp("uv", pAttrName))
 	{
 		CIwSVec2 uv0;
 		pParser->ReadInt16Array(&uv0.x,2);
 		_this->uv0s.push_back(uv0);
-		return true;
-	}
-	if (!strcmp("uv1", pAttrName))
-	{
-		CIwSVec2 uv1;
-		pParser->ReadInt16Array(&uv1.x,2);
-		_this->uv1s.push_back(uv1);
 		return true;
 	}
 	if (!strcmp("col", pAttrName))
@@ -267,6 +291,12 @@ bool ParseLevelVertexBuffer::ParseAttribute(CIwTextParserITX *pParser, const cha
 		CIwColour c;
 		c.Set(col[0],col[1],col[2],col[3]);
 		_this->colours.push_back(c);
+		return true;
+	}
+	if (!strcmp("i", pAttrName))
+	{
+		_this->map.push_back();
+		pParser->ReadUInt16Array(&_this->map.back().indices[0],5);
 		return true;
 	}
 	return CIwManaged::ParseAttribute(pParser,pAttrName);

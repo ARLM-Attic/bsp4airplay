@@ -152,7 +152,7 @@ SoundVolumeDefault = 		Type=int, Min=0.000000, Max=256.000000, Default="256", Va
 
 SurfaceDisableWhenGLIsActive = 		Type=bool, Default="false", Value = "false"
 
-SurfaceDoubleBuffer = 		Type=bool, Default="false", Value = "false"
+SurfaceDoubleBuffer = 		Type=bool, Default="false", Value = "true"
 
 SurfaceHeight = 		Type=int, Min=128.000000, Max=4096.000000, Default="480", Value = "320"
 

@@ -15,7 +15,7 @@ namespace Tests
 		{
 			(new Adapter()).Convert(@"..\data\maps\leonHL2_1.bsp", @"..\data\maps\leonHL2_1.group");
 		}
-		[Test]
+		//[Test]
 		public void TestHL2_20()
 		{
 			(new Adapter()).Convert(@"..\data\maps\al_test_map_02.bsp", @"..\data\maps\al_test_map_02.group");

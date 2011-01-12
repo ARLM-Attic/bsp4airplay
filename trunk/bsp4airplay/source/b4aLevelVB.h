@@ -6,6 +6,11 @@ namespace Bsp4Airplay
 	class Cb4aLevelVertexBuffer;
 	class Cb4aLevelVBSubcluster;
 	class Cb4aLevel;
+
+	struct TriangleMap
+	{
+		uint16 indices [5];
+	};
 #ifdef IW_BUILD_RESOURCES
 	void* Cb4aLevelVertexBufferFactory();
 
@@ -38,21 +43,21 @@ namespace Bsp4Airplay
 		CIwArray<CIwSVec3> positions;
 		CIwArray<CIwSVec3> normals;
 		CIwArray<CIwSVec2> uv0s;
-		CIwArray<CIwSVec2> uv1s;
 		CIwArray<CIwColour> colours;
+		CIwArray<TriangleMap> map;
 		CIwArray<Cb4aLevelVBSubcluster*> renderQueue;
 	public:
 		Cb4aLevelVertexBuffer();
 		~Cb4aLevelVertexBuffer();
-		void SetCapacity(uint32);
+		
 		void Serialise();
 		void ScheduleCluster(Cb4aLevelVBSubcluster* );
 		void Flush(Cb4aLevel* l);
-		inline const CIwSVec3 & GetPosition(uint i) const {return positions[i];}
-		inline const CIwSVec3 & GetNormal(uint i) const {return normals[i];}
-		inline const CIwSVec2 & GetUV0(uint i) const {return uv0s[i];}
-		inline const CIwSVec2 & GetUV1(uint i) const {return uv1s[i];}
-		inline const CIwColour & GetColour(uint i) const {return colours[i];}
+		inline const CIwSVec3 & GetPosition(uint i) const {return positions[map[i].indices[0]];}
+		inline const CIwSVec3 & GetNormal(uint i) const {return normals[map[i].indices[1]];}
+		inline const CIwSVec2 & GetUV0(uint i) const {return uv0s[map[i].indices[2]];}
+		inline const CIwSVec2 & GetUV1(uint i) const {return uv0s[map[i].indices[3]];}
+		inline const CIwColour & GetColour(uint i) const {return colours[map[i].indices[4]];}
 	protected:
 		void FlushQueueBlock(Cb4aLevel* l,uint32 from, uint32 end);
 		void FlushQueueDynamicBlock(Cb4aLevel* l,uint32 from, uint32 end);

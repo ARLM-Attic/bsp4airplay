@@ -6,7 +6,7 @@ using BspFileFormat.BspMath;
 
 namespace BspFileFormat.Q1HL1
 {
-	struct clipnode_t
+	public class clipnode_t
 	{
 		uint planenum;             // The plane which splits the node
 		short front;                 // If positive, id of Front child node

@@ -11,7 +11,7 @@ namespace BspFileFormat.Q1HL1
 		Vector3 min;
 		Vector3 max;
 
-		internal void Read(System.IO.BinaryReader source)
+		public void Read(System.IO.BinaryReader source)
 		{
 			min.X = source.ReadSingle();
 			min.Y = source.ReadSingle();
