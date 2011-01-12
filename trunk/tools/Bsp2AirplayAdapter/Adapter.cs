@@ -132,6 +132,8 @@ namespace Bsp2AirplayAdapter
 
 		private void CollectAllLeaves(BspTreeElement bspTreeElement)
 		{
+			if (bspTreeElement == null)
+				return;
 			if (bspTreeElement is BspTreeNode)
 			{
 				CollectAllLeaves(((BspTreeNode)bspTreeElement).Front);

@@ -6,7 +6,7 @@ using BspFileFormat.BspMath;
 
 namespace BspFileFormat.Q1HL1
 {
-	public struct surface_t
+	public class surface_t
 	{
 		public Vector3 vectorS;            // S vector, horizontal in texture space)
 		public float distS;              // horizontal offset in texture space
@@ -16,7 +16,7 @@ namespace BspFileFormat.Q1HL1
 		//           must be in [0,numtex[
 		public uint animated;           // 0 for ordinary textures, 1 for water 
 
-		internal void Read(System.IO.BinaryReader source)
+		public void Read(System.IO.BinaryReader source)
 		{
 			vectorS.X = source.ReadSingle();
 			vectorS.Y = source.ReadSingle();

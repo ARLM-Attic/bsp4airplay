@@ -68,7 +68,15 @@ namespace BspFileFormat
 			else if (magic == 0x1E)
 				reader = new HL1Reader();
 			else if (magic == 0x50534256)
-				reader = new HL2Reader();
+			{
+				magic = r.ReadUInt32();
+				if (magic == 17)
+					reader = new HL2Reader17();
+				else if (magic == 19)
+					reader = new HL2Reader19();
+				else if (magic == 20)
+					reader = new HL2Reader20();
+			}
 			else if (magic == 0x50534249)
 			{
 				magic = r.ReadUInt32();

@@ -27,7 +27,7 @@ namespace BspFileFormat.Q1HL1
 		protected byte[] visilist;
 		protected byte[] lightmap;
 		protected ushort[] listOfFaces;
-		protected short[] listOfEdges;
+		protected int[] listOfEdges;
 		protected string entities;
 		private int maxUsedEdge;
 
@@ -227,16 +227,17 @@ namespace BspFileFormat.Q1HL1
 		}
 		private void ReadListOfEdges(BinaryReader source)
 		{
-			SeekDir(source, header.ledges);
-			int size = (int)(header.ledges.size / 4);
-			listOfEdges = new short[size];
-			maxUsedEdge = 0;
-			for (int i = 0; i < size; ++i)
-			{
-				listOfEdges[i] = (short)source.ReadInt32();
-				if (listOfEdges[i] > maxUsedEdge)
-					maxUsedEdge = listOfEdges[i];
-			}
+			listOfEdges = ReaderHelper.ReadInt32Array(source, header.lface.size, header.lface.offset);
+			//SeekDir(source, header.ledges);
+			//int size = (int)(header.ledges.size / 4);
+			//listOfEdges = new short[size];
+			//maxUsedEdge = 0;
+			//for (int i = 0; i < size; ++i)
+			//{
+			//    listOfEdges[i] = (short)source.ReadInt32();
+			//    if (listOfEdges[i] > maxUsedEdge)
+			//        maxUsedEdge = listOfEdges[i];
+			//}
 		}
 		private void ReadListOfFaces(BinaryReader source)
 		{
@@ -368,21 +369,7 @@ namespace BspFileFormat.Q1HL1
 		}
 		private void ReadTextureInfos(BinaryReader source)
 		{
-			SeekDir(source, header.texinfo);
-			if (header.texinfo.size % 40 != 0)
-				throw new Exception();
-
-			int size = (int)(header.texinfo.size / 40);
-
-			surfaces = new List<surface_t>(size);
-			for (int i = 0; i < size; ++i)
-			{
-				var v = new surface_t();
-				v.Read(source);
-				surfaces.Add(v);
-			}
-			if (source.BaseStream.Position + startOfTheFile != header.texinfo.size + header.texinfo.offset)
-				throw new Exception();
+			surfaces = ReaderHelper.ReadStructs<surface_t>(source, header.texinfo.size, header.texinfo.offset + startOfTheFile, 40);
 		}
 
 		private void ReadNodes(BinaryReader source)
@@ -423,19 +410,7 @@ namespace BspFileFormat.Q1HL1
 
 		private void ReadPlanes(BinaryReader source)
 		{
-			SeekDir(source, header.planes);
-			if (header.planes.size % 20 != 0)
-				throw new Exception();
-			int size = (int)(header.planes.size / 20);
-			planes = new List<plane_t>(size);
-			for (int i = 0; i < size; ++i)
-			{
-				var v = new plane_t();
-				v.Read(source);
-				planes.Add(v);
-			}
-			if (source.BaseStream.Position + startOfTheFile != header.planes.size + header.planes.offset)
-				throw new Exception();
+			planes = ReaderHelper.ReadStructs<plane_t>(source, header.planes.size, header.planes.offset + startOfTheFile, 20);
 		}
 		private void ReadVisilist(BinaryReader source)
 		{
@@ -453,20 +428,7 @@ namespace BspFileFormat.Q1HL1
 
 		private void ReadFaces(BinaryReader source)
 		{
-			SeekDir(source, header.faces);
-			if (header.faces.size % 20 != 0)
-				throw new Exception();
-			int size = (int)(header.faces.size / 20);
-			
-			faces = new List<face_t>(size);
-			for (int i = 0; i < size; ++i)
-			{
-				var v = new face_t();
-				v.Read(source);
-				faces.Add(v);
-			}
-			if (source.BaseStream.Position + startOfTheFile != header.faces.size + header.faces.offset)
-				throw new Exception();
+			faces = ReaderHelper.ReadStructs<face_t>(source, header.faces.size, header.faces.offset + startOfTheFile, 20);
 		}
 
 		private void ReadEdges(BinaryReader source)

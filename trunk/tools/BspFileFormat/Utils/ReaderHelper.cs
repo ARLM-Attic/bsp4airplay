@@ -72,7 +72,7 @@ namespace BspFileFormat.Utils
 				planes.Add(v);
 			}
 			if (source.BaseStream.Position != size + offset)
-				throw new Exception();
+				throw new ArgumentException("Wrong item size for " + typeof(T).Name);
 			return planes;
 		}
 
@@ -97,6 +97,29 @@ namespace BspFileFormat.Utils
 				listOfFaces[i] = source.ReadUInt32();
 			}
 			return listOfFaces;
+		}
+		internal static int[] ReadInt32Array(BinaryReader source, uint bufSize, uint offset)
+		{
+			source.BaseStream.Seek(offset, SeekOrigin.Begin);
+			int size = (int)(bufSize / 4);
+			var listOfFaces = new int[size];
+			for (int i = 0; i < size; ++i)
+			{
+				listOfFaces[i] = source.ReadInt32();
+			}
+			return listOfFaces;
+		}
+
+		internal static string ReadStringSZ(BinaryReader source)
+		{
+			var buf = new List<byte>(16);
+			for (; ; )
+			{
+				var b = source.ReadByte();
+				if (b == 0) break;
+				buf.Add(b);
+			}
+			return Encoding.ASCII.GetString(buf.ToArray());
 		}
 	}
 }

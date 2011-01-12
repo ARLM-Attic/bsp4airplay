@@ -4,7 +4,7 @@ using System.Text;
 using BspFileFormat.Utils;
 using BspFileFormat.BspMath;
 
-namespace BspFileFormat.Q1HL1
+namespace BspFileFormat.BspMath
 {
 	public struct bboxshort_t
 	{

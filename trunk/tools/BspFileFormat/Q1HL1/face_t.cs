@@ -1,8 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Text;
-using BspFileFormat.Utils;
-using BspFileFormat.BspMath;
+using System.IO;
 
 namespace BspFileFormat.Q1HL1
 {
@@ -28,7 +24,7 @@ namespace BspFileFormat.Q1HL1
 		public int modelId = 0;
 		// this define the start of the face light map
 
-		internal void Read(System.IO.BinaryReader source)
+		public void Read(BinaryReader source)
 		{
 			plane_id = source.ReadUInt16();
 			side = source.ReadUInt16();

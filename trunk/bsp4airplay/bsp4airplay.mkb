@@ -8,7 +8,7 @@ option
 assets
 {
 	(../data-ram/data-gles1)
-	maps/de_dust.group.bin
+	#maps/de_dust.group.bin
 	#maps/sg0503.group.bin
 }
 files
@@ -17,9 +17,9 @@ files
 	(./source)
 	main.cpp
 
-	[Data]
-	(../data/models)
-	sample.group
+	#[Data]
+	#(../data/models)
+	#sample.group
 }
 deployments
 {

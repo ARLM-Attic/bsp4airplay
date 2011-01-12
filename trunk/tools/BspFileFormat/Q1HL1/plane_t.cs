@@ -1,4 +1,5 @@
 using BspFileFormat.BspMath;
+using System.IO;
 
 namespace BspFileFormat.Q1HL1
 {

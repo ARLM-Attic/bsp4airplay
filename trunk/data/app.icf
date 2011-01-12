@@ -18,7 +18,7 @@
 
 [s3e]
 #FixScreenOrientation=2
-MemSizeDebug=67108864
+MemSizeDebug=134217728
 MemSize=67108864
 
 [GX]
