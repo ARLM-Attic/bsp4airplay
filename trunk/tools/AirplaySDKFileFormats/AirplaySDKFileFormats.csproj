@@ -38,6 +38,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AirplaySDKMath.cs" />
+    <Compile Include="Cb4aCollisionMeshSoup.cs" />
     <Compile Include="Cb4aEntity.cs" />
     <Compile Include="Cb4aLeaf.cs" />
     <Compile Include="Cb4aLevel.cs" />

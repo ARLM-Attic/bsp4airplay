@@ -190,11 +190,18 @@ int main(int argc, char* argv[])
 			IwGxSetViewMatrix(&view);
 
 
-
 			IwGxSetPerspMul(IwGxGetScreenWidth()/2);
 			IwGxSetFarZNearZ(4096,16);
 
 			level->Render(cameraOrigin);
+
+			Bsp4Airplay::Cb4aTraceContext context;
+			context.from = cameraOrigin;
+			context.to = context.from+forward;
+			if (level->TraceLine(context))
+			{
+			}
+
 			IwGxFlush();
 			IwGxSwapBuffers();
 		}

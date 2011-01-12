@@ -57,9 +57,50 @@ namespace Bsp2AirplayAdapter
 				{
 					ll.Cluster = WriteVB(bspTreeLeaf, writer);
 				}
+				if (bspTreeLeaf.Colliders != null)
+				{
+					foreach (var collider in bspTreeLeaf.Colliders)
+					{
+						var c = BuildCollider(collider);
+						if (c != null)
+							ll.Colliders.Add(c);
+					}
+				}
 				foreach (var v in bspTreeLeaf.VisibleLeaves)
 					ll.VisibleLeaves.Add(leafIndices[v]);
 			}
+		}
+
+		private Ib4aCollider BuildCollider(BspCollisionObject collider)
+		{
+			if (collider is BspCollisionFaceSoup)
+				return BuildCollisionFaceSoup((BspCollisionFaceSoup)collider);
+			return null;
+		}
+
+		private Ib4aCollider BuildCollisionFaceSoup(BspCollisionFaceSoup bspCollisionFaceSoup)
+		{
+			var soup = new Cb4aCollisionMeshSoup();
+			foreach (var f in bspCollisionFaceSoup.Faces)
+			{
+				soup.Faces.Add(BuildCollisionFaceSoupFace(f));
+			}
+			return soup;
+		}
+
+		private Cb4aCollisionMeshSoupFace BuildCollisionFaceSoupFace(BspCollisionFaceSoupFace f)
+		{
+			var r = new Cb4aCollisionMeshSoupFace();
+			r.Distance = (int)f.Distance * AirplaySDKMath.IW_GEOM_ONE;
+			r.Normal = GetVec3Fixed(f.Normal);
+			foreach (var e in f.Edges)
+				r.edges.Add(BuildBspCollisionFaceSoupFaceEdge(e));
+			return r;
+		}
+
+		private Cb4aCollisionMeshSoupFaceEdge BuildBspCollisionFaceSoupFaceEdge(BspCollisionFaceSoupFaceEdge e)
+		{
+			return new Cb4aCollisionMeshSoupFaceEdge() { Normal = GetVec3Fixed(e.Normal), Distance = (int)e.Distance * AirplaySDKMath.IW_GEOM_ONE };
 		}
 		private void BuildLightmapAtlas(BspDocument bsp)
 		{

@@ -11,7 +11,7 @@
 
 namespace Bsp4Airplay
 {
-	
+
 
 	class Cb4aLevel : public CIwResource
 	{
@@ -37,6 +37,11 @@ namespace Bsp4Airplay
 		void Render(const CIwVec3 & viewer);
 		void RenderCluster(int32 i);
 		inline void BindMaterial(uint32 i) {materials[i].Bind(this);};
+
+		bool TraceLine(Cb4aTraceContext& context) const;
+
+		inline const Cb4aNode& GetNode(uint i) const { return nodes[i];}
+		inline const Cb4aLeaf& GetLeaf(uint i) const { return leaves[i];}
 		
 		int FindEntityByClassName(const char* name,int startFrom=0) const;
 		inline const Cb4aEntity* GetEntityAt(int32 i) const {return &entities[i];}

@@ -1,5 +1,6 @@
 #include "Bsp4Airplay.h"
 #include "b4aEntity.h"
+#include "b4aCollisionMeshSoup.h"
 
 void Bsp4Airplay::Bsp4AirpayInit()
 {
@@ -16,6 +17,7 @@ void Bsp4Airplay::Bsp4AirpayInit()
 	#endif
 
 	IW_CLASS_REGISTER(Cb4aLevel);
+	IW_CLASS_REGISTER(Cb4aCollisionMeshSoup);
 }
 void Bsp4Airplay::Bsp4AirpayTerminate()
 {

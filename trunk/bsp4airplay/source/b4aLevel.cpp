@@ -97,6 +97,12 @@ void Cb4aLevel::Render()
 	const CIwMat& m = IwGxGetViewMatrix();
 	Render(m.t);
 }
+bool Cb4aLevel::TraceLine(Cb4aTraceContext& context) const
+{
+	if (nodes.empty())
+		return false;
+	return nodes[0].TraceLine(this, context);
+}
 #ifdef IW_BUILD_RESOURCES
 Cb4aLeaf* Cb4aLevel::AllocateLeaf()
 {

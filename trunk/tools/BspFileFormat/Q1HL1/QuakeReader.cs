@@ -84,8 +84,70 @@ namespace BspFileFormat.Q1HL1
 			int size = (int)(header.entities.size);
 			entities = Encoding.ASCII.GetString(source.ReadBytes(size));
 		}
-		
-		
+
+		private BspCollisionFaceSoup BuildFaceSoup(ushort fromFace, ushort numFaces)
+		{
+			if (numFaces == 0)
+				return null;
+			var soup = new BspCollisionFaceSoup();
+			var vertexMap = new Dictionary<Vector3, int>();
+			var edgeMap = new Dictionary<BspCollisionFaceSoupEdge, int>();
+
+			for (uint i = fromFace; i < fromFace + numFaces; ++i)
+			{
+				ushort faceIndex = listOfFaces[i];
+				var face = faces[faceIndex];
+
+				var soupFace = new BspCollisionFaceSoupFace();
+				soup.Faces.Add(soupFace);
+
+				soupFace.Normal = planes[face.plane_id].normal;
+				soupFace.Distance = planes[face.plane_id].dist;
+				if (face.side != 0)
+				{
+					soupFace.Normal = -soupFace.Normal;
+					soupFace.Distance = -soupFace.Distance;
+				}
+				float prevDist = float.MinValue;
+				var prevN = Vector3.Zero;
+				for (int j = 0; j < (int)face.ledge_num; ++j)
+				{
+					var listOfEdgesIndex = (int)face.ledge_id + j;
+					var edgeIndex = listOfEdges[listOfEdgesIndex];
+					Vector3 v0, v1;
+					if (edgeIndex >= 0)
+					{
+						v0 = vertices[edges[edgeIndex].vertex0];
+						v1 = vertices[edges[edgeIndex].vertex1];
+					}
+					else
+					{
+						v1 = vertices[edges[-edgeIndex].vertex0];
+						v0 = vertices[edges[-edgeIndex].vertex1];
+					}
+					if (!vertexMap.ContainsKey(v0))
+					{
+						vertexMap[v0] = soup.Vertices.Count;
+						soup.Vertices.Add(v0);
+					}
+					if (!vertexMap.ContainsKey(v1))
+					{
+						vertexMap[v1] = soup.Vertices.Count;
+						soup.Vertices.Add(v1);
+					}
+					var edgeNormal = Vector3.Cross(v1 - v0, soupFace.Normal);
+					edgeNormal.Normalize();
+					float edgeDist = Vector3.Dot(edgeNormal, v0);
+					if (edgeNormal != prevN || edgeDist != prevDist)
+					{
+						soupFace.Edges.Add(new BspCollisionFaceSoupFaceEdge() { Normal = edgeNormal, Distance = edgeDist });
+						prevN = edgeNormal; prevDist = edgeDist;
+					}
+				}
+			}
+			return soup;
+		}
+
 		Dictionary<int, BspTexture> faceLightmapObjects = new Dictionary<int, BspTexture>();
 		private BspGeometry BuildGeometry(uint fromFace, uint numFaces, int modelId = 0, bool setModelId = false)
 		{
@@ -309,9 +371,13 @@ namespace BspFileFormat.Q1HL1
 		private BspTreeLeaf BuildLeaf(dleaf_t dleaf)
 		{
 			var res = new BspTreeLeaf();
-			res.Geometry = BuildGeometry(dleaf.lface_id, dleaf.lface_num);
+			if (dleaf.lface_num > 0)
+				res.Geometry = BuildGeometry(dleaf.lface_id, dleaf.lface_num);
+			if (dleaf.lface_num > 0)
+				res.Colliders.Add(BuildFaceSoup(dleaf.lface_id, dleaf.lface_num));
 			return res;
 		}
+
 
 		protected virtual void ReadTextures(BinaryReader source)
 		{

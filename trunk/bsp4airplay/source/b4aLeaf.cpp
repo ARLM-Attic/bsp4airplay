@@ -37,7 +37,12 @@ void  Cb4aLeaf::Serialise ()
 	visible_leaves.SerialiseHeader();
 	for (uint32 i=0; i<visible_leaves.size(); ++i)
 		IwSerialiseInt32(visible_leaves[i]);
+	colliders.Serialise();
+}
 
+void Cb4aLeaf::AddCollider(Ib4aCollider* c)
+{
+	colliders.push_back(c);
 }
 
 void Cb4aLeaf::Render(Cb4aLevel*l)
@@ -60,6 +65,15 @@ void Cb4aLeaf::Render(Cb4aLevel*l)
 	else
 		model->Render();
 }
+bool Cb4aLeaf::TraceLine(const Cb4aLevel*l, Cb4aTraceContext& context) const
+{
+	bool res = false;
+	for (uint32 i=0; i<colliders.GetSize(); ++i)
+	{
+		res |= colliders[i]->TraceLine(context);
+	}
+	return res;
+}
 #ifdef IW_BUILD_RESOURCES
 void* Bsp4Airplay::Cb4aLeafFactory()
 {
@@ -73,7 +87,10 @@ void  ParseLeaf::ParseOpen (CIwTextParserITX *pParser)
 	Cb4aLevel* level = dynamic_cast<Cb4aLevel*>(pParser->GetObject(-1));
 	_this = level->AllocateLeaf();
 }
-
+void ParseLeaf::AddCollider(Ib4aCollider* c)
+{
+	_this->colliders.push_back(c);
+}
 // function invoked by the text parser when parsing attributes for objects of this type
 bool ParseLeaf::ParseAttribute(CIwTextParserITX *pParser, const char *pAttrName)
 {

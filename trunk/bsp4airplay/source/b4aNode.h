@@ -1,6 +1,7 @@
 #pragma once
 #include <IwResource.h>
 #include <IwGx.h>
+#include "Ib4aCollider.h"
 
 namespace Bsp4Airplay
 {
@@ -22,6 +23,7 @@ namespace Bsp4Airplay
 		void  Serialise ();
 
 		bool WalkNode(const CIwVec3 & viewer, int32* nextNode) const;
+		bool TraceLine(const Cb4aLevel*, Cb4aTraceContext& context) const;
 	};
 
 #ifdef IW_BUILD_RESOURCES

@@ -37,6 +37,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BspCollisionConvexBrush.cs" />
+    <Compile Include="BspCollisionFaceSoup.cs" />
+    <Compile Include="BspCollisionObject.cs" />
     <Compile Include="BspDocument.cs" />
     <Compile Include="BspGeometry.cs" />
     <Compile Include="BspGeometryFace.cs" />

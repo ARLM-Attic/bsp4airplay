@@ -47,6 +47,26 @@ bool Cb4aNode::WalkNode(const CIwVec3 & viewer, int32* nextNode) const
 		return is_back_leaf;
 	}
 }
+bool Cb4aNode::TraceLine(const Cb4aLevel*l, Cb4aTraceContext& context) const
+{
+	iwfixed fromDist = plane_normal.x*context.from.x+plane_normal.y*context.from.y+plane_normal.z*context.from.z-plane_distance;
+	iwfixed toDist = plane_normal.x*context.to.x+plane_normal.y*context.to.y+plane_normal.z*context.to.z-plane_distance;
+	if (fromDist >= 0 && toDist >= 0)
+	{
+		if (is_front_leaf)
+			return l->GetLeaf(front).TraceLine(l,context);
+		return l->GetNode(front).TraceLine(l,context);
+	}
+	if (fromDist < 0 && toDist < 0)
+	{
+		if (is_back_leaf)
+			return l->GetLeaf(back).TraceLine(l,context);
+		return l->GetNode(back).TraceLine(l,context);
+	}
+	iwfixed fraction = fromDist*IW_GEOM_ONE/(fromDist-toDist);
+	//TODO: finish line trace
+	return false;
+}
 #ifdef IW_BUILD_RESOURCES
 void* Bsp4Airplay::Cb4aNodeFactory()
 {
