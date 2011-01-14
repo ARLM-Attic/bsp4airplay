@@ -36,8 +36,7 @@ void  Cb4aNode::Serialise ()
 }
 bool Cb4aNode::WalkNode(const CIwSVec3 & viewer, int32* nextNode) const
 {
-	
-	bool positive = plane.v*viewer >= plane.k;
+	bool positive = b4aPlaneDist(viewer,plane)>=0;
 	if (positive)
 	{
 		*nextNode = front;

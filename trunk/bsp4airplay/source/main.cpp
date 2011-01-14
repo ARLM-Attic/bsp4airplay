@@ -97,8 +97,10 @@ int main(int argc, char* argv[])
 	IwGxSetColClear(0x7f, 0x7f, 0x7f, 0x7f);
 	IwGxPrintSetColour(128, 128, 128);
 
-	const char* defaultGroupName = "maps/samplebox.group";
+	//const char* defaultGroupName = "maps/samplebox.group";
 	//const char* defaultGroupName = "maps/al_test_map_02.group";
+	//const char* defaultGroupName = "maps/sg0503.group";
+	const char* defaultGroupName = "maps/de_dust.group";
 	const char* groupName = (argc > 1)?argv[1]:defaultGroupName;
 
 	//CIwResGroup* group = IwGetResManager()->LoadGroup("maps/hldemo1.group");
@@ -207,7 +209,7 @@ int main(int argc, char* argv[])
 				m->SetZDepthOfsHW(-1);
 				IwGxSetMaterial(m);
 				CIwSVec3* p = IW_GX_ALLOC(CIwSVec3,2*4);
-				CIwColour* c = IW_GX_ALLOC(CIwColour,2*3);
+				CIwColour* c = IW_GX_ALLOC(CIwColour,2*4);
 				p[0] = context.to;
 				c[0].Set(255,255,255,255);
 				p[1] = context.to+context.collisionNormal*100;
@@ -226,6 +228,9 @@ int main(int argc, char* argv[])
 				c[7].Set(0,0,255,255);
 				IwGxSetVertStreamWorldSpace(p,2*4);
 				IwGxSetColStream(c,2*4);
+				IwGxSetNormStream(0,0);
+				IwGxSetUVStream(0,0);
+				IwGxSetUVStream(0,1);
 				IwGxDrawPrims(IW_GX_LINE_LIST,0,2*4);
 				IwGxSetColStream(0,0);
 			}
