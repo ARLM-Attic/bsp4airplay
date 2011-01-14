@@ -3,6 +3,7 @@
 #include <IwResGroup.h>
 #include "b4aLevel.h"
 #include "b4aNode.h"
+#include "Bsp4Airplay.h"
 
 using namespace Bsp4Airplay;
 
@@ -26,16 +27,17 @@ Cb4aNode::~Cb4aNode()
 // Reads/writes a binary file using IwSerialise interface. 
 void  Cb4aNode::Serialise ()
 {
-	IwSerialiseInt32(plane_distance);
-	plane_normal.Serialise();
+	plane.v.Serialise();
+	IwSerialiseInt32(plane.k);
 	IwSerialiseBool(is_front_leaf);
 	IwSerialiseInt32(front);
 	IwSerialiseBool(is_back_leaf);
 	IwSerialiseInt32(back);
 }
-bool Cb4aNode::WalkNode(const CIwVec3 & viewer, int32* nextNode) const
+bool Cb4aNode::WalkNode(const CIwSVec3 & viewer, int32* nextNode) const
 {
-	bool positive = plane_distance < viewer.x * plane_normal.x +viewer.y * plane_normal.y+viewer.z*plane_normal.z;
+	
+	bool positive = plane.v*viewer >= plane.k;
 	if (positive)
 	{
 		*nextNode = front;
@@ -47,25 +49,74 @@ bool Cb4aNode::WalkNode(const CIwVec3 & viewer, int32* nextNode) const
 		return is_back_leaf;
 	}
 }
+bool Cb4aNode::TraceFrontLine(const Cb4aLevel*l, Cb4aTraceContext& context) const
+{
+	if (is_front_leaf)
+		return l->GetLeaf(front).TraceLine(l,context);
+	return l->GetNode(front).TraceLine(l,context);
+}
+bool Cb4aNode::TraceBackLine(const Cb4aLevel*l, Cb4aTraceContext& context) const
+{
+	if (is_back_leaf)
+		return l->GetLeaf(back).TraceLine(l,context);
+	return l->GetNode(back).TraceLine(l,context);
+}
 bool Cb4aNode::TraceLine(const Cb4aLevel*l, Cb4aTraceContext& context) const
 {
-	iwfixed fromDist = plane_normal.x*context.from.x+plane_normal.y*context.from.y+plane_normal.z*context.from.z-plane_distance;
-	iwfixed toDist = plane_normal.x*context.to.x+plane_normal.y*context.to.y+plane_normal.z*context.to.z-plane_distance;
+	iwfixed fromDist = b4aPlaneDist(context.from,plane);
+	iwfixed toDist = b4aPlaneDist(context.to,plane);
 	if (fromDist >= 0 && toDist >= 0)
-	{
-		if (is_front_leaf)
-			return l->GetLeaf(front).TraceLine(l,context);
-		return l->GetNode(front).TraceLine(l,context);
-	}
+		return TraceFrontLine(l,context);
 	if (fromDist < 0 && toDist < 0)
+		return TraceBackLine(l,context);
+
+	if (fromDist >= 0)
 	{
-		if (is_back_leaf)
-			return l->GetLeaf(back).TraceLine(l,context);
-		return l->GetNode(back).TraceLine(l,context);
+		if (TraceFrontLine(l,context))
+			return true;
+		return TraceBackLine(l,context);
 	}
-	iwfixed fraction = fromDist*IW_GEOM_ONE/(fromDist-toDist);
-	//TODO: finish line trace
-	return false;
+	if (TraceBackLine(l,context))
+		return true;
+	return TraceFrontLine(l,context);
+	//CIwSVec3 middlePoint = b4aLerp(context.from,context.to,fromDist/4096,toDist/4096);
+	//if (fromDist >= 0)
+	//{
+	//	Cb4aTraceContext temp = context;
+	//	temp.to = middlePoint;
+	//	if (TraceFrontLine(l,temp))
+	//	{
+	//		context.to = temp.to;
+	//		context.collisionNormal = temp.collisionNormal;
+	//		return true;
+	//	}
+	//	temp.from = middlePoint;
+	//	temp.to = context.to;
+	//	if (TraceBackLine(l,temp))
+	//	{
+	//		context.to = temp.to;
+	//		context.collisionNormal = temp.collisionNormal;
+	//		return true;
+	//	}
+	//	return false;
+	//}
+	//Cb4aTraceContext temp = context;
+	//temp.to = middlePoint;
+	//if (TraceBackLine(l,temp))
+	//{
+	//	context.to = temp.to;
+	//	context.collisionNormal = temp.collisionNormal;
+	//	return true;
+	//}
+	//temp.from = middlePoint;
+	//temp.to = context.to;
+	//if (TraceFrontLine(l,temp))
+	//{
+	//	context.to = temp.to;
+	//	context.collisionNormal = temp.collisionNormal;
+	//	return true;
+	//}
+	//return false;
 }
 #ifdef IW_BUILD_RESOURCES
 void* Bsp4Airplay::Cb4aNodeFactory()
@@ -84,14 +135,11 @@ void  ParseNode::ParseOpen (CIwTextParserITX *pParser)
 // function invoked by the text parser when parsing attributes for objects of this type
 bool ParseNode::ParseAttribute(CIwTextParserITX *pParser, const char *pAttrName)
 {
-	if (!strcmp("plane_distance", pAttrName))
+	if (!strcmp("plane", pAttrName))
 	{
-		pParser->ReadInt32(&_this->plane_distance);
-		return true;
-	}
-	if (!strcmp("plane_normal", pAttrName))
-	{
-		pParser->ReadInt32Array(&_this->plane_normal.x,3);
+		iwfixed planeValues[4];
+		pParser->ReadInt32Array(&planeValues[0],4);
+		_this->plane = CIwPlane(CIwSVec3(planeValues[0],planeValues[1],planeValues[2]),planeValues[3]);
 		return true;
 	}
 	if (!strcmp("is_front_leaf", pAttrName))

@@ -8,8 +8,7 @@ namespace Bsp4Airplay
 	class Cb4aNode
 	{
 	public:
-		iwfixed plane_distance;
-		CIwVec3	plane_normal;
+		CIwPlane plane;
 		bool is_front_leaf;
 		int32 front;
 		bool is_back_leaf;
@@ -22,8 +21,11 @@ namespace Bsp4Airplay
 
 		void  Serialise ();
 
-		bool WalkNode(const CIwVec3 & viewer, int32* nextNode) const;
+		bool WalkNode(const CIwSVec3 & viewer, int32* nextNode) const;
 		bool TraceLine(const Cb4aLevel*, Cb4aTraceContext& context) const;
+	protected:
+		bool TraceFrontLine(const Cb4aLevel*, Cb4aTraceContext& context) const;
+		bool TraceBackLine(const Cb4aLevel*, Cb4aTraceContext& context) const;
 	};
 
 #ifdef IW_BUILD_RESOURCES

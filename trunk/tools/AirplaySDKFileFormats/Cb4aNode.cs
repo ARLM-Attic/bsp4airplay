@@ -14,8 +14,7 @@ namespace AirplaySDKFileFormats
 		public override void WrtieBodyToStream(CTextWriter writer)
 		{
 			base.WrtieBodyToStream(writer);
-			writer.WriteKeyVal("plane_distance", (int)(PlaneDistance * AirplaySDKMath.IW_GEOM_ONE));
-			writer.WriteVec3("plane_normal", PlaneNormal);
+			writer.WriteArray("plane", new int[]{PlaneNormal.x,(int)PlaneNormal.y,(int)PlaneNormal.z, (int)(PlaneDistance * AirplaySDKMath.IW_GEOM_ONE)});
 			writer.WriteKeyVal("is_front_leaf", IsFrontLeaf);
 			writer.WriteKeyVal("front", Front);
 			writer.WriteKeyVal("is_back_leaf", IsBackLeaf);

@@ -14,7 +14,7 @@ namespace Tests
 	[TestFixture]
 	public class Q1Tests
 	{
-		[Test]
+		//[Test]
 		public void TestQ1()
 		{
 			(new Adapter()).Convert(@"..\data\maps\sg0503.bsp", @"..\data\maps\sg0503.group");

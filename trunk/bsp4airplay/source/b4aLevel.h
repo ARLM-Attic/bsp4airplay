@@ -34,7 +34,7 @@ namespace Bsp4Airplay
 		virtual void  Serialise ();
 
 		void Render();
-		void Render(const CIwVec3 & viewer);
+		void Render(const CIwSVec3 & viewer);
 		void RenderCluster(int32 i);
 		inline void BindMaterial(uint32 i) {materials[i].Bind(this);};
 

@@ -65,7 +65,7 @@ void Cb4aLevel::RenderCluster(int32 i)
 	if (i < 0) return;
 	clusters[i].Render(this);
 }
-void Cb4aLevel::Render(const CIwVec3 & viewer)
+void Cb4aLevel::Render(const CIwSVec3 & viewer)
 {
 	static CIwTexture* t = 0;
 	if (!t)
@@ -95,7 +95,7 @@ void Cb4aLevel::ScheduleRender(int32 i, Cb4aLevelVBSubcluster*c)
 void Cb4aLevel::Render()
 {
 	const CIwMat& m = IwGxGetViewMatrix();
-	Render(m.t);
+	Render(CIwSVec3(m.t));
 }
 bool Cb4aLevel::TraceLine(Cb4aTraceContext& context) const
 {

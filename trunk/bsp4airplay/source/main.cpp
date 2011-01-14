@@ -170,6 +170,7 @@ int main(int argc, char* argv[])
 				view.LookAt(CIwVec3(0,0,IW_GEOM_ONE),CIwVec3(0,0,0),CIwVec3(0,IW_GEOM_ONE,0));
 				view.SetTrans(CIwVec3(512,512,1048));
 			}*/
+			
 			view.LookAt(CIwVec3(0,0,0),CIwVec3(0,IW_GEOM_ONE,0),CIwVec3(0,IW_GEOM_ONE,0));
 			view.PreRotateY(angleZ);
 			view.PreRotateX(angleBow);
@@ -191,15 +192,42 @@ int main(int argc, char* argv[])
 
 
 			IwGxSetPerspMul(IwGxGetScreenWidth()/2);
-			IwGxSetFarZNearZ(4096,16);
+			//TODO: detect max distance by visible level size!
+			IwGxSetFarZNearZ(2048,8);
 
-			level->Render(cameraOrigin);
+			level->Render(CIwSVec3(cameraOrigin));
 
 			Bsp4Airplay::Cb4aTraceContext context;
 			context.from = cameraOrigin;
-			context.to = context.from+forward;
+			context.to = context.from+view.RowZ();
 			if (level->TraceLine(context))
 			{
+				CIwMaterial* m= IW_GX_ALLOC_MATERIAL();
+				m->SetZDepthOfs(-1);
+				m->SetZDepthOfsHW(-1);
+				IwGxSetMaterial(m);
+				CIwSVec3* p = IW_GX_ALLOC(CIwSVec3,2*4);
+				CIwColour* c = IW_GX_ALLOC(CIwColour,2*3);
+				p[0] = context.to;
+				c[0].Set(255,255,255,255);
+				p[1] = context.to+context.collisionNormal*100;
+				c[1].Set(255,255,255,255);
+				p[2] = context.to+CIwSVec3(100,0,0);
+				c[2].Set(255,0,0,255);
+				p[3] = context.to+CIwSVec3(-100,0,0);
+				c[3].Set(0,255,0,255);
+				p[4] = context.to+CIwSVec3(0,100,0);
+				c[4].Set(0,255,0,255);
+				p[5] = context.to+CIwSVec3(0,-100,0);
+				c[5].Set(0,255,0,255);
+				p[6] = context.to+CIwSVec3(0,0,100);
+				c[6].Set(0,0,255,255);
+				p[7] = context.to+CIwSVec3(0,0,-100);
+				c[7].Set(0,0,255,255);
+				IwGxSetVertStreamWorldSpace(p,2*4);
+				IwGxSetColStream(c,2*4);
+				IwGxDrawPrims(IW_GX_LINE_LIST,0,2*4);
+				IwGxSetColStream(0,0);
 			}
 
 			IwGxFlush();
