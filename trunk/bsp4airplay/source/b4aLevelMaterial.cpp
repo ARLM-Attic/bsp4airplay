@@ -58,6 +58,12 @@ void Cb4aLevelMaterial::Bind(Cb4aLevel* l)
 	if (texture0)
 	{
 		m->SetTexture(texture0,0);
+		m->SetModulateMode(CIwMaterial::MODULATE_NONE);
+	}
+	else
+	{
+		m->SetColDiffuse(IwGxGetColFixed(IW_GX_COLOUR_WHITE));
+		m->SetModulateMode(CIwMaterial::MODULATE_RGB);
 	}
 	if (texture1)
 	{

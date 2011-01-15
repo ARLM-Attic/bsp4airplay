@@ -34,11 +34,12 @@ namespace Bsp4Airplay
 		virtual void  Serialise ();
 
 		void Render();
-		void Render(const CIwSVec3 & viewer);
+		void Render(const CIwVec3 & viewer);
 		void RenderCluster(int32 i);
 		inline void BindMaterial(uint32 i) {materials[i].Bind(this);};
 
 		bool TraceLine(Cb4aTraceContext& context) const;
+		bool TraceSphere(int32 r, Cb4aTraceContext& context) const;
 
 		inline const Cb4aNode& GetNode(uint i) const { return nodes[i];}
 		inline const Cb4aLeaf& GetLeaf(uint i) const { return leaves[i];}

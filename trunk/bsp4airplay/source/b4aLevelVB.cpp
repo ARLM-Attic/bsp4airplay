@@ -71,7 +71,7 @@ void Cb4aLevelVertexBuffer::FlushQueueDynamicBlock(Cb4aLevel* l,uint32 from, uin
 		return;
 	l->BindMaterial(renderQueue[from]->GetMaterial());
 	CIwSVec3* temp_positions = IW_GX_ALLOC(CIwSVec3,totalIndices);
-	CIwSVec3* temp_normals = IW_GX_ALLOC(CIwSVec3,totalIndices);
+	//CIwSVec3* temp_normals = IW_GX_ALLOC(CIwSVec3,totalIndices);
 	CIwSVec2* temp_uv0s = IW_GX_ALLOC(CIwSVec2,totalIndices);
 	CIwSVec2* temp_uv1s = IW_GX_ALLOC(CIwSVec2,totalIndices);
 	uint16* indinces = IW_GX_ALLOC(uint16,totalIndices);
@@ -82,7 +82,7 @@ void Cb4aLevelVertexBuffer::FlushQueueDynamicBlock(Cb4aLevel* l,uint32 from, uin
 		for (uint32 i=0; i<indices.size(); ++i)
 		{
 			temp_positions[offset] = GetPosition(indices[i]);
-			temp_normals[offset] = GetNormal(indices[i]);
+			//temp_normals[offset] = GetNormal(indices[i]);
 			temp_uv0s[offset] = GetUV0(indices[i]);
 			temp_uv1s[offset] = GetUV1(indices[i]);
 			indinces[offset] = (uint16)offset;
@@ -91,13 +91,16 @@ void Cb4aLevelVertexBuffer::FlushQueueDynamicBlock(Cb4aLevel* l,uint32 from, uin
 	}
 
 	IwGxSetVertStream(temp_positions, totalIndices);
-	IwGxSetNormStream(temp_normals, totalIndices);
+	//IwGxSetNormStream(temp_normals, totalIndices);
+	IwGxSetNormStream(0);
 	IwGxSetUVStream(temp_uv0s, 0);
 	IwGxSetUVStream(temp_uv1s, 1);
 	//IwGxSetColStream(temp_colours, );
 	IwGxSetColStream(0);
 
 	IwGxDrawPrims(IW_GX_TRI_LIST,indinces,totalIndices);
+
+	PostRender();
 }
 void Cb4aLevelVertexBuffer::FlushQueueBlock(Cb4aLevel* l,uint32 from, uint32 end)
 {

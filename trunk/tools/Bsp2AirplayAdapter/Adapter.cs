@@ -7,6 +7,7 @@ using AirplaySDKFileFormats.Model;
 using System.IO;
 using Atlasing;
 using System.Drawing;
+using BspFileFormat.BspMath;
 
 namespace Bsp2AirplayAdapter
 {
@@ -80,28 +81,82 @@ namespace Bsp2AirplayAdapter
 
 		private Ib4aCollider BuildCollisionFaceSoup(BspCollisionFaceSoup bspCollisionFaceSoup)
 		{
+			collisionFaceVertices.Clear();
+			collisionFaceEdges.Clear();
 			var soup = new Cb4aCollisionMeshSoup();
 			foreach (var f in bspCollisionFaceSoup.Faces)
 			{
-				soup.Faces.Add(BuildCollisionFaceSoupFace(f));
+				soup.Faces.Add(BuildCollisionFaceSoupFace(f, soup));
 			}
 			return soup;
 		}
-
-		private Cb4aCollisionMeshSoupFace BuildCollisionFaceSoupFace(BspCollisionFaceSoupFace f)
+		protected Dictionary<CIwVec3, int> collisionFaceVertices = new Dictionary<CIwVec3, int>();
+		protected Dictionary<Cb4aCollisionMeshSoupEdge, int> collisionFaceEdges = new Dictionary<Cb4aCollisionMeshSoupEdge, int>();
+		private Cb4aCollisionMeshSoupFace BuildCollisionFaceSoupFace(BspCollisionFaceSoupFace f, Cb4aCollisionMeshSoup soup)
 		{
 			var r = new Cb4aCollisionMeshSoupFace();
-			r.Distance = (int)f.Distance * AirplaySDKMath.IW_GEOM_ONE;
-			r.Normal = GetVec3Fixed(f.Normal);
-			foreach (var e in f.Edges)
-				r.edges.Add(BuildBspCollisionFaceSoupFaceEdge(e));
+			Vector3 edge0 = f.Vertices[1] - f.Vertices[0];
+			Vector3 n;
+			for (int i=1; i<f.Vertices.Count-1;++i)
+			{
+				n = Vector3.Cross(edge0, f.Vertices[i] - f.Vertices[(i + 1) % f.Vertices.Count]);
+				if (Math.Abs(n.LengthSquared) > 1)
+				{
+					n.Normalize();
+					goto okNormal;
+				}
+				
+			}
+			throw new ApplicationException("face is almost zero area!");
+			okNormal:
+
+			for (int i = 0; i < f.Vertices.Count; ++i)
+			{
+				int j;
+				var v = GetVec3(f.Vertices[i]);
+				if (!this.collisionFaceVertices.TryGetValue(v, out j))
+				{
+					this.collisionFaceVertices[v] = soup.Vertices.Count;
+					soup.Vertices.Add(v);
+				}
+			}
+
+			for (int i = 0; i < f.Vertices.Count; ++i)
+			{
+				var v0 = GetVec3(f.Vertices[i]);
+				var v1 = GetVec3(f.Vertices[(i + 1) % f.Vertices.Count]);
+				int j;
+				var e = new Cb4aCollisionMeshSoupEdge() { V0=v0,V1=v1};
+				if (!collisionFaceEdges.TryGetValue(e, out j))
+				{
+					collisionFaceEdges[e] = soup.Edges.Count;
+					soup.Edges.Add(e);
+				}
+			}
+			r.Distance = (int)(Vector3.Dot(f.Vertices[0],n)) * AirplaySDKMath.IW_GEOM_ONE;
+			r.Normal = GetVec3Fixed(n);
+			int lastD = int.MinValue;
+			CIwVec3 lastN = CIwVec3.g_Zero;
+			for (int i = 0; i < f.Vertices.Count; ++i)
+			{
+				var d = Vector3.Cross(n, f.Vertices[i] - f.Vertices[(i + 1) % f.Vertices.Count]);
+				d.Normalize();
+				CIwVec3 newN = GetVec3Fixed(d);
+				int newD = (int)(Vector3.Dot(d, f.Vertices[i]) * AirplaySDKMath.IW_GEOM_ONE);
+				if (newN != lastN || newD != lastD)
+				{
+					lastD=newD;
+					lastN = newN;
+					r.edges.Add(new Cb4aCollisionMeshSoupFaceEdge(){Normal=newN, Distance=newD});
+				}
+			}
 			return r;
 		}
 
-		private Cb4aCollisionMeshSoupFaceEdge BuildBspCollisionFaceSoupFaceEdge(BspCollisionFaceSoupFaceEdge e)
-		{
-			return new Cb4aCollisionMeshSoupFaceEdge() { Normal = GetVec3Fixed(e.Normal), Distance = (int)e.Distance * AirplaySDKMath.IW_GEOM_ONE };
-		}
+		//private Cb4aCollisionMeshSoupFaceEdge BuildBspCollisionFaceSoupFaceEdge(BspCollisionFaceSoupFaceEdge e)
+		//{
+		//    return new Cb4aCollisionMeshSoupFaceEdge() { Normal = GetVec3Fixed(e.Normal), Distance = (int)e.Distance * AirplaySDKMath.IW_GEOM_ONE };
+		//}
 		private void BuildLightmapAtlas(BspDocument bsp)
 		{
 			Dictionary<Bitmap, bool> lightmaps = new Dictionary<Bitmap, bool>();

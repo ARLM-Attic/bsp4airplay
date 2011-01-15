@@ -6,9 +6,10 @@ namespace Bsp4Airplay
 {
 	struct Cb4aTraceContext
 	{
-		CIwSVec3 from;
-		CIwSVec3 to;
+		CIwVec3 from;
+		CIwVec3 to;
 		CIwSVec3 collisionNormal;
+		iwfixed collisionPlaneD;
 	};
 
 	class Ib4aCollider
@@ -21,6 +22,7 @@ namespace Bsp4Airplay
 		inline virtual ~Ib4aCollider(){};
 
 		virtual bool TraceLine(Cb4aTraceContext& context) const =0;
+		virtual bool TraceSphere(int32 sphere, Cb4aTraceContext& context) const=0;
 	};
 	class Ib4aColliderContainer
 	{

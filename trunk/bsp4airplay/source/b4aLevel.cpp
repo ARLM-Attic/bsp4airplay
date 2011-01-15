@@ -65,11 +65,8 @@ void Cb4aLevel::RenderCluster(int32 i)
 	if (i < 0) return;
 	clusters[i].Render(this);
 }
-void Cb4aLevel::Render(const CIwSVec3 & viewer)
+void Cb4aLevel::Render(const CIwVec3 & viewer)
 {
-	static CIwTexture* t = 0;
-	if (!t)
-		t = (CIwTexture*)IwGetResManager()->GetResNamed("checkers",IW_GX_RESTYPE_TEXTURE,IW_RES_PERMIT_NULL_F);
 	CIwMat modelMatrix;
 	modelMatrix.SetIdentity();
 
@@ -78,10 +75,7 @@ void Cb4aLevel::Render(const CIwSVec3 & viewer)
 
 	int node = 0;
 	while (!nodes[node].WalkNode(viewer, &node));
-	CIwMaterial* m = IW_GX_ALLOC_MATERIAL();
-	if (t)
-		m->SetTexture(t);
-	IwGxSetMaterial(m);
+	
 	leaves[node].Render(this);
 	for (uint32 i=0;i<leaves[node].visible_leaves.size(); ++i)
 		leaves[leaves[node].visible_leaves[i]].Render(this);
@@ -95,13 +89,19 @@ void Cb4aLevel::ScheduleRender(int32 i, Cb4aLevelVBSubcluster*c)
 void Cb4aLevel::Render()
 {
 	const CIwMat& m = IwGxGetViewMatrix();
-	Render(CIwSVec3(m.t));
+	Render(CIwVec3(m.t.x<<IW_GEOM_POINT,m.t.z<<IW_GEOM_POINT,m.t.y<<IW_GEOM_POINT));
 }
 bool Cb4aLevel::TraceLine(Cb4aTraceContext& context) const
 {
 	if (nodes.empty())
 		return false;
 	return nodes[0].TraceLine(this, context);
+}
+bool Cb4aLevel::TraceSphere(int32 r, Cb4aTraceContext& context) const
+{
+	if (nodes.empty())
+		return false;
+	return nodes[0].TraceSphere(this, r, context);
 }
 #ifdef IW_BUILD_RESOURCES
 Cb4aLeaf* Cb4aLevel::AllocateLeaf()

@@ -21,11 +21,15 @@ namespace Bsp4Airplay
 
 		void  Serialise ();
 
-		bool WalkNode(const CIwSVec3 & viewer, int32* nextNode) const;
+		bool WalkNode(const CIwVec3 & viewer, int32* nextNode) const;
 		bool TraceLine(const Cb4aLevel*, Cb4aTraceContext& context) const;
+		bool TraceSphere(const Cb4aLevel*, int32 r, Cb4aTraceContext& context) const;
 	protected:
 		bool TraceFrontLine(const Cb4aLevel*, Cb4aTraceContext& context) const;
 		bool TraceBackLine(const Cb4aLevel*, Cb4aTraceContext& context) const;
+
+		bool TraceFrontSphere(const Cb4aLevel*, int32 sphere, Cb4aTraceContext& context) const;
+		bool TraceBackSphere(const Cb4aLevel*, int32 sphere, Cb4aTraceContext& context) const;
 	};
 
 #ifdef IW_BUILD_RESOURCES

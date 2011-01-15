@@ -78,7 +78,14 @@ int32 keyboardEvent (s3eKeyboardEvent* systemData, void* userData)
 	}
 	return 0;
 }
-
+inline CIwSVec3 World2Level(const CIwVec3 & w)
+{
+	return CIwSVec3((int16)(w.x>>IW_GEOM_POINT),(int16)(w.y>>IW_GEOM_POINT),(int16)(w.z>>IW_GEOM_POINT));
+}
+inline CIwVec3 Level2World(const CIwSVec3 & w, const CIwVec3 & fractionPart)
+{
+	return CIwVec3(((int32)w.x)<<IW_GEOM_POINT,((int32)w.y)<<IW_GEOM_POINT,((int32)w.z)<<IW_GEOM_POINT);
+}
 //-----------------------------------------------------------------------------
 // Main global function
 //-----------------------------------------------------------------------------
@@ -138,7 +145,10 @@ int main(int argc, char* argv[])
 		if (b >= 0) spawnEntIndex = b;
 	}
 	const Bsp4Airplay::Cb4aEntity* spawnEnt = (spawnEntIndex>=0)?level->GetEntityAt(spawnEntIndex):0;
-	CIwVec3 cameraOrigin = spawnEnt ? (spawnEnt->GetOrigin()) : CIwVec3::g_Zero;
+	CIwVec3 playerOrigin = spawnEnt ? (spawnEnt->GetOrigin()) : CIwVec3::g_Zero;
+	playerOrigin.x <<= IW_GEOM_POINT;
+	playerOrigin.y <<= IW_GEOM_POINT;
+	playerOrigin.z <<= IW_GEOM_POINT;
 	{
 	
 		while (1)
@@ -177,17 +187,61 @@ int main(int argc, char* argv[])
 			view.PreRotateY(angleZ);
 			view.PreRotateX(angleBow);
 			view.SetTrans(CIwVec3::g_Zero);
+			CIwVec3 rawForward = view.RowZ();
+			CIwVec3 rawRight = view.RowX();
 
-			CIwVec3 forward = view.RowZ(); forward.x /= (1<<10); forward.y /= (1<<10); forward.z /= (1<<10);
-			CIwVec3 right = view.RowX(); right.x /= (1<<10); right.y /= (1<<10); right.z /= (1<<10);
+			CIwVec3 forward = CIwVec3(rawForward.x*16,rawForward.y*16,rawForward.z*16);
+			CIwVec3 right = CIwVec3(rawRight.x*16,rawRight.y*16,rawRight.z*16);
+			CIwVec3 playerMovement = CIwVec3::g_Zero;
 			if (moveForward)
-				cameraOrigin += forward;
+				playerMovement += forward;
 			if (moveBackward)
-				cameraOrigin -= forward;
+				playerMovement -= forward;
 			if (moveRight)
-				cameraOrigin += right;
+				playerMovement += right;
 			if (moveLeft)
-				cameraOrigin -= right;
+				playerMovement -= right;
+			Bsp4Airplay::Cb4aTraceContext context;
+			context.from = playerOrigin;
+			context.to = playerOrigin+playerMovement;
+
+			CIwVec3 originalMovement = playerMovement;
+			playerOrigin += playerMovement;
+			int count = 0;
+			int32 playerRadius = 32<<IW_GEOM_POINT;
+			while (context.from != context.to)
+			{
+				CIwVec3 originalDestination = context.to;
+				if (!level->TraceSphere(playerRadius,context))
+					break;
+				CIwVec3 distToPlane = CIwVec3(abs(originalDestination.x-context.to.x),abs(originalDestination.y-context.to.y),abs(originalDestination.z-context.to.z));
+				originalDestination.x += (context.collisionNormal.x*distToPlane.x)/IW_GEOM_ONE;
+				originalDestination.y += (context.collisionNormal.y*distToPlane.y)/IW_GEOM_ONE;
+				originalDestination.z += (context.collisionNormal.z*distToPlane.z)/IW_GEOM_ONE;
+				while(playerRadius > Bsp4Airplay::b4aPlaneDist(originalDestination, CIwPlane(context.collisionNormal, context.collisionPlaneD)))
+				{
+					originalDestination+= context.collisionNormal;
+				}
+
+				context.from = context.to;
+				context.to = originalDestination;
+				/*if (originalMovement.x*(context.to.x-context.from.x) +
+					originalMovement.y*(context.to.y-context.from.y)+
+					originalMovement.z*(context.to.z-context.from.z) < 0)
+				{
+					playerOrigin = context.from;
+					break;
+				}*/
+
+				++count;
+				if (count > 3 || (abs(context.from.x-context.to.x) <= 64 && abs(context.from.y-context.to.y) <= 64 && abs(context.from.z-context.to.z) <= 64))
+				{
+					playerOrigin = context.from;
+					break;
+				}
+				playerOrigin = context.to;
+			}
+			CIwSVec3 cameraOrigin = World2Level(playerOrigin);
 			view.SetTrans(cameraOrigin);
 
 			IwGxSetViewMatrix(&view);
@@ -195,14 +249,14 @@ int main(int argc, char* argv[])
 
 			IwGxSetPerspMul(IwGxGetScreenWidth()/2);
 			//TODO: detect max distance by visible level size!
-			IwGxSetFarZNearZ(2048,8);
+			IwGxSetFarZNearZ(4096,8);
 
-			level->Render(CIwSVec3(cameraOrigin));
-
-			Bsp4Airplay::Cb4aTraceContext context;
-			context.from = cameraOrigin;
-			context.to = context.from+view.RowZ();
-			if (level->TraceLine(context))
+			level->Render(playerOrigin);
+			//level->Render(cameraOrigin);
+			
+			context.from = playerOrigin;
+			context.to = context.from+CIwVec3(rawForward.x*200,rawForward.y*200,rawForward.z*200);
+			if (level->TraceSphere(10<<IW_GEOM_POINT,context))
 			{
 				CIwMaterial* m= IW_GX_ALLOC_MATERIAL();
 				m->SetZDepthOfs(-1);
@@ -210,21 +264,21 @@ int main(int argc, char* argv[])
 				IwGxSetMaterial(m);
 				CIwSVec3* p = IW_GX_ALLOC(CIwSVec3,2*4);
 				CIwColour* c = IW_GX_ALLOC(CIwColour,2*4);
-				p[0] = context.to;
+				p[0] = World2Level(context.to);
 				c[0].Set(255,255,255,255);
-				p[1] = context.to+context.collisionNormal*100;
+				p[1] = World2Level(context.to)+context.collisionNormal*20;
 				c[1].Set(255,255,255,255);
-				p[2] = context.to+CIwSVec3(100,0,0);
+				p[2] = World2Level(context.to)+CIwSVec3(10,0,0);
 				c[2].Set(255,0,0,255);
-				p[3] = context.to+CIwSVec3(-100,0,0);
-				c[3].Set(0,255,0,255);
-				p[4] = context.to+CIwSVec3(0,100,0);
+				p[3] = World2Level(context.to)+CIwSVec3(-10,0,0);
+				c[3].Set(255,0,0,255);
+				p[4] = World2Level(context.to)+CIwSVec3(0,10,0);
 				c[4].Set(0,255,0,255);
-				p[5] = context.to+CIwSVec3(0,-100,0);
+				p[5] = World2Level(context.to)+CIwSVec3(0,-10,0);
 				c[5].Set(0,255,0,255);
-				p[6] = context.to+CIwSVec3(0,0,100);
+				p[6] = World2Level(context.to)+CIwSVec3(0,0,10);
 				c[6].Set(0,0,255,255);
-				p[7] = context.to+CIwSVec3(0,0,-100);
+				p[7] = World2Level(context.to)+CIwSVec3(0,0,-10);
 				c[7].Set(0,0,255,255);
 				IwGxSetVertStreamWorldSpace(p,2*4);
 				IwGxSetColStream(c,2*4);

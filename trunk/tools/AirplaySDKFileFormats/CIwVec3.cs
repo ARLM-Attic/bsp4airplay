@@ -16,6 +16,27 @@ namespace AirplaySDKFileFormats
 			this.y = y;
 			this.z = z;
 		}
+		public static CIwVec3 operator -(CIwVec3 left, CIwVec3 right)
+		{
+			left.x -= right.x;
+			left.y -= right.y;
+			left.z -= right.z;
+			return left;
+		}
+		public static CIwVec3 operator +(CIwVec3 left, CIwVec3 right)
+		{
+			left.x += right.x;
+			left.y += right.y;
+			left.z += right.z;
+			return left;
+		}
+		public int Length
+		{
+			get 
+			{
+				return (int)Math.Sqrt((float)x * (float)x + (float)y * (float)y + (float)z * (float)z);
+			}
+		}
 		public override int GetHashCode()
 		{
 			return x.GetHashCode() ^ y.GetHashCode() ^ z.GetHashCode();

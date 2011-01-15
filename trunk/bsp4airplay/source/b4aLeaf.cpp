@@ -65,6 +65,16 @@ void Cb4aLeaf::Render(Cb4aLevel*l)
 	else
 		model->Render();
 }
+bool Cb4aLeaf::TraceSphere(const Cb4aLevel*l, int32 sphere, Cb4aTraceContext& context) const
+{
+	bool res = false;
+	for (uint32 i=0; i<colliders.GetSize(); ++i)
+	{
+		res |= colliders[i]->TraceSphere(sphere, context);
+	}
+	return res;
+}
+
 bool Cb4aLeaf::TraceLine(const Cb4aLevel*l, Cb4aTraceContext& context) const
 {
 	bool res = false;

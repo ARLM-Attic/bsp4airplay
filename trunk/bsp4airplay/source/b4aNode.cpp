@@ -34,9 +34,10 @@ void  Cb4aNode::Serialise ()
 	IwSerialiseBool(is_back_leaf);
 	IwSerialiseInt32(back);
 }
-bool Cb4aNode::WalkNode(const CIwSVec3 & viewer, int32* nextNode) const
+bool Cb4aNode::WalkNode(const CIwVec3 & viewer, int32* nextNode) const
 {
-	bool positive = b4aPlaneDist(viewer,plane)>=0;
+	int32 dist = b4aPlaneDist(viewer,plane);
+	bool positive = dist>=0;
 	if (positive)
 	{
 		*nextNode = front;
@@ -59,6 +60,38 @@ bool Cb4aNode::TraceBackLine(const Cb4aLevel*l, Cb4aTraceContext& context) const
 	if (is_back_leaf)
 		return l->GetLeaf(back).TraceLine(l,context);
 	return l->GetNode(back).TraceLine(l,context);
+}
+bool Cb4aNode::TraceFrontSphere(const Cb4aLevel*l, int32 sphere, Cb4aTraceContext& context) const
+{
+	if (is_front_leaf)
+		return l->GetLeaf(front).TraceSphere(l,sphere,context);
+	return l->GetNode(front).TraceSphere(l,sphere,context);
+}
+bool Cb4aNode::TraceBackSphere(const Cb4aLevel*l, int32 sphere, Cb4aTraceContext& context) const
+{
+	if (is_back_leaf)
+		return l->GetLeaf(back).TraceSphere(l,sphere,context);
+	return l->GetNode(back).TraceSphere(l,sphere,context);
+}
+bool Cb4aNode::TraceSphere(const Cb4aLevel*l, int32 sphere, Cb4aTraceContext& context) const
+{
+	iwfixed fromDist = b4aPlaneDist(context.from,plane);
+	iwfixed toDist = b4aPlaneDist(context.to,plane);
+	int32 r = sphere<<IW_GEOM_POINT;
+	if (fromDist >= r && toDist >= r)
+		return TraceFrontSphere(l,sphere,context);
+	if (fromDist < -r && toDist < -r)
+		return TraceBackSphere(l,sphere,context);
+
+	if (fromDist >= toDist)
+	{
+		bool res = TraceFrontSphere(l,sphere,context);
+		res |= TraceBackSphere(l,sphere,context);
+		return res;
+	}
+	bool res = TraceBackSphere(l,sphere,context);
+	res |= TraceFrontSphere(l,sphere,context);
+	return res;
 }
 bool Cb4aNode::TraceLine(const Cb4aLevel*l, Cb4aTraceContext& context) const
 {
