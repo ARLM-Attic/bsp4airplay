@@ -8,7 +8,7 @@ namespace Bsp4Airplay
 	{
 		CIwVec3 from;
 		CIwVec3 to;
-		CIwSVec3 collisionNormal;
+		CIwVec3 collisionNormal;
 		iwfixed collisionPlaneD;
 	};
 

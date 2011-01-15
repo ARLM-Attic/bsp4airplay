@@ -26,6 +26,7 @@ files
 	b4aLevelVBSubcluster.h
 	b4aNode.cpp
 	b4aNode.h
+	b4aPlane.h
 	b4aSolidGeometry.cpp
 	b4aSolidGeometry.h
 	Bsp4Airplay.cpp

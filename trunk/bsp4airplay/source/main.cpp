@@ -4,6 +4,9 @@
 #include <IwGx.h>
 #include <IwGraphics.h>
 #include <Bsp4Airplay.h>
+#include <b4aPlane.h>
+
+using namespace Bsp4Airplay;
 
 iwangle angleZ = 0;
 iwangle angleBow = 0;
@@ -218,7 +221,7 @@ int main(int argc, char* argv[])
 				originalDestination.x += (context.collisionNormal.x*distToPlane.x)/IW_GEOM_ONE;
 				originalDestination.y += (context.collisionNormal.y*distToPlane.y)/IW_GEOM_ONE;
 				originalDestination.z += (context.collisionNormal.z*distToPlane.z)/IW_GEOM_ONE;
-				while(playerRadius > Bsp4Airplay::b4aPlaneDist(originalDestination, CIwPlane(context.collisionNormal, context.collisionPlaneD)))
+				while(playerRadius > Bsp4Airplay::b4aPlaneDist(originalDestination, Cb4aPlane(context.collisionNormal, context.collisionPlaneD)))
 				{
 					originalDestination+= context.collisionNormal;
 				}
@@ -255,8 +258,8 @@ int main(int argc, char* argv[])
 			//level->Render(cameraOrigin);
 			
 			context.from = playerOrigin;
-			context.to = context.from+CIwVec3(rawForward.x*200,rawForward.y*200,rawForward.z*200);
-			if (level->TraceSphere(10<<IW_GEOM_POINT,context))
+			context.to = context.from+CIwVec3(rawForward.x*400,rawForward.y*400,rawForward.z*400);
+			if (level->TraceLine(context))
 			{
 				CIwMaterial* m= IW_GX_ALLOC_MATERIAL();
 				m->SetZDepthOfs(-1);

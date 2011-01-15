@@ -12,11 +12,13 @@ namespace Bsp4Airplay
 #ifdef IW_BUILD_RESOURCES
 	ParseNode g_parseNode;
 #endif
+	
 }
 
 //Constructor
 Cb4aNode::Cb4aNode()
 {
+	calc= 0;
 }
 
 //Desctructor
@@ -33,10 +35,14 @@ void  Cb4aNode::Serialise ()
 	IwSerialiseInt32(front);
 	IwSerialiseBool(is_back_leaf);
 	IwSerialiseInt32(back);
+	if (IwSerialiseIsReading())
+	{
+		calc = GetDistanceCalculator(plane);
+	}
 }
 bool Cb4aNode::WalkNode(const CIwVec3 & viewer, int32* nextNode) const
 {
-	int32 dist = b4aPlaneDist(viewer,plane);
+	int32 dist = calc(viewer,plane);
 	bool positive = dist>=0;
 	if (positive)
 	{
@@ -75,8 +81,8 @@ bool Cb4aNode::TraceBackSphere(const Cb4aLevel*l, int32 sphere, Cb4aTraceContext
 }
 bool Cb4aNode::TraceSphere(const Cb4aLevel*l, int32 sphere, Cb4aTraceContext& context) const
 {
-	iwfixed fromDist = b4aPlaneDist(context.from,plane);
-	iwfixed toDist = b4aPlaneDist(context.to,plane);
+	iwfixed fromDist = calc(context.from,plane);
+	iwfixed toDist = calc(context.to,plane);
 	int32 r = sphere<<IW_GEOM_POINT;
 	if (fromDist >= r && toDist >= r)
 		return TraceFrontSphere(l,sphere,context);
@@ -95,8 +101,8 @@ bool Cb4aNode::TraceSphere(const Cb4aLevel*l, int32 sphere, Cb4aTraceContext& co
 }
 bool Cb4aNode::TraceLine(const Cb4aLevel*l, Cb4aTraceContext& context) const
 {
-	iwfixed fromDist = b4aPlaneDist(context.from,plane);
-	iwfixed toDist = b4aPlaneDist(context.to,plane);
+	iwfixed fromDist = calc(context.from,plane);
+	iwfixed toDist = calc(context.to,plane);
 	if (fromDist >= 0 && toDist >= 0)
 		return TraceFrontLine(l,context);
 	if (fromDist < 0 && toDist < 0)
@@ -171,7 +177,7 @@ bool ParseNode::ParseAttribute(CIwTextParserITX *pParser, const char *pAttrName)
 	{
 		iwfixed planeValues[4];
 		pParser->ReadInt32Array(&planeValues[0],4);
-		_this->plane = CIwPlane(CIwSVec3(planeValues[0],planeValues[1],planeValues[2]),planeValues[3]);
+		_this->plane = Cb4aPlane(CIwVec3(planeValues[0],planeValues[1],planeValues[2]),planeValues[3]);
 		return true;
 	}
 	if (!strcmp("is_front_leaf", pAttrName))

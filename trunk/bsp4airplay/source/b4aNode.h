@@ -1,14 +1,17 @@
 #pragma once
 #include <IwResource.h>
 #include <IwGx.h>
+#include "b4aPlane.h"
 #include "Ib4aCollider.h"
 
 namespace Bsp4Airplay
 {
+	
 	class Cb4aNode
 	{
 	public:
-		CIwPlane plane;
+		PlaneDistanceCalculator calc;
+		Cb4aPlane plane;
 		bool is_front_leaf;
 		int32 front;
 		bool is_back_leaf;

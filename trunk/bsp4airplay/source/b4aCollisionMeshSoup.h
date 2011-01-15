@@ -1,6 +1,7 @@
 #pragma once
 #include <IwManaged.h>
 #include <IwGx.h>
+#include "Bsp4Airplay.h"
 #include "Ib4aCollider.h"
 
 namespace Bsp4Airplay
@@ -13,11 +14,13 @@ namespace Bsp4Airplay
 	};
 	struct Cb4aCollisionMeshSoupFaceEdge
 	{
-		CIwPlane plane;
+		Cb4aPlane plane;
+		PlaneDistanceCalculator calc;
 	};
 	struct Cb4aCollisionMeshSoupFace
 	{
-		CIwPlane plane;
+		Cb4aPlane plane;
+		PlaneDistanceCalculator calc;
 		CIwArray<Cb4aCollisionMeshSoupFaceEdge> edges;
 
 		bool TraceLine(Cb4aTraceContext& context) const;
