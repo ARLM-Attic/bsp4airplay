@@ -89,6 +89,37 @@ inline CIwVec3 Level2World(const CIwSVec3 & w, const CIwVec3 & fractionPart)
 {
 	return CIwVec3(((int32)w.x)<<IW_GEOM_POINT,((int32)w.y)<<IW_GEOM_POINT,((int32)w.z)<<IW_GEOM_POINT);
 }
+void RenderFlares(Cb4aLevel* level,int16 size)
+{
+	CIwVec3 rawRight = IwGxGetViewMatrix().RowX()*size;
+	CIwVec3 rawUp = IwGxGetViewMatrix().RowY()*size;
+	for (uint32 i=0; i<level->GetNumEntities(); ++i)
+	{
+		const Cb4aEntity* e = level->GetEntityAt(i);
+		if (!e) continue;
+		if (e->GetClassName() == "light")
+		{
+			CIwSVec3* p = IW_GX_ALLOC(CIwSVec3,4);
+			CIwSVec2* uv = IW_GX_ALLOC(CIwSVec2,4);
+			CIwSVec3 o(e->GetOrigin());
+			p[0] = o-rawRight-rawUp;
+			uv[0] = CIwSVec2(0,0);
+			p[1] = o-rawRight+rawUp;
+			uv[1] = CIwSVec2(0,IW_GEOM_ONE);
+			p[2] = o+rawRight+rawUp;
+			uv[2] = CIwSVec2(IW_GEOM_ONE,IW_GEOM_ONE);
+			p[3] = o+rawRight-rawUp;
+			uv[3] = CIwSVec2(IW_GEOM_ONE,0);
+			IwGxSetVertStreamWorldSpace(p,4);
+			IwGxSetColStream(0,0);
+			IwGxSetNormStream(0,0);
+			IwGxSetUVStream(uv,0);
+			IwGxSetUVStream(0,1);
+			IwGxDrawPrims(IW_GX_QUAD_LIST,0,4);
+			IwGxSetUVStream(0,0);
+		}
+	}
+}
 //-----------------------------------------------------------------------------
 // Main global function
 //-----------------------------------------------------------------------------
@@ -106,6 +137,12 @@ int main(int argc, char* argv[])
 
 	IwGxSetColClear(0x7f, 0x7f, 0x7f, 0x7f);
 	IwGxPrintSetColour(128, 128, 128);
+
+	CIwResGroup* fx_group = IwGetResManager()->LoadGroup("./fx.group");
+	CIwTexture* flashlight_tex = (CIwTexture*)fx_group->GetResNamed("flashlight","CIwTexture");
+	CIwTexture* flare_tex = (CIwTexture*)fx_group->GetResNamed("flare","CIwTexture");
+
+	
 
 	//const char* defaultGroupName = "maps/samplebox.group";
 	//const char* defaultGroupName = "maps/al_test_map_02.group";
@@ -254,8 +291,9 @@ int main(int argc, char* argv[])
 			//TODO: detect max distance by visible level size!
 			IwGxSetFarZNearZ(4096,8);
 
-			level->Render(playerOrigin);
-			//level->Render(cameraOrigin);
+			//level->AddProjection(flashlight_tex, IwGxGetViewMatrix(), );
+			//level->Render(playerOrigin);
+			level->Render();
 			
 			context.from = playerOrigin;
 			context.to = context.from+CIwVec3(rawForward.x*400,rawForward.y*400,rawForward.z*400);
@@ -291,6 +329,17 @@ int main(int argc, char* argv[])
 				IwGxDrawPrims(IW_GX_LINE_LIST,0,2*4);
 				IwGxSetColStream(0,0);
 			}
+
+			CIwMaterial* mat = IW_GX_ALLOC_MATERIAL();
+			mat->SetTexture(flare_tex);
+			mat->SetAlphaMode(CIwMaterial::ALPHA_BLEND);
+			mat->SetModulateMode(CIwMaterial::MODULATE_NONE);
+			mat->SetCullMode(CIwMaterial::CULL_NONE);
+			mat->SetDepthWriteMode(CIwMaterial::DEPTH_WRITE_DISABLED);
+			//IW_GX_SORT_BY_Z
+			//mat->SetMergeGeom
+			IwGxSetMaterial(mat);
+			RenderFlares(level, 16);
 
 			IwGxFlush();
 			IwGxSwapBuffers();

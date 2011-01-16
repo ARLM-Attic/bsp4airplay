@@ -45,7 +45,8 @@ namespace Bsp4Airplay
 		inline const Cb4aLeaf& GetLeaf(uint i) const { return leaves[i];}
 		
 		int FindEntityByClassName(const char* name,int startFrom=0) const;
-		inline const Cb4aEntity* GetEntityAt(int32 i) const {return &entities[i];}
+		inline uint32 GetNumEntities() const {return entities.size();}
+		inline const Cb4aEntity* GetEntityAt(uint32 i) const {return &entities[i];}
 		CIwTexture* GetDefaultTextrure();
 		void ScheduleRender(int32 i, Cb4aLevelVBSubcluster*);
 		// ---- Text resources ----

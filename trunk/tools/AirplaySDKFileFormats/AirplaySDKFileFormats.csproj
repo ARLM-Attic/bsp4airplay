@@ -52,6 +52,7 @@
     <Compile Include="CIwModel.cs" />
     <Compile Include="CIwModelBlock.cs" />
     <Compile Include="CIwParseable.cs" />
+    <Compile Include="CIwPlane.cs" />
     <Compile Include="CIwResGroup.cs" />
     <Compile Include="CIwResource.cs" />
     <Compile Include="CIwTextParserITX.cs" />

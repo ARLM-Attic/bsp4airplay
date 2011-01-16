@@ -6,31 +6,26 @@
 
 namespace Bsp4Airplay
 {
-	struct Cb4aCollisionMeshSoupEdge
-	{
-		int32 length;
-		CIwSVec3 point;
-		CIwSVec3 offset;
-	};
-	struct Cb4aCollisionMeshSoupFaceEdge
+	class Cb4aCollisionMeshSoup;
+
+	struct Cb4aCollisionMeshSoupPlane
 	{
 		Cb4aPlane plane;
 		PlaneDistanceCalculator calc;
 	};
 	struct Cb4aCollisionMeshSoupFace
 	{
-		Cb4aPlane plane;
-		PlaneDistanceCalculator calc;
-		CIwArray<Cb4aCollisionMeshSoupFaceEdge> edges;
+		int start;
+		int num;
 
-		bool TraceLine(Cb4aTraceContext& context) const;
-		bool TraceSphere(int32 r, Cb4aTraceContext& context) const;
+		b4aCollisionResult TraceLine(const Cb4aCollisionMeshSoup& soup, Cb4aTraceContext& context) const;
+		b4aCollisionResult TraceSphere(const Cb4aCollisionMeshSoup& soup, int32 r, Cb4aTraceContext& context) const;
 	};
 	class Cb4aCollisionMeshSoup : public CIwManaged, public Ib4aCollider
 	{
+		friend struct Cb4aCollisionMeshSoupFace;
 		CIwArray<Cb4aCollisionMeshSoupFace> faces;
-		CIwArray<Cb4aCollisionMeshSoupEdge> edges;
-		CIwArray<CIwSVec3> verices;
+		CIwArray<Cb4aCollisionMeshSoupPlane> planes;
 		public:
 		//Declare managed class
 		IW_MANAGED_DECLARE(Cb4aCollisionMeshSoup);
@@ -42,10 +37,9 @@ namespace Bsp4Airplay
 
 		virtual void  Serialise ();
 
-		virtual bool TraceLine(Cb4aTraceContext& context) const ;
-		virtual bool TraceSphere(int32 r, Cb4aTraceContext& context) const;
-		bool TraceSphere(const Cb4aCollisionMeshSoupEdge& edge, int32 r, Cb4aTraceContext& context) const;
-		bool TraceSphere(const CIwSVec3& v, int32 r, Cb4aTraceContext& context) const;
+		virtual b4aCollisionResult TraceLine(Cb4aTraceContext& context) const ;
+		virtual b4aCollisionResult TraceSphere(int32 r, Cb4aTraceContext& context) const;
+		
 		// ---- Text resources ----
 #ifdef IW_BUILD_RESOURCES
 		// function invoked by the text parser when parsing attributes for objects of this type

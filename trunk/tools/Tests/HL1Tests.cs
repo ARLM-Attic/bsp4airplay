@@ -22,7 +22,7 @@ namespace Tests
 			(new Adapter()).Convert(@"..\data\maps\samplebox.bsp", @"..\data\maps\samplebox.group");
 			//(new Adapter()).Convert(@"..\data\maps\madcrabs.bsp", @"..\data\maps\madcrabs.group");
 		}
-		//[Test]
+		[Test]
 		public void TestCS_1_6()
 		{
 			(new Adapter()).Convert(@"..\data\maps\de_dust.bsp", @"..\data\maps\de_dust.group");

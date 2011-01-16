@@ -54,8 +54,8 @@ namespace Bsp4Airplay
 
 		void Render(Cb4aLevel*);
 
-		bool TraceLine(const Cb4aLevel*, Cb4aTraceContext& context) const;
-		bool TraceSphere(const Cb4aLevel*, int32 sphere, Cb4aTraceContext& context) const;
+		b4aCollisionResult TraceLine(const Cb4aLevel*, Cb4aTraceContext& context) const;
+		b4aCollisionResult TraceSphere(const Cb4aLevel*, int32 sphere, Cb4aTraceContext& context) const;
 	};
 
 }

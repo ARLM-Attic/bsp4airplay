@@ -55,31 +55,31 @@ bool Cb4aNode::WalkNode(const CIwVec3 & viewer, int32* nextNode) const
 		return is_back_leaf;
 	}
 }
-bool Cb4aNode::TraceFrontLine(const Cb4aLevel*l, Cb4aTraceContext& context) const
+b4aCollisionResult Cb4aNode::TraceFrontLine(const Cb4aLevel*l, Cb4aTraceContext& context) const
 {
 	if (is_front_leaf)
 		return l->GetLeaf(front).TraceLine(l,context);
 	return l->GetNode(front).TraceLine(l,context);
 }
-bool Cb4aNode::TraceBackLine(const Cb4aLevel*l, Cb4aTraceContext& context) const
+b4aCollisionResult Cb4aNode::TraceBackLine(const Cb4aLevel*l, Cb4aTraceContext& context) const
 {
 	if (is_back_leaf)
 		return l->GetLeaf(back).TraceLine(l,context);
 	return l->GetNode(back).TraceLine(l,context);
 }
-bool Cb4aNode::TraceFrontSphere(const Cb4aLevel*l, int32 sphere, Cb4aTraceContext& context) const
+b4aCollisionResult Cb4aNode::TraceFrontSphere(const Cb4aLevel*l, int32 sphere, Cb4aTraceContext& context) const
 {
 	if (is_front_leaf)
 		return l->GetLeaf(front).TraceSphere(l,sphere,context);
 	return l->GetNode(front).TraceSphere(l,sphere,context);
 }
-bool Cb4aNode::TraceBackSphere(const Cb4aLevel*l, int32 sphere, Cb4aTraceContext& context) const
+b4aCollisionResult Cb4aNode::TraceBackSphere(const Cb4aLevel*l, int32 sphere, Cb4aTraceContext& context) const
 {
 	if (is_back_leaf)
 		return l->GetLeaf(back).TraceSphere(l,sphere,context);
 	return l->GetNode(back).TraceSphere(l,sphere,context);
 }
-bool Cb4aNode::TraceSphere(const Cb4aLevel*l, int32 sphere, Cb4aTraceContext& context) const
+b4aCollisionResult Cb4aNode::TraceSphere(const Cb4aLevel*l, int32 sphere, Cb4aTraceContext& context) const
 {
 	iwfixed fromDist = calc(context.from,plane);
 	iwfixed toDist = calc(context.to,plane);
@@ -91,15 +91,16 @@ bool Cb4aNode::TraceSphere(const Cb4aLevel*l, int32 sphere, Cb4aTraceContext& co
 
 	if (fromDist >= toDist)
 	{
-		bool res = TraceFrontSphere(l,sphere,context);
-		res |= TraceBackSphere(l,sphere,context);
-		return res;
+		b4aCollisionResult res = TraceFrontSphere(l,sphere,context);
+		if (res == COLLISION_ATSTART) return COLLISION_ATSTART;
+		return (b4aCollisionResult)((int)res | (int)TraceBackSphere(l,sphere,context));
 	}
-	bool res = TraceBackSphere(l,sphere,context);
-	res |= TraceFrontSphere(l,sphere,context);
+	b4aCollisionResult res = TraceBackSphere(l,sphere,context);
+	if (res == COLLISION_ATSTART) return COLLISION_ATSTART;
+	return (b4aCollisionResult)((int)res | (int)TraceFrontSphere(l,sphere,context));
 	return res;
 }
-bool Cb4aNode::TraceLine(const Cb4aLevel*l, Cb4aTraceContext& context) const
+b4aCollisionResult Cb4aNode::TraceLine(const Cb4aLevel*l, Cb4aTraceContext& context) const
 {
 	iwfixed fromDist = calc(context.from,plane);
 	iwfixed toDist = calc(context.to,plane);
@@ -110,51 +111,13 @@ bool Cb4aNode::TraceLine(const Cb4aLevel*l, Cb4aTraceContext& context) const
 
 	if (fromDist >= 0)
 	{
-		if (TraceFrontLine(l,context))
-			return true;
+		b4aCollisionResult res = TraceFrontLine(l,context);
+		if (res) return res;
 		return TraceBackLine(l,context);
 	}
-	if (TraceBackLine(l,context))
-		return true;
+	b4aCollisionResult res = TraceBackLine(l,context);
+	if (res) return res;
 	return TraceFrontLine(l,context);
-	//CIwSVec3 middlePoint = b4aLerp(context.from,context.to,fromDist/4096,toDist/4096);
-	//if (fromDist >= 0)
-	//{
-	//	Cb4aTraceContext temp = context;
-	//	temp.to = middlePoint;
-	//	if (TraceFrontLine(l,temp))
-	//	{
-	//		context.to = temp.to;
-	//		context.collisionNormal = temp.collisionNormal;
-	//		return true;
-	//	}
-	//	temp.from = middlePoint;
-	//	temp.to = context.to;
-	//	if (TraceBackLine(l,temp))
-	//	{
-	//		context.to = temp.to;
-	//		context.collisionNormal = temp.collisionNormal;
-	//		return true;
-	//	}
-	//	return false;
-	//}
-	//Cb4aTraceContext temp = context;
-	//temp.to = middlePoint;
-	//if (TraceBackLine(l,temp))
-	//{
-	//	context.to = temp.to;
-	//	context.collisionNormal = temp.collisionNormal;
-	//	return true;
-	//}
-	//temp.from = middlePoint;
-	//temp.to = context.to;
-	//if (TraceFrontLine(l,temp))
-	//{
-	//	context.to = temp.to;
-	//	context.collisionNormal = temp.collisionNormal;
-	//	return true;
-	//}
-	//return false;
 }
 #ifdef IW_BUILD_RESOURCES
 void* Bsp4Airplay::Cb4aNodeFactory()

@@ -89,19 +89,19 @@ void Cb4aLevel::ScheduleRender(int32 i, Cb4aLevelVBSubcluster*c)
 void Cb4aLevel::Render()
 {
 	const CIwMat& m = IwGxGetViewMatrix();
-	Render(CIwVec3(m.t.x<<IW_GEOM_POINT,m.t.z<<IW_GEOM_POINT,m.t.y<<IW_GEOM_POINT));
+	Render(CIwVec3(m.t.x<<IW_GEOM_POINT,m.t.y<<IW_GEOM_POINT,m.t.z<<IW_GEOM_POINT));
 }
 bool Cb4aLevel::TraceLine(Cb4aTraceContext& context) const
 {
 	if (nodes.empty())
 		return false;
-	return nodes[0].TraceLine(this, context);
+	return nodes[0].TraceLine(this, context) != COLLISION_NONE;
 }
 bool Cb4aLevel::TraceSphere(int32 r, Cb4aTraceContext& context) const
 {
 	if (nodes.empty())
 		return false;
-	return nodes[0].TraceSphere(this, r, context);
+	return nodes[0].TraceSphere(this, r, context) != COLLISION_NONE;
 }
 #ifdef IW_BUILD_RESOURCES
 Cb4aLeaf* Cb4aLevel::AllocateLeaf()

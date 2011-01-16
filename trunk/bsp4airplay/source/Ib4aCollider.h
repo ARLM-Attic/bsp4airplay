@@ -4,6 +4,13 @@
 
 namespace Bsp4Airplay
 {
+	enum b4aCollisionResult
+	{
+		COLLISION_NONE=0,
+		COLLISION_SOMEWHERE=1,
+		COLLISION_ATSTART=3 //COLLISION_ATSTART|COLLISION_SOMEWHERE==COLLISION_ATSTART
+	};
+
 	struct Cb4aTraceContext
 	{
 		CIwVec3 from;
@@ -21,8 +28,8 @@ namespace Bsp4Airplay
 		//Desctructor
 		inline virtual ~Ib4aCollider(){};
 
-		virtual bool TraceLine(Cb4aTraceContext& context) const =0;
-		virtual bool TraceSphere(int32 sphere, Cb4aTraceContext& context) const=0;
+		virtual b4aCollisionResult TraceLine(Cb4aTraceContext& context) const =0;
+		virtual b4aCollisionResult TraceSphere(int32 sphere, Cb4aTraceContext& context) const=0;
 	};
 	class Ib4aColliderContainer
 	{
@@ -32,4 +39,5 @@ namespace Bsp4Airplay
 
 		virtual void AddCollider(Ib4aCollider*)=0;
 	};
+	
 }

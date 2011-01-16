@@ -81,8 +81,6 @@ namespace Bsp2AirplayAdapter
 
 		private Ib4aCollider BuildCollisionFaceSoup(BspCollisionFaceSoup bspCollisionFaceSoup)
 		{
-			collisionFaceVertices.Clear();
-			collisionFaceEdges.Clear();
 			var soup = new Cb4aCollisionMeshSoup();
 			foreach (var f in bspCollisionFaceSoup.Faces)
 			{
@@ -90,66 +88,64 @@ namespace Bsp2AirplayAdapter
 			}
 			return soup;
 		}
-		protected Dictionary<CIwVec3, int> collisionFaceVertices = new Dictionary<CIwVec3, int>();
-		protected Dictionary<Cb4aCollisionMeshSoupEdge, int> collisionFaceEdges = new Dictionary<Cb4aCollisionMeshSoupEdge, int>();
 		private Cb4aCollisionMeshSoupFace BuildCollisionFaceSoupFace(BspCollisionFaceSoupFace f, Cb4aCollisionMeshSoup soup)
 		{
 			var r = new Cb4aCollisionMeshSoupFace();
-			Vector3 edge0 = f.Vertices[1] - f.Vertices[0];
-			Vector3 n;
-			for (int i=1; i<f.Vertices.Count-1;++i)
+			
+			Vector3 n = Vector3.UnitZ;
+			float maxLength = float.MinValue;
+			for (int i=0; i<f.Vertices.Count-1;++i)
 			{
-				n = Vector3.Cross(edge0, f.Vertices[i] - f.Vertices[(i + 1) % f.Vertices.Count]);
-				if (Math.Abs(n.LengthSquared) > 1)
+				Vector3 edge0 = f.Vertices[i] - f.Vertices[(i + 1) % f.Vertices.Count];
+				Vector3 nn = Vector3.Cross(f.Vertices[(i + 1) % f.Vertices.Count] - f.Vertices[(i + 2) % f.Vertices.Count], edge0);
+				float l = nn.LengthSquared;
+				if (l> maxLength)
 				{
-					n.Normalize();
-					goto okNormal;
+					maxLength = l;
+					n = nn;
 				}
 				
 			}
-			throw new ApplicationException("face is almost zero area!");
-			okNormal:
-
-			for (int i = 0; i < f.Vertices.Count; ++i)
+			if (maxLength < 1)
 			{
-				int j;
-				var v = GetVec3(f.Vertices[i]);
-				if (!this.collisionFaceVertices.TryGetValue(v, out j))
-				{
-					this.collisionFaceVertices[v] = soup.Vertices.Count;
-					soup.Vertices.Add(v);
-				}
+				maxLength = maxLength;
+				//throw new ApplicationException("face is almost zero area!");
 			}
+			n.Normalize();
 
-			for (int i = 0; i < f.Vertices.Count; ++i)
-			{
-				var v0 = GetVec3(f.Vertices[i]);
-				var v1 = GetVec3(f.Vertices[(i + 1) % f.Vertices.Count]);
-				int j;
-				var e = new Cb4aCollisionMeshSoupEdge() { V0=v0,V1=v1};
-				if (!collisionFaceEdges.TryGetValue(e, out j))
-				{
-					collisionFaceEdges[e] = soup.Edges.Count;
-					soup.Edges.Add(e);
-				}
-			}
-			r.Distance = (int)(Vector3.Dot(f.Vertices[0],n)) * AirplaySDKMath.IW_GEOM_ONE;
-			r.Normal = GetVec3Fixed(n);
+			
+			r.startPlane = soup.Planes.Count;
+			soup.Planes.Add(new CIwPlane() { k = (int)(Vector3.Dot(f.Vertices[0], n)) * AirplaySDKMath.IW_GEOM_ONE, v = GetVec3Fixed(n) });
+
 			int lastD = int.MinValue;
 			CIwVec3 lastN = CIwVec3.g_Zero;
 			for (int i = 0; i < f.Vertices.Count; ++i)
 			{
-				var d = Vector3.Cross(n, f.Vertices[i] - f.Vertices[(i + 1) % f.Vertices.Count]);
+				var d = Vector3.Cross(n,f.Vertices[i] - f.Vertices[(i + 1) % f.Vertices.Count]);
 				d.Normalize();
 				CIwVec3 newN = GetVec3Fixed(d);
-				int newD = (int)(Vector3.Dot(d, f.Vertices[i]) * AirplaySDKMath.IW_GEOM_ONE);
+				CIwVec3 v3 = GetVec3(f.Vertices[i]);
+				int newD = newN.x * v3.x + newN.y * v3.y + newN.z * v3.z;//(int)(Vector3.Dot(d, f.Vertices[i]) * AirplaySDKMath.IW_GEOM_ONE);
 				if (newN != lastN || newD != lastD)
 				{
 					lastD=newD;
 					lastN = newN;
-					r.edges.Add(new Cb4aCollisionMeshSoupFaceEdge(){Normal=newN, Distance=newD});
+
+					//test
+					//for (int j = 0; j < f.Vertices.Count; ++j)
+					//{
+					//    if ((newN.x * f.Vertices[j].X + newN.y * f.Vertices[j].Y + newN.z * f.Vertices[j].Z) - lastD < -64)
+					//    {
+					//        //TODO: Split such faces into individual triangles. Think how to handle it in graphics
+					//        //throw new ApplicationException("wrong edge normal " + newN);
+					//    }
+					//}
+
+					soup.Planes.Add(new CIwPlane() { k = newD, v = newN });
+					//r.edges.Add(new Cb4aCollisionMeshSoupFaceEdge(){Normal=newN, Distance=newD});
 				}
 			}
+			r.numPlanes = soup.Planes.Count - r.startPlane-1;
 			return r;
 		}
 

@@ -97,6 +97,9 @@ namespace BspFileFormat.Q1HL1
 			{
 				ushort faceIndex = listOfFaces[i];
 				var face = faces[faceIndex];
+				var texName = textures[(int)surfaces[face.texinfo_id].texture_id].Name;
+				if (texName == "aaatrigger")
+					continue;
 
 				var soupFace = new BspCollisionFaceSoupFace();
 				soup.Faces.Add(soupFace);
@@ -164,8 +167,12 @@ namespace BspFileFormat.Q1HL1
 				//    continue;
 				if (face.ledge_num == 0)
 					continue;
+
 				plane_t plane = planes[face.plane_id];
 				var surf = surfaces[face.texinfo_id];
+				int texture_id = (int)surf.texture_id;
+				if (textures[texture_id].Name == "aaatrigger")
+					continue;
 				var faceVertices = new BspGeometryVertex[face.ledge_num];
 
 				Vector2 minUV0 = new Vector2(float.MaxValue, float.MaxValue);
@@ -228,6 +235,11 @@ namespace BspFileFormat.Q1HL1
 					faceVertices[j].UV1.X = (faceVertices[j].UV1.X - minUV1.X + safeOffset) / (sizeLightmap.X + safeBorderWidth);
 					faceVertices[j].UV1.Y = (faceVertices[j].UV1.Y - minUV1.Y + safeOffset) / (sizeLightmap.Y + safeBorderWidth);
 				}
+				if (textures[texture_id].Name == "sky")
+				{
+					for (int j = 0; j < (int)face.ledge_num; ++j)
+						faceVertices[j].UV0 = new Vector2(0,0);
+				}
 				BspTexture lightMap = null;
 				if (face.lightmap != -1)
 				{
@@ -252,7 +264,7 @@ namespace BspFileFormat.Q1HL1
 				{
 					BspGeometryVertex vert1 = faceVertices[j];
 					BspGeometryVertex vert2 = faceVertices[j + 1];
-					var geoFace = new BspGeometryFace() { Vertex0 = vert0, Vertex1 = vert1, Vertex2 = vert2, Texture = textures[(int)surfaces[face.texinfo_id].texture_id], Lightmap = lightMap };
+					var geoFace = new BspGeometryFace() { Vertex0 = vert0, Vertex1 = vert1, Vertex2 = vert2, Texture = textures[texture_id], Lightmap = lightMap };
 					res.Faces.Add(geoFace);
 				}
 			}

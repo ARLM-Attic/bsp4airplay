@@ -18,129 +18,123 @@ Cb4aCollisionMeshSoup::~Cb4aCollisionMeshSoup()
 }
 void  Cb4aCollisionMeshSoup::Serialise ()
 {
+	planes.SerialiseHeader();
+	for (uint32 i=0; i<planes.size(); ++i)
+	{
+		planes[i].plane.v.Serialise();
+		IwSerialiseInt32(planes[i].plane.k);
+		if (IwSerialiseIsReading())
+			planes[i].calc = GetDistanceCalculator(planes[i].plane);
+		
+	}
 	faces.SerialiseHeader();
 	for (uint32 i=0; i<faces.size(); ++i)
 	{
-		faces[i].plane.v.Serialise();
-		if (IwSerialiseIsReading())
-			faces[i].calc = GetDistanceCalculator(faces[i].plane);
+		IwSerialiseInt32(faces[i].start);
+		IwSerialiseInt32(faces[i].num);
+	}
+}
+b4aCollisionResult Cb4aCollisionMeshSoupFace::TraceSphere(const Cb4aCollisionMeshSoup& soup, int32 sphere, Cb4aTraceContext& context) const
+{
+	const Cb4aCollisionMeshSoupPlane* begin = &soup.planes[start];
+	CIwVec3 shift = begin->plane.v*(-sphere);
+	
+	iwfixed fromDist = begin->calc(context.from+shift,begin->plane);
+	if (fromDist < -b4aCollisionEpsilon)
+		return COLLISION_NONE;
+	iwfixed toDist = begin->calc(context.to+shift,begin->plane);
+	if (toDist > b4aCollisionEpsilon)
+		return COLLISION_NONE;
+	if (fromDist <= toDist)
+		return COLLISION_NONE;
+	CIwVec3 point;
+	if (fromDist <= 0)
+	{
+		point = context.from;
+		fromDist = 0;
+	}
+	else if (toDist >= 0)
+		point = context.to;
+	else
+		point = b4aLerp(context.from,context.to,fromDist,toDist);
+	const Cb4aCollisionMeshSoupPlane* end = &soup.planes[start+num];
+	do {
+		++begin;
+		if (begin->calc(point,begin->plane)<-b4aCollisionEpsilon-(sphere)) //-sphere makes collision be like bounding box instead of sphere. Cheap and simple trick
+			return COLLISION_NONE;
+	} while (begin!=end);
+	context.to = point;
+	begin = &soup.planes[start];
+	context.collisionNormal = begin->plane.v;
+	context.collisionPlaneD = begin->plane.k;
+	return (fromDist>0)?COLLISION_SOMEWHERE:COLLISION_ATSTART;
+}
 
-		IwSerialiseInt32(faces[i].plane.k);
+b4aCollisionResult Cb4aCollisionMeshSoupFace::TraceLine(const Cb4aCollisionMeshSoup& soup, Cb4aTraceContext& context) const
+{
+	const Cb4aCollisionMeshSoupPlane* begin = &soup.planes[start];
 
-		faces[i].edges.SerialiseHeader();
-		for (uint32 j=0; j<faces[i].edges.size(); ++j)
+	iwfixed fromDist = begin->calc(context.from,begin->plane);
+	if (fromDist < -b4aCollisionEpsilon)
+		return COLLISION_NONE;
+	iwfixed toDist = begin->calc(context.to,begin->plane);
+	if (toDist > b4aCollisionEpsilon)
+		return COLLISION_NONE;
+	if (fromDist <= toDist)
+		return COLLISION_NONE;
+	CIwVec3 point;
+	if (fromDist <= 0)
+	{
+		point = context.from;
+		fromDist = 0;
+	}
+	else if (toDist >= 0)
+		point = context.to;
+	else
+		point = b4aLerp(context.from,context.to,fromDist,toDist);
+	const Cb4aCollisionMeshSoupPlane* end = &soup.planes[start+num];
+	do {
+		++begin;
+		if (begin->calc(point,begin->plane)<-b4aCollisionEpsilon)
+			return COLLISION_NONE;
+	} while (begin!=end);
+	context.to = point;
+	begin = &soup.planes[start];
+	context.collisionNormal = begin->plane.v;
+	context.collisionPlaneD = begin->plane.k;
+	return (fromDist>0)?COLLISION_SOMEWHERE:COLLISION_ATSTART;
+}
+b4aCollisionResult Cb4aCollisionMeshSoup::TraceSphere(int32 sphere, Cb4aTraceContext& context) const
+{
+	b4aCollisionResult res = COLLISION_NONE;
+	for (uint32 i=0; i<faces.size(); ++i)
+	{
+		b4aCollisionResult r = faces[i].TraceSphere(*this,sphere,context);
+		switch (r)
 		{
-			faces[i].edges[j].plane.v.Serialise();
-			IwSerialiseInt32(faces[i].edges[j].plane.k);
-
-			if (IwSerialiseIsReading())
-				faces[i].edges[j].calc = GetDistanceCalculator(faces[i].edges[j].plane);
+		case COLLISION_SOMEWHERE:
+			res = COLLISION_SOMEWHERE;
+			break;
+		case COLLISION_ATSTART:
+			return COLLISION_ATSTART;
 		}
 	}
-	edges.SerialiseHeader();
-	for (uint32 i=0; i<edges.size(); ++i)
-	{
-		IwSerialiseInt32(edges[i].length);
-		edges[i].point.Serialise();
-		edges[i].offset.Serialise();
-	}
-	verices.SerialiseHeader();
-	for (uint32 i=0; i<verices.size(); ++i)
-		verices[i].Serialise();
-
-}
-bool Cb4aCollisionMeshSoupFace::TraceSphere(int32 sphere, Cb4aTraceContext& context) const
-{
-	CIwVec3 shift = CIwVec3(plane.v)*(-sphere);
-	
-	iwfixed fromDist = calc(context.from+shift,plane);
-	if (fromDist < -b4aCollisionEpsilon)
-		return false;
-	iwfixed toDist = calc(context.to+shift,plane);
-	if (toDist > b4aCollisionEpsilon)
-		return false;
-	if (fromDist <= toDist)
-		return false;
-	CIwVec3 point;
-	if (fromDist <= 0)
-		point = context.from;
-	else if (toDist >= 0)
-		point = context.to;
-	else
-		point = b4aLerp(context.from,context.to,fromDist,toDist);
-	for (uint32 j=0; j<edges.size(); ++j)
-	{
-		const Cb4aCollisionMeshSoupFaceEdge& e = edges[j];
-		if (e.calc(point,e.plane)<-b4aCollisionEpsilon-(sphere)) //-sphere makes collision be like bounding box instead of sphere. Cheap and simple trick
-			return false;
-	}
-	context.to = point;
-	context.collisionNormal = plane.v;
-	context.collisionPlaneD = plane.k;
-	return true;
-}
-
-bool Cb4aCollisionMeshSoupFace::TraceLine(Cb4aTraceContext& context) const
-{
-	iwfixed fromDist = calc(context.from,plane);
-	if (fromDist < -b4aCollisionEpsilon)
-		return false;
-	iwfixed toDist = calc(context.to,plane);
-	if (toDist > b4aCollisionEpsilon)
-		return false;
-	if (fromDist <= toDist)
-		return false;
-	CIwVec3 point;
-	if (fromDist <= 0)
-		point = context.from;
-	else if (toDist >= 0)
-		point = context.to;
-	else
-		point = b4aLerp(context.from,context.to,fromDist,toDist);
-	for (uint32 j=0; j<edges.size(); ++j)
-	{
-		const Cb4aCollisionMeshSoupFaceEdge& e = edges[j];
-		if (e.calc(point,e.plane)<-b4aCollisionEpsilon)
-			return false;
-	}
-	context.to = point;
-	context.collisionNormal = plane.v;
-	context.collisionPlaneD = plane.k;
-	return true;
-}
-bool Cb4aCollisionMeshSoup::TraceSphere(const Cb4aCollisionMeshSoupEdge& edge, int32 r, Cb4aTraceContext& context) const
-{
-	//int32 fromDist = context.from
-	return false;
-}
-bool Cb4aCollisionMeshSoup::TraceSphere(const CIwSVec3& v, int32 r, Cb4aTraceContext& context) const
-{
-	return false;
-}
-bool Cb4aCollisionMeshSoup::TraceSphere(int32 sphere, Cb4aTraceContext& context) const
-{
-	bool res = false;
-	for (uint32 i=0; i<faces.size(); ++i)
-	{
-		res |= faces[i].TraceSphere(sphere,context);
-	}
-	//This could be implemented for precise detection. For now I use a simple trick -(sphere<<IW_GEOM_POINT)
-	//for (uint32 i=0; i<edges.size(); ++i)
-	//{
-	//	res |= TraceSphere(edges[i],sphere,context);
-	//}
-	//for (uint32 i=0; i<verices.size(); ++i)
-	//{
-	//	res |= TraceSphere(verices[i],sphere,context);
-	//}
 	return res;
 }
-bool Cb4aCollisionMeshSoup::TraceLine(Cb4aTraceContext& context) const 
+b4aCollisionResult Cb4aCollisionMeshSoup::TraceLine(Cb4aTraceContext& context) const 
 {
-	bool res = false;
+	b4aCollisionResult res = COLLISION_NONE;
 	for (uint32 i=0; i<faces.size(); ++i)
 	{
-		res |= faces[i].TraceLine(context);
+		b4aCollisionResult r = faces[i].TraceLine(*this,context);
+		switch (r)
+		{
+		case COLLISION_SOMEWHERE:
+			res = COLLISION_SOMEWHERE;
+			break;
+		case COLLISION_ATSTART:
+			return COLLISION_ATSTART;
+		}
 	}
 	return res;
 }
@@ -149,32 +143,19 @@ bool Cb4aCollisionMeshSoup::TraceLine(Cb4aTraceContext& context) const
 // function invoked by the text parser when parsing attributes for objects of this type
 bool Cb4aCollisionMeshSoup::ParseAttribute(CIwTextParserITX *pParser, const char *pAttrName)
 {
-	if (!strcmp("num_vertices", pAttrName))
+	if (!strcmp("num_planes", pAttrName))
 	{
-		int num_vertices;
-		pParser->ReadInt32(&num_vertices);
-		verices.set_capacity(num_vertices);
+		int num_planes;
+		pParser->ReadInt32(&num_planes);
+		planes.set_capacity(num_planes);
 		return true;
 	}
-	if (!strcmp("v", pAttrName))
+	if (!strcmp("plane", pAttrName))
 	{
-		verices.push_back();
-		pParser->ReadInt16Array(&verices.back().x,3);
-		return true;
-	}
-	if (!strcmp("num_edges", pAttrName))
-	{
-		int num_edges;
-		pParser->ReadInt32(&num_edges);
-		edges.set_capacity(num_edges);
-		return true;
-	}
-	if (!strcmp("e", pAttrName))
-	{
-		edges.push_back();
-		pParser->ReadInt32(&edges.back().length);
-		pParser->ReadInt16Array(&edges.back().point.x,3);
-		pParser->ReadInt16Array(&edges.back().offset.x,3);
+		iwfixed planeValues[4];
+		pParser->ReadInt32Array(&planeValues[0],4);
+		planes.push_back();
+		planes.back().plane = Cb4aPlane(CIwVec3(planeValues[0],planeValues[1],planeValues[2]),planeValues[3]);
 		return true;
 	}
 	if (!strcmp("num_faces", pAttrName))
@@ -184,42 +165,15 @@ bool Cb4aCollisionMeshSoup::ParseAttribute(CIwTextParserITX *pParser, const char
 		faces.set_capacity(num_faces);
 		return true;
 	}
-	if (!strcmp("num_face_edges", pAttrName))
-	{
-		int num_face_edges;
-		pParser->ReadInt32(&num_face_edges);
-		faces.back().edges.set_capacity(num_face_edges);
-		return true;
-	}
-	if (!strcmp("num_face_edges", pAttrName))
-	{
-		int num_face_edges;
-		pParser->ReadInt32(&num_face_edges);
-		faces.back().edges.set_capacity(num_face_edges);
-		return true;
-	}
-	if (!strcmp("next_face", pAttrName))
+	if (!strcmp("face", pAttrName))
 	{
 		faces.push_back();
+		int32 planeValues[2];
+		pParser->ReadInt32Array(&planeValues[0],2);
+		faces.back().start = planeValues[0];
+		faces.back().num = planeValues[1];
 		return true;
 	}
-	if (!strcmp("face_p", pAttrName))
-	{
-		iwfixed planeValues[4];
-		pParser->ReadInt32Array(&planeValues[0],4);
-		faces.back().plane = Cb4aPlane(CIwVec3(planeValues[0],planeValues[1],planeValues[2]),planeValues[3]);
-		return true;
-	}
-	if (!strcmp("edge_p", pAttrName))
-	{
-		faces.back().edges.push_back();
-		iwfixed planeValues[4];
-		pParser->ReadInt32Array(&planeValues[0],4);
-		faces.back().edges.back().plane = Cb4aPlane(CIwVec3(planeValues[0],planeValues[1],planeValues[2]),planeValues[3]);
-		return true;
-	}
-
-	
 	return CIwManaged::ParseAttribute(pParser, pAttrName);
 }
 

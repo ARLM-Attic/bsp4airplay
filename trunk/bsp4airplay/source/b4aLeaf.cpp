@@ -65,22 +65,38 @@ void Cb4aLeaf::Render(Cb4aLevel*l)
 	else
 		model->Render();
 }
-bool Cb4aLeaf::TraceSphere(const Cb4aLevel*l, int32 sphere, Cb4aTraceContext& context) const
+b4aCollisionResult Cb4aLeaf::TraceSphere(const Cb4aLevel*l, int32 sphere, Cb4aTraceContext& context) const
 {
-	bool res = false;
-	for (uint32 i=0; i<colliders.GetSize(); ++i)
+	b4aCollisionResult res = COLLISION_NONE;
+	for (Cb4aColliderList::const_iterator i=colliders.begin(); i!=colliders.end(); ++i)
 	{
-		res |= colliders[i]->TraceSphere(sphere, context);
+		b4aCollisionResult r = (*i)->TraceSphere(sphere, context);
+		switch (r)
+		{
+		case COLLISION_SOMEWHERE:
+			res = COLLISION_SOMEWHERE;
+			break;
+		case COLLISION_ATSTART:
+			return COLLISION_ATSTART;
+		}
 	}
 	return res;
 }
 
-bool Cb4aLeaf::TraceLine(const Cb4aLevel*l, Cb4aTraceContext& context) const
+b4aCollisionResult Cb4aLeaf::TraceLine(const Cb4aLevel*l, Cb4aTraceContext& context) const
 {
-	bool res = false;
-	for (uint32 i=0; i<colliders.GetSize(); ++i)
+	b4aCollisionResult res = COLLISION_NONE;
+	for (Cb4aColliderList::const_iterator i=colliders.begin(); i!=colliders.end(); ++i)
 	{
-		res |= colliders[i]->TraceLine(context);
+		b4aCollisionResult r = (*i)->TraceLine(context);
+		switch (r)
+		{
+		case COLLISION_SOMEWHERE:
+			res = COLLISION_SOMEWHERE;
+			break;
+		case COLLISION_ATSTART:
+			return COLLISION_ATSTART;
+		}
 	}
 	return res;
 }
