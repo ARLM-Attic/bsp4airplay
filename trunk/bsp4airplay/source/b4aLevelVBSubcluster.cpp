@@ -20,6 +20,7 @@ Cb4aLevelVBSubcluster::Cb4aLevelVBSubcluster()
 	sphere.SetRadius(0);
 	sphere.t = CIwVec3::g_Zero;
 	material= 0;
+	bbox.m_Max = bbox.m_Min = CIwVec3::g_Zero;
 }
 
 //Desctructor
@@ -37,9 +38,17 @@ bool Cb4aLevelVBSubcluster::IsVisible() const
 // Reads/writes a binary file using IwSerialise interface. 
 void  Cb4aLevelVBSubcluster::Serialise ()
 {
-	indices.SerialiseHeader();
+	bbox.Serialise();
+	if (IwSerialiseIsReading())
+	{
+		sphere.t.x = (bbox.m_Min.x+bbox.m_Max.x)/2;
+		sphere.t.y = (bbox.m_Min.y+bbox.m_Max.y)/2;
+		sphere.t.z = (bbox.m_Min.z+bbox.m_Max.z)/2;
+		sphere.SetRadius((bbox.m_Max-sphere.t).GetLength());
+	}
 	IwSerialiseUInt32(material);
-	sphere.Serialise();
+
+	indices.SerialiseHeader();
 	for (uint32 i=0; i<indices.size(); ++i)
 		IwSerialiseUInt16(indices[i]);
 
@@ -70,18 +79,14 @@ bool ParseLevelVBSubcluster::ParseAttribute(CIwTextParserITX *pParser, const cha
 		pParser->ReadUInt32(&_this->material);
 		return true;
 	}
-	if (!strcmp("sphere_pos", pAttrName))
+	if (!strcmp("mins", pAttrName))
 	{
-		CIwVec3 pos;
-		pParser->ReadInt32Array(&pos.x,3);
-		_this->sphere.t = pos;
+		pParser->ReadInt32Array(&_this->bbox.m_Min.x,3);
 		return true;
 	}
-	if (!strcmp("sphere_r", pAttrName))
+	if (!strcmp("maxs", pAttrName))
 	{
-		int32 pos;
-		pParser->ReadInt32(&pos);
-		_this->sphere.SetRadius(pos);
+		pParser->ReadInt32Array(&_this->bbox.m_Max.x,3);
 		return true;
 	}
 	if (!strcmp("num_indices", pAttrName))

@@ -6,12 +6,17 @@
 using namespace Bsp4Airplay;
 
 IW_CLASS_FACTORY(Cb4aLevel);
-IW_MANAGED_IMPLEMENT(Cb4aLevel)
+IW_MANAGED_IMPLEMENT(Cb4aLevel);
+
+namespace Bsp4Airplay
+{
+}
 
 //Constructor
 Cb4aLevel::Cb4aLevel()
 {
 	defaultTextureHash = IwHashString("checkers");
+	frameid = 0;
 }
 
 //Desctructor
@@ -65,31 +70,80 @@ void Cb4aLevel::RenderCluster(int32 i)
 	if (i < 0) return;
 	clusters[i].Render(this);
 }
-void Cb4aLevel::Render(const CIwVec3 & viewer)
+void Cb4aLevel::ResetFrameCounter()
 {
+	frameid = 1;
+	for (uint32 i=0; i<leaves.size(); ++i)
+		leaves[i].SetVisible(0);
+}
+void Cb4aLevel::BeginRender(const CIwVec3 & viewer)
+{
+
+	++frameid;
+	if (frameid == 0x7FFFFFFF)
+		ResetFrameCounter();
 	CIwMat modelMatrix;
 	modelMatrix.SetIdentity();
 
 	IwGxSetModelMatrix(&modelMatrix);
 	IwGxLightingOff();
 
+	for (uint32 i=0;i<buffers.size(); ++i)
+		buffers[i].ClearQueue();
+
 	int node = 0;
 	while (!nodes[node].WalkNode(viewer, &node));
-	
-	leaves[node].Render(this);
-	for (uint32 i=0;i<leaves[node].visible_leaves.size(); ++i)
-		leaves[leaves[node].visible_leaves[i]].Render(this);
+
+	Cb4aLeaf* currentLeaf = &leaves[node];
+	visibleArea = currentLeaf->GetBBox();
+	currentLeaf->SetVisible(frameid);
+	currentLeaf->Render(this);
+
+	for (uint32 i=0;i<currentLeaf->visible_leaves.size(); ++i)
+	{
+		Cb4aLeaf* visibleLeaf = &leaves[currentLeaf->visible_leaves[i]];
+		if (!IwGxClipSphere(visibleLeaf->GetSphere()))
+		{
+			const CIwBBox & b = visibleLeaf->GetBBox();
+			visibleArea.BoundVec(&b.m_Min);
+			visibleArea.BoundVec(&b.m_Max);
+			visibleLeaf->SetVisible(frameid);
+			visibleLeaf->Render(this);
+		}
+	}
+	int32 farZ = (visibleArea.m_Max-visibleArea.m_Min).GetLengthSafe();
+	if (farZ < 16) farZ = 16;
+	IwGxSetFarZNearZ(farZ,8);
+
 	for (uint32 i=0;i<buffers.size(); ++i)
 		buffers[i].Flush(this);
+}
+void Cb4aLevel::RenderProjection(Ib4aProjection* proj)
+{
+	for (uint32 i=0; i<buffers.size(); ++i)
+	{
+		for (uint32 j=0; j<buffers[i].renderQueue.size(); ++j)
+		{
+			proj->Add(this,&buffers[i], buffers[i].renderQueue[j]);
+		}
+	}
+	proj->Flush();
+}
+
+void Cb4aLevel::EndRender()
+{
+}
+void ScheduleRender(int32 i, Cb4aLevelVBSubcluster*)
+{
 }
 void Cb4aLevel::ScheduleRender(int32 i, Cb4aLevelVBSubcluster*c)
 {
 	buffers[i].ScheduleCluster(c);
 }
-void Cb4aLevel::Render()
+void Cb4aLevel::BeginRender()
 {
 	const CIwMat& m = IwGxGetViewMatrix();
-	Render(CIwVec3(m.t.x<<IW_GEOM_POINT,m.t.y<<IW_GEOM_POINT,m.t.z<<IW_GEOM_POINT));
+	BeginRender(CIwVec3(m.t.x<<IW_GEOM_POINT,m.t.y<<IW_GEOM_POINT,m.t.z<<IW_GEOM_POINT));
 }
 bool Cb4aLevel::TraceLine(Cb4aTraceContext& context) const
 {

@@ -11,7 +11,7 @@ namespace BspFileFormat.Q1HL1
 		public int type;                   // Special type of leaf
 		public int vislist;                // Beginning of visibility lists
 		//     must be -1 or in [0,numvislist[
-		public bboxshort_t bound;           // Bounding box of the leaf
+		public bboxshort_t box;           // Bounding box of the leaf
 		public ushort lface_id;            // First item of the list of faces
 		//     must be in [0,numlfaces[
 		public ushort lface_num;           // Number of faces in the leaf  
@@ -24,7 +24,7 @@ namespace BspFileFormat.Q1HL1
 		{
 			type = source.ReadInt32();
 			vislist = source.ReadInt32();
-			bound.Read(source);
+			box.Read(source);
 			lface_id = source.ReadUInt16();
 			lface_num = source.ReadUInt16();
 			sndwater = source.ReadByte();

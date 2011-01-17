@@ -7,6 +7,24 @@ namespace Bsp4Airplay
 	class Cb4aLevelVBSubcluster;
 	class Cb4aLevel;
 
+	//class Ib4aProjection
+	//{
+	//public:
+	//	virtual bool IsNormalRequired() const;
+	//	virtual bool IsUV0Required() const;
+	//	virtual bool IsUV1Required() const;
+	//	virtual bool IsColorRequired() const;
+	//};
+
+
+	//struct ProjectionQueueItem
+	//{
+	//	CIwMaterial* mat;
+	//	CIwMat matrix;
+	//	CIwVec3 whz;
+	//	Cb4aLevelVBSubcluster* cluster;
+	//};
+
 	struct TriangleMap
 	{
 		uint16 indices [5];
@@ -46,6 +64,7 @@ namespace Bsp4Airplay
 		CIwArray<CIwColour> colours;
 		CIwArray<TriangleMap> map;
 		CIwArray<Cb4aLevelVBSubcluster*> renderQueue;
+		//CIwArray<ProjectionQueueItem> projectionQueue;
 	public:
 		Cb4aLevelVertexBuffer();
 		~Cb4aLevelVertexBuffer();
@@ -53,6 +72,7 @@ namespace Bsp4Airplay
 		void Serialise();
 		void ScheduleCluster(Cb4aLevelVBSubcluster* );
 		void Flush(Cb4aLevel* l);
+		inline void ClearQueue() {renderQueue.clear();}
 		inline const CIwSVec3 & GetPosition(uint i) const {return positions[map[i].indices[0]];}
 		inline const CIwSVec3 & GetNormal(uint i) const {return normals[map[i].indices[1]];}
 		inline const CIwSVec2 & GetUV0(uint i) const {return uv0s[map[i].indices[2]];}

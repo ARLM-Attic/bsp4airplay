@@ -11,9 +11,11 @@ namespace AirplaySDKFileFormats
 		public string Model;
 		public int Mesh = -1;
 		public int Cluster = -1;
+
 		public override void WrtieBodyToStream(CTextWriter writer)
 		{
 			base.WrtieBodyToStream(writer);
+			
 			writer.WriteString("model", Model);
 			if (Model != null)
 				writer.WriteKeyVal("mesh", Mesh);

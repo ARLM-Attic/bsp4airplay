@@ -34,14 +34,13 @@ namespace Bsp4Airplay
 		friend class ParseLeaf;
 #endif
 	public:
+		CIwBBox bbox;
+		CIwSphere sphere;
 		CIwArray<int32> visible_leaves;
 		Cb4aColliderList colliders;
-		uint32 modelHash;
-		int32 modelMesh;
-
-		CIwModel* model;
 
 		int32 cluster;
+		uint32 lastVisibleOnFrame;
 	public:
 
 		//Constructor
@@ -53,9 +52,14 @@ namespace Bsp4Airplay
 		virtual void AddCollider(Ib4aCollider*);
 
 		void Render(Cb4aLevel*);
-
+		void RenderProjection(Cb4aLevel*,CIwTexture* tex, const CIwMat& view, const CIwVec3& whz);
 		b4aCollisionResult TraceLine(const Cb4aLevel*, Cb4aTraceContext& context) const;
 		b4aCollisionResult TraceSphere(const Cb4aLevel*, int32 sphere, Cb4aTraceContext& context) const;
+
+		inline void SetVisible(uint32 frame) {lastVisibleOnFrame=frame;}
+		inline uint32 GetVisible() const {return lastVisibleOnFrame;}
+		inline const CIwBBox & GetBBox() const {return bbox;}
+		inline const CIwSphere & GetSphere() const {return sphere;}
 	};
 
 }

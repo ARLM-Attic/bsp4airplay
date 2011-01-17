@@ -367,6 +367,9 @@ namespace BspFileFormat.Q1HL1
 		private BspTreeNode BuildNode(node_t node)
 		{
 			var res = new BspTreeNode();
+			res.Mins = new Vector3(node.box.mins[0], node.box.mins[1], node.box.mins[2]);
+			res.Maxs = new Vector3(node.box.maxs[0], node.box.maxs[1], node.box.maxs[2]);
+
 			res.PlaneDistance = planes[node.planenum].dist;
 			res.PlaneNormal = planes[node.planenum].normal;
 
@@ -384,6 +387,8 @@ namespace BspFileFormat.Q1HL1
 		private BspTreeLeaf BuildLeaf(dleaf_t dleaf)
 		{
 			var res = new BspTreeLeaf();
+			res.Mins = new Vector3(dleaf.box.mins[0], dleaf.box.mins[1], dleaf.box.mins[2]);
+			res.Maxs = new Vector3(dleaf.box.maxs[0], dleaf.box.maxs[1], dleaf.box.maxs[2]);
 			if (dleaf.lface_num > 0)
 				res.Geometry = BuildGeometry(dleaf.lface_id, dleaf.lface_num);
 			if (dleaf.lface_num > 0)
@@ -407,8 +412,11 @@ namespace BspFileFormat.Q1HL1
 				miptex_t miptex = new miptex_t();
 				var texPos = source.BaseStream.Position;
 				miptex.Read(source);
-				
-				var tex = new BspEmbeddedTexture() { Name = miptex.name, Width = (int)miptex.width, Height = (int)miptex.height };
+
+				var tex = new BspEmbeddedTexture() { 
+					Name = miptex.name, Width = (int)miptex.width, Height = (int)miptex.height, 
+					Sky = miptex.name == "sky", 
+					Transparent = (miptex.name[0] == '{' || miptex.name[0] == '#') };
 				if (miptex.offset1 > 0)
 				{
 					tex.mipMaps = new Bitmap[4];

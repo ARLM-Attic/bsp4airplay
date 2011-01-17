@@ -18,6 +18,7 @@ namespace Bsp4Airplay
 Cb4aLevelVBCluster::Cb4aLevelVBCluster()
 {
 	vertexbuffer = 0;
+	lastVisibleOnFrame = 0;
 }
 
 //Desctructor
@@ -39,6 +40,10 @@ void Cb4aLevelVBCluster::Render(Cb4aLevel* l)
 {
 	if (subclusters.empty())
 		return;
+	uint32 frameid = l->GetCurrentFrameId();
+	if (frameid == lastVisibleOnFrame)
+		return;
+	lastVisibleOnFrame = frameid;
 	for (uint32 i=0; i<subclusters.size(); ++i)
 		if (subclusters[i].IsVisible())
 			l->ScheduleRender(vertexbuffer, &subclusters[i]);

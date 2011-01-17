@@ -33,6 +33,7 @@ namespace Bsp4Airplay
 #endif
 	public:
 		CIwArray<uint16> indices;
+		CIwBBox bbox;
 		CIwSphere sphere;
 		uint32 material;
 	public:
@@ -50,6 +51,8 @@ namespace Bsp4Airplay
 
 		inline const CIwArray<uint16> & GetIndices () const { return indices;};
 		inline uint32 GetMaterial () const { return material;};
+		inline const CIwBBox & GetBBox() const {return bbox;}
+		inline const CIwSphere & GetSphere() const {return sphere;}
 	};
 
 }

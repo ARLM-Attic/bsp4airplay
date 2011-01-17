@@ -109,6 +109,8 @@ namespace BspFileFormat.Q2
 		private BspTreeNode BuildNode(node_t node)
 		{
 			var res = new BspTreeNode();
+			res.Mins = new Vector3(node.box.mins[0], node.box.mins[1], node.box.mins[2]);
+			res.Maxs = new Vector3(node.box.maxs[0], node.box.maxs[1], node.box.maxs[2]);
 			res.PlaneDistance = planes[(int)node.planenum].dist;
 			res.PlaneNormal = planes[(int)node.planenum].normal;
 
@@ -150,6 +152,8 @@ namespace BspFileFormat.Q2
 		private BspTreeLeaf BuildLeaf(leaf_t dleaf)
 		{
 			var res = new BspTreeLeaf();
+			res.Mins = new Vector3(dleaf.box.mins[0], dleaf.box.mins[1], dleaf.box.mins[2]);
+			res.Maxs = new Vector3(dleaf.box.maxs[0], dleaf.box.maxs[1], dleaf.box.maxs[2]);
 			res.Geometry = BuildGeometry(dleaf.first_leaf_face, dleaf.num_leaf_faces);
 			return res;
 		}

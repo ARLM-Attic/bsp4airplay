@@ -4,6 +4,7 @@ using System.Text;
 using BspFileFormat.Utils;
 using System.IO;
 using System.Drawing;
+using BspFileFormat.BspMath;
 
 namespace BspFileFormat.Q3
 {
@@ -24,6 +25,7 @@ namespace BspFileFormat.Q3
 
 		protected uint[] listOfFaces;
 		protected uint[] listOfVertices;
+		private List<texture_t> texInfo;
 
 		public void ReadBsp(System.IO.BinaryReader source, BspDocument dest)
 		{
@@ -105,11 +107,11 @@ namespace BspFileFormat.Q3
 		}
 		private void ReadTextures(BinaryReader source)
 		{
-			var txt = ReaderHelper.ReadStructs<texture_t>(source, header.textures.size, header.textures.offset + startOfTheFile, 64+4+4);
+			texInfo = ReaderHelper.ReadStructs<texture_t>(source, header.textures.size, header.textures.offset + startOfTheFile, 64+4+4);
 			textures = new List<BspTexture>();
-			foreach (var t in txt)
+			foreach (var t in texInfo)
 			{
-				textures.Add(new BspTextureReference() { Name=t.name });
+				textures.Add(new BspTextureReference() { Name = t.name, Sky = 0 != (t.flags & texture_t.SURFACE_PORTALSKY) });
 			}
 		}
 		private void ReadPlanes(BinaryReader source)
@@ -137,6 +139,9 @@ namespace BspFileFormat.Q3
 		private BspTreeNode BuildNode(node_t node)
 		{
 			var res = new BspTreeNode();
+			res.Mins = new Vector3(node.box.mins[0], node.box.mins[1], node.box.mins[2]);
+			res.Maxs = new Vector3(node.box.maxs[0], node.box.maxs[1], node.box.maxs[2]);
+
 			res.PlaneDistance = planes[node.planenum].dist;
 			res.PlaneNormal = planes[node.planenum].normal;
 
@@ -175,6 +180,8 @@ namespace BspFileFormat.Q3
 		private BspTreeLeaf BuildLeaf(leaf_t dleaf)
 		{
 			var res = new BspTreeLeaf();
+			res.Mins = new Vector3(dleaf.box.mins[0], dleaf.box.mins[1], dleaf.box.mins[2]);
+			res.Maxs = new Vector3(dleaf.box.maxs[0], dleaf.box.maxs[1], dleaf.box.maxs[2]);
 			res.Geometry = BuildGeometry((uint)dleaf.leafface, (uint)dleaf.n_leaffaces);
 			return res;
 		}
@@ -263,7 +270,7 @@ namespace BspFileFormat.Q3
 				var vert0 = BuildVertex((int)(face.vertexIndex+listOfVertices[face.meshVertIndex+j]), face);
 				var vert1 = BuildVertex((int)(face.vertexIndex + listOfVertices[face.meshVertIndex + j+1]), face);
 				var vert2 = BuildVertex((int)(face.vertexIndex + listOfVertices[face.meshVertIndex + j + 2]), face);
-
+				
 				var geoFace = new BspGeometryFace() { Vertex0 = vert0, Vertex1 = vert1, Vertex2 = vert2, Texture = texture, Lightmap = lightMap };
 				res.Faces.Add(geoFace);
 			}
@@ -277,6 +284,11 @@ namespace BspFileFormat.Q3
 			v.Normal = src.vNormal;
 			v.UV0 = src.vTextureCoord;
 			v.UV1 = src.vLightmapCoord;
+			if (0 != (texInfo[face.texinfo_id].flags & texture_t.SURFACE_PORTALSKY))
+			{
+				v.UV0 = Vector2.g_Zero;
+				v.UV1 = Vector2.g_Zero;
+			}
 			v.Color = Color.FromArgb(src.color[3], src.color[0], src.color[1], src.color[2]);
 			return v;
 		}

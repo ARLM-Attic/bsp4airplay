@@ -21,6 +21,9 @@ Cb4aLevelMaterial::Cb4aLevelMaterial()
 	texture1Hash = 0;
 	texture0 = 0;
 	texture1 = 0;
+	transparent = false;
+	sky = false;
+
 	texturesResolved = false;
 }
 
@@ -34,7 +37,8 @@ void  Cb4aLevelMaterial::Serialise ()
 {
 	IwSerialiseUInt32(texture0Hash);
 	IwSerialiseUInt32(texture1Hash);
-
+	IwSerialiseBool(sky);
+	IwSerialiseBool(transparent);
 
 }
 
@@ -64,6 +68,11 @@ void Cb4aLevelMaterial::Bind(Cb4aLevel* l)
 	{
 		m->SetColDiffuse(IwGxGetColFixed(IW_GX_COLOUR_WHITE));
 		m->SetModulateMode(CIwMaterial::MODULATE_RGB);
+	}
+	if (transparent)
+	{
+		m->SetAlphaMode(CIwMaterial::ALPHA_BLEND);
+		m->SetDepthWriteMode(CIwMaterial::DEPTH_WRITE_DISABLED);
 	}
 	if (texture1)
 	{
@@ -98,6 +107,16 @@ bool ParseLevelMaterial::ParseAttribute(CIwTextParserITX *pParser, const char *p
 	if (!strcmp("texture1", pAttrName))
 	{
 		pParser->ReadStringHash(&_this->texture1Hash);
+		return true;
+	}
+	if (!strcmp("sky", pAttrName))
+	{
+		pParser->ReadBool(&_this->sky);
+		return true;
+	}
+	if (!strcmp("transparent", pAttrName))
+	{
+		pParser->ReadBool(&_this->transparent);
 		return true;
 	}
 	return CIwManaged::ParseAttribute(pParser,pAttrName);

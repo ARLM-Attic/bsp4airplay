@@ -13,7 +13,7 @@ namespace Tests
 		//[Test]
 		public void TestQ3()
 		{
-			//(new Adapter()).Convert(@"..\data\maps\q3shw18.bsp", @"..\data\maps\q3shw18.group");
+			(new Adapter()).Convert(@"..\data\maps\q3shw18.bsp", @"..\data\maps\q3shw18.group");
 		}
 	}
 }

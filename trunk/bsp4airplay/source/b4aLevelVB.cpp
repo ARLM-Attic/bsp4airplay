@@ -59,7 +59,6 @@ void Cb4aLevelVertexBuffer::ScheduleCluster(Cb4aLevelVBSubcluster* cluster)
 {
 	renderQueue.push_back(cluster);
 }
-
 void Cb4aLevelVertexBuffer::FlushQueueDynamicBlock(Cb4aLevel* l,uint32 from, uint32 end)
 {
 	uint32 totalIndices = 0;
@@ -158,7 +157,7 @@ void Cb4aLevelVertexBuffer::Flush(Cb4aLevel* l)
 			start = end;
 		}
 	}
-	renderQueue.clear();
+	
 }
 
 void Cb4aLevelVertexBuffer::PreRender()

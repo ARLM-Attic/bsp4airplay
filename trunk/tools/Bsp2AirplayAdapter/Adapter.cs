@@ -52,7 +52,7 @@ namespace Bsp2AirplayAdapter
 			{
 				var bspTreeLeaf = allLeaves[i];
 				i = level.Leaves.Count;
-				var ll = new Cb4aLeaf() { Index = i };
+				var ll = new Cb4aLeaf() { Index = i, mins = GetVec3(bspTreeLeaf.Mins), maxs = GetVec3(bspTreeLeaf.Maxs) };
 				level.Leaves.Add(ll);
 				if (bspTreeLeaf.Geometry != null && bspTreeLeaf.Geometry.Faces.Count > 0)
 				{
@@ -157,7 +157,7 @@ namespace Bsp2AirplayAdapter
 		{
 			Dictionary<Bitmap, bool> lightmaps = new Dictionary<Bitmap, bool>();
 			CollectAllLightmaps(lightmaps);
-
+			//TODO: Make multiple atlases 128x128 istead one huge atlas. The reason is that there is only 4096 steps in UV coordinate!
 			Atlas atlas = new Atlas();
 			foreach (var l in lightmaps.Keys)
 			{
@@ -309,7 +309,7 @@ namespace Bsp2AirplayAdapter
 				if (f.Lightmap != null && commonLightmap != f.Lightmap)
 					throw new ApplicationException("not atlased lightmap");
 				RegisterTexture(f.Lightmap);
-				int matIndex = writer.WriteMaterial(new Cb4aLevelMaterial((f.Texture != null) ? f.Texture.Name : null, (f.Lightmap != null)?f.Lightmap.Name:null));
+				int matIndex = writer.WriteMaterial(BuildMaterial(f));
                 materialInices.Add(matIndex);
 				materialMap[matIndex] = true;
 			}
@@ -330,19 +330,29 @@ namespace Bsp2AirplayAdapter
 						BuildFace(writer, sub, ref mins, ref maxs, f);
 					}
 				}
-				sub.SphereR = 1 + (int)Math.Sqrt((maxs.x - mins.x) * (maxs.x - mins.x) + (maxs.y - mins.y) * (maxs.y - mins.y) + (maxs.z - mins.z) * (maxs.z - mins.z));
-				if (sub.SphereR < 0)
+				if (mins.x > maxs.x)
 				{
-					sub.SpherePos = CIwVec3.g_Zero;
-					sub.SphereR = 0;
+					mins = CIwVec3.g_Zero;
+					maxs = CIwVec3.g_Zero;
 				}
-				else
-				{
-					sub.SpherePos = new CIwVec3((mins.x + maxs.x) / 2, (mins.y + maxs.y) / 2, (mins.z + maxs.z) / 2);
-				}
+				sub.Mins = mins;
+				sub.Maxs = maxs;
 			}
 			
 			return clusterIndex;
+		}
+
+		private static Cb4aLevelMaterial BuildMaterial(BspGeometryFace f)
+		{
+			BspTexture fTexture = f.Texture;
+			var res = new Cb4aLevelMaterial();
+			if (fTexture != null) {
+				res.Texture = fTexture.Name;
+				res.Sky = fTexture.Sky;
+				res.Transparent = fTexture.Transparent;
+			}
+			if (f.Lightmap != null) res.Lightmap = f.Lightmap.Name;
+			return res;
 		}
 
 		private void TessalateFaces(BspGeometry bspGeometry)
@@ -524,7 +534,7 @@ namespace Bsp2AirplayAdapter
 			if (!nodeIndices.TryGetValue(bspTreeNode, out i))
 			{
 				i = l.Nodes.Count;
-				var node = new Cb4aNode() { Index = i };
+				var node = new Cb4aNode() { Index = i, mins = GetVec3(bspTreeNode.Mins), maxs = GetVec3(bspTreeNode.Maxs) };
 				nodeIndices[bspTreeNode] = i;
 				l.Nodes.Add(node);
 				node.PlaneDistance = bspTreeNode.PlaneDistance;

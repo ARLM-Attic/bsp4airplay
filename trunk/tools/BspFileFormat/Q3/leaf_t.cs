@@ -6,12 +6,7 @@ namespace BspFileFormat.Q3
 	{
 		public int cluster;
 		public int area;
-		public int minx;
-		public int miny;
-		public int minz;
-		public int maxx;
-		public int maxy;
-		public int maxz;
+		public bboxint_t box;
 
 		public int leafface;
 		public int n_leaffaces;
@@ -21,12 +16,7 @@ namespace BspFileFormat.Q3
 		{
 			cluster = source.ReadInt32();
 			area = source.ReadInt32();
-			minx = source.ReadInt32();
-			miny = source.ReadInt32();
-			minz = source.ReadInt32();
-			maxx = source.ReadInt32();
-			maxy = source.ReadInt32();
-			maxz = source.ReadInt32();
+			box.Read(source);
 
 			leafface = source.ReadInt32();
 			n_leaffaces = source.ReadInt32();

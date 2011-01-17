@@ -9,6 +9,8 @@ namespace AirplaySDKFileFormats.Model
 	{
 		public string Texture;
 		public string Lightmap;
+		public bool Sky;
+		public bool Transparent;
 		public Cb4aLevelMaterial()
 		{
 		}
@@ -22,6 +24,10 @@ namespace AirplaySDKFileFormats.Model
 			base.WrtieBodyToStream(writer);
 			writer.WriteString("texture0", Texture);
 			writer.WriteString("texture1", Lightmap);
+			if (Sky)
+				writer.WriteKeyVal("sky", Sky);
+			if (Transparent)
+				writer.WriteKeyVal("transparent", Transparent);
 		}
 
 		public override int GetHashCode()

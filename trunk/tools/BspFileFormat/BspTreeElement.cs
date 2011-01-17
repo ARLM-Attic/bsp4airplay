@@ -8,5 +8,7 @@ namespace BspFileFormat
 {
 	public class BspTreeElement
 	{
+		public Vector3 Mins;
+		public Vector3 Maxs;
 	}
 }

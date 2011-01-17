@@ -36,6 +36,8 @@ namespace Bsp4Airplay
 		uint32 texture1Hash;
 		CIwTexture* texture0;
 		CIwTexture* texture1;
+		bool transparent;
+		bool sky;
 		bool texturesResolved;
 	public:
 

@@ -5,6 +5,7 @@
 #include <IwGraphics.h>
 #include <Bsp4Airplay.h>
 #include <b4aPlane.h>
+#include <Ib4aProjection.h>
 
 using namespace Bsp4Airplay;
 
@@ -99,9 +100,11 @@ void RenderFlares(Cb4aLevel* level,int16 size)
 		if (!e) continue;
 		if (e->GetClassName() == "light")
 		{
+			CIwSVec3 o(e->GetOrigin());
+			if (!level->IsInVisibleArea(e->GetOrigin()))
+				continue;
 			CIwSVec3* p = IW_GX_ALLOC(CIwSVec3,4);
 			CIwSVec2* uv = IW_GX_ALLOC(CIwSVec2,4);
-			CIwSVec3 o(e->GetOrigin());
 			p[0] = o-rawRight-rawUp;
 			uv[0] = CIwSVec2(0,0);
 			p[1] = o-rawRight+rawUp;
@@ -140,6 +143,7 @@ int main(int argc, char* argv[])
 
 	CIwResGroup* fx_group = IwGetResManager()->LoadGroup("./fx.group");
 	CIwTexture* flashlight_tex = (CIwTexture*)fx_group->GetResNamed("flashlight","CIwTexture");
+	flashlight_tex->SetClamping(true);
 	CIwTexture* flare_tex = (CIwTexture*)fx_group->GetResNamed("flare","CIwTexture");
 
 	
@@ -147,7 +151,10 @@ int main(int argc, char* argv[])
 	//const char* defaultGroupName = "maps/samplebox.group";
 	//const char* defaultGroupName = "maps/al_test_map_02.group";
 	//const char* defaultGroupName = "maps/sg0503.group";
-	const char* defaultGroupName = "maps/de_dust.group";
+	//const char* defaultGroupName = "maps/de_dust.group";
+	//const char* defaultGroupName = "maps/q3shw18.group";
+	const char* defaultGroupName = "maps/cs_mansion.group";
+	//const char* defaultGroupName = "maps/de_aztec.group";
 	const char* groupName = (argc > 1)?argv[1]:defaultGroupName;
 
 	//CIwResGroup* group = IwGetResManager()->LoadGroup("maps/hldemo1.group");
@@ -171,6 +178,9 @@ int main(int argc, char* argv[])
 
 	CIwResGroup* group = IwGetResManager()->LoadGroup(groupName);
 	CIwResList* list = group->GetListNamed("Cb4aLevel");
+
+	
+
 	Bsp4Airplay::Cb4aLevel* level = 0;
 	if (list && list->m_Resources.GetSize() > 0)
 		level = (Bsp4Airplay::Cb4aLevel*)list->m_Resources[0];
@@ -190,7 +200,8 @@ int main(int argc, char* argv[])
 	playerOrigin.y <<= IW_GEOM_POINT;
 	playerOrigin.z <<= IW_GEOM_POINT;
 	{
-	
+		Cb4aFlashlightProjection flashlight;
+
 		while (1)
 		{
 			s3eDeviceYield(0);
@@ -229,9 +240,11 @@ int main(int argc, char* argv[])
 			view.SetTrans(CIwVec3::g_Zero);
 			CIwVec3 rawForward = view.RowZ();
 			CIwVec3 rawRight = view.RowX();
+			CIwVec3 rawDown(0,0,-4096);
 
 			CIwVec3 forward = CIwVec3(rawForward.x*16,rawForward.y*16,rawForward.z*16);
 			CIwVec3 right = CIwVec3(rawRight.x*16,rawRight.y*16,rawRight.z*16);
+			CIwVec3 down = CIwVec3(rawDown.x*4,rawDown.y*4,rawDown.z*4);
 			CIwVec3 playerMovement = CIwVec3::g_Zero;
 			if (moveForward)
 				playerMovement += forward;
@@ -241,6 +254,7 @@ int main(int argc, char* argv[])
 				playerMovement += right;
 			if (moveLeft)
 				playerMovement -= right;
+			playerMovement += down;
 			Bsp4Airplay::Cb4aTraceContext context;
 			context.from = playerOrigin;
 			context.to = playerOrigin+playerMovement;
@@ -286,14 +300,20 @@ int main(int argc, char* argv[])
 
 			IwGxSetViewMatrix(&view);
 
+			int32 screenWidth2 =IwGxGetScreenWidth()/2;
+			//int32 screenHeight2 =IwGxGetScreenHeight()/2;
+			//CIwVec3 testV = view.TransposeTransformVec(view.t+view.RotateVec(CIwVec3(-screenWidth2,-screenHeight2,screenWidth2)));
 
-			IwGxSetPerspMul(IwGxGetScreenWidth()/2);
-			//TODO: detect max distance by visible level size!
-			IwGxSetFarZNearZ(4096,8);
+			IwGxSetPerspMul(screenWidth2);
 
-			//level->AddProjection(flashlight_tex, IwGxGetViewMatrix(), );
-			//level->Render(playerOrigin);
-			level->Render();
+			//Actual distance will be calculated at level->BeginRender
+			IwGxSetFarZNearZ(32767,8);
+
+			flashlight.Prepare(flashlight_tex, IwGxGetViewMatrix(),CIwVec3(1024,1024,1024));
+
+			level->BeginRender();
+			level->RenderProjection(&flashlight);
+			level->EndRender();
 			
 			context.from = playerOrigin;
 			context.to = context.from+CIwVec3(rawForward.x*400,rawForward.y*400,rawForward.z*400);
@@ -332,12 +352,13 @@ int main(int argc, char* argv[])
 
 			CIwMaterial* mat = IW_GX_ALLOC_MATERIAL();
 			mat->SetTexture(flare_tex);
-			mat->SetAlphaMode(CIwMaterial::ALPHA_BLEND);
+			mat->SetAlphaMode(CIwMaterial::ALPHA_ADD);
 			mat->SetModulateMode(CIwMaterial::MODULATE_NONE);
-			mat->SetCullMode(CIwMaterial::CULL_NONE);
+			//mat->SetCullMode(CIwMaterial::CULL_NONE);
 			mat->SetDepthWriteMode(CIwMaterial::DEPTH_WRITE_DISABLED);
 			//IW_GX_SORT_BY_Z
 			//mat->SetMergeGeom
+			
 			IwGxSetMaterial(mat);
 			RenderFlares(level, 16);
 

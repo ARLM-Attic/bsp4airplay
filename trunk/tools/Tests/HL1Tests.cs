@@ -15,17 +15,27 @@ namespace Tests
 	[TestFixture]
 	public class HL1Tests
 	{
-		[Test]
+		//[Test]
 		public void TestHL1()
 		{
 			//(new Adapter()).Convert(@"..\data\maps\hldemo1.bsp", @"..\data\maps\hldemo1.group");
 			(new Adapter()).Convert(@"..\data\maps\samplebox.bsp", @"..\data\maps\samplebox.group");
 			//(new Adapter()).Convert(@"..\data\maps\madcrabs.bsp", @"..\data\maps\madcrabs.group");
 		}
-		[Test]
-		public void TestCS_1_6()
+		//[Test]
+		public void TestCS_1_6_dust()
 		{
 			(new Adapter()).Convert(@"..\data\maps\de_dust.bsp", @"..\data\maps\de_dust.group");
+		}
+		[Test]
+		public void TestCS_1_6_mansion()
+		{
+			(new Adapter()).Convert(@"..\data\maps\cs_mansion.bsp", @"..\data\maps\cs_mansion.group");
+		}
+		[Test]
+		public void TestCS_1_6_aztec()
+		{
+			(new Adapter()).Convert(@"..\data\maps\de_aztec.bsp", @"..\data\maps\de_aztec.group");
 		}
 		//[Test]
 		public void TestDemo()

@@ -9,14 +9,14 @@ namespace AirplaySDKFileFormats.Model
 	{
 		public List<int> Indices = new List<int>();
 		public int Material=0;
-		public CIwVec3 SpherePos;
-		public int SphereR;
+		public CIwVec3 Mins;
+		public CIwVec3 Maxs;
 		public override void WrtieBodyToStream(CTextWriter writer)
 		{
 			base.WrtieBodyToStream(writer);
 			writer.WriteKeyVal("material", Material);
-			writer.WriteVec3("sphere_pos", SpherePos);
-			writer.WriteKeyVal("sphere_r", SphereR);
+			writer.WriteVec3("mins", Mins);
+			writer.WriteVec3("maxs", Maxs);
 			IList<int> res = Indices;
 			//res = BuildStrip(Indices);
 			writer.WriteKeyVal("num_indices", res.Count);

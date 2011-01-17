@@ -95,4 +95,10 @@ namespace Bsp4Airplay
 			return PlaneDistanceCalculator_Z;
 		return GenericPlaneDistanceCalculator;
 	}
+
+	inline bool b4aIsBBoxIntersect(const CIwBBox& a,const CIwBBox& b)
+	{
+		return (a.m_Min.x <= b.m_Max.x) && (a.m_Min.y <= b.m_Max.y) && (a.m_Min.z <= b.m_Max.z)
+			&& (b.m_Min.x <= a.m_Max.x) && (b.m_Min.y <= a.m_Max.y) && (b.m_Min.z <= a.m_Max.z);
+	}
 }

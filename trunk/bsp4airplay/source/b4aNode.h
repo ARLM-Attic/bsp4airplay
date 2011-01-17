@@ -10,6 +10,7 @@ namespace Bsp4Airplay
 	class Cb4aNode
 	{
 	public:
+		CIwBBox bbox;
 		PlaneDistanceCalculator calc;
 		Cb4aPlane plane;
 		bool is_front_leaf;
@@ -23,6 +24,8 @@ namespace Bsp4Airplay
 		~Cb4aNode();
 
 		void  Serialise ();
+
+		inline const CIwBBox & GetBBox() const {return bbox;}
 
 		bool WalkNode(const CIwVec3 & viewer, int32* nextNode) const;
 		b4aCollisionResult TraceLine(const Cb4aLevel*, Cb4aTraceContext& context) const;

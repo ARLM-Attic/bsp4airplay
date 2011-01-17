@@ -29,6 +29,7 @@ Cb4aNode::~Cb4aNode()
 // Reads/writes a binary file using IwSerialise interface. 
 void  Cb4aNode::Serialise ()
 {
+	bbox.Serialise();
 	plane.v.Serialise();
 	IwSerialiseInt32(plane.k);
 	IwSerialiseBool(is_front_leaf);
@@ -163,6 +164,17 @@ bool ParseNode::ParseAttribute(CIwTextParserITX *pParser, const char *pAttrName)
 		pParser->ReadInt32(&_this->back);
 		return true;
 	}
+	if (!strcmp("mins", pAttrName))
+	{
+		pParser->ReadInt32Array(&_this->bbox.m_Min.x,3);
+		return true;
+	}
+	if (!strcmp("maxs", pAttrName))
+	{
+		pParser->ReadInt32Array(&_this->bbox.m_Max.x,3);
+		return true;
+	}
+
 	return CIwManaged::ParseAttribute(pParser,pAttrName);
 }
 

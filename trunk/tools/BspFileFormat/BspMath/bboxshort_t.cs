@@ -23,4 +23,21 @@ namespace BspFileFormat.BspMath
 			maxs[2] = source.ReadInt16();
 		}
 	}
+	public struct bboxint_t
+	{
+		public int[] mins;
+		public int[] maxs;
+
+		internal void Read(System.IO.BinaryReader source)
+		{
+			mins = new int[3];
+			maxs = new int[3];
+			mins[0] = source.ReadInt32();
+			mins[1] = source.ReadInt32();
+			mins[2] = source.ReadInt32();
+			maxs[0] = source.ReadInt32();
+			maxs[1] = source.ReadInt32();
+			maxs[2] = source.ReadInt32();
+		}
+	}
 }

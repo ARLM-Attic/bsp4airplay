@@ -35,6 +35,7 @@ namespace Bsp4Airplay
 	public:
 		CIwArray<Cb4aLevelVBSubcluster> subclusters;
 		uint32 vertexbuffer;
+		uint32 lastVisibleOnFrame;
 	public:
 
 		//Constructor

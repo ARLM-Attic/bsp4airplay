@@ -11,6 +11,7 @@ namespace BspFileFormat.BspMath
 		[StructLayout(LayoutKind.Sequential)]
 		public struct Vector2 : IEquatable<Vector2>
 		{
+			public static Vector2 g_Zero = new Vector2(0, 0);
 			#region Fields
 
 			/// <summary>

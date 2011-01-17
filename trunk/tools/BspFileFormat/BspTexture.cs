@@ -6,5 +6,7 @@ namespace BspFileFormat
 		public string Name;
 		public int Width;
 		public int Height;
+		public bool Transparent;
+		public bool Sky;
 	}
 }

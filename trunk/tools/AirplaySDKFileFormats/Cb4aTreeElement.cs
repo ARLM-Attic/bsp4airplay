@@ -9,10 +9,13 @@ namespace AirplaySDKFileFormats
 		public int Index;
 		public float PlaneDistance;
 		public CIwVec3 PlaneNormal;
-
+		public CIwVec3 mins;
+		public CIwVec3 maxs;
 		public override void WrtieBodyToStream(CTextWriter writer)
 		{
 			base.WrtieBodyToStream(writer);
+			writer.WriteVec3("mins", mins);
+			writer.WriteVec3("maxs", maxs);
 		}
 	}
 }

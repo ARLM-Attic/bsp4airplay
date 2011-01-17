@@ -17,10 +17,8 @@ namespace Bsp4Airplay
 //Constructor
 Cb4aLeaf::Cb4aLeaf()
 {
-	modelHash = 0;
-	model = 0;
-	modelMesh = -1;
 	cluster = -1;
+	lastVisibleOnFrame = 0;
 }
 
 //Desctructor
@@ -31,15 +29,28 @@ Cb4aLeaf::~Cb4aLeaf()
 // Reads/writes a binary file using IwSerialise interface. 
 void  Cb4aLeaf::Serialise ()
 {
-	IwSerialiseUInt32(modelHash);
-	IwSerialiseInt32(modelMesh);
+	bbox.Serialise();
+	if (IwSerialiseIsReading())
+	{
+		sphere.t.x = (bbox.m_Min.x+bbox.m_Max.x)/2;
+		sphere.t.y = (bbox.m_Min.y+bbox.m_Max.y)/2;
+		sphere.t.z = (bbox.m_Min.z+bbox.m_Max.z)/2;
+		sphere.SetRadius((bbox.m_Max-sphere.t).GetLength());
+	}
+	
 	IwSerialiseInt32(cluster);
 	visible_leaves.SerialiseHeader();
 	for (uint32 i=0; i<visible_leaves.size(); ++i)
 		IwSerialiseInt32(visible_leaves[i]);
 	colliders.Serialise();
+	
 }
-
+void Cb4aLeaf::RenderProjection(Cb4aLevel* l,CIwTexture* tex, const CIwMat& view, const CIwVec3& whz)
+{
+	if (cluster<0)
+		return;
+	//l->RenderCluster(cluster);
+}
 void Cb4aLeaf::AddCollider(Ib4aCollider* c)
 {
 	colliders.push_back(c);
@@ -47,23 +58,9 @@ void Cb4aLeaf::AddCollider(Ib4aCollider* c)
 
 void Cb4aLeaf::Render(Cb4aLevel*l)
 {
-	if (!model)
-	{
-		if (!modelHash)
-		{
-			if (cluster<0)
-				return;
-			l->RenderCluster(cluster);
-			return;
-		}
-		model = (CIwModel*)IwGetResManager()->GetResHashed(modelHash, "CIwModel");
-		
-	}
-	
-	if (modelMesh >= 0)
-		static_cast<CIwModelBlock*>(model->m_Blocks[modelMesh])->Render(model, model->GetFlags());
-	else
-		model->Render();
+	if (cluster<0)
+		return;
+	l->RenderCluster(cluster);
 }
 b4aCollisionResult Cb4aLeaf::TraceSphere(const Cb4aLevel*l, int32 sphere, Cb4aTraceContext& context) const
 {
@@ -134,20 +131,20 @@ bool ParseLeaf::ParseAttribute(CIwTextParserITX *pParser, const char *pAttrName)
 		_this->visible_leaves.push_back(n);
 		return true;
 	}
-	
-	if (!strcmp("mesh", pAttrName))
-	{
-		pParser->ReadInt32(&_this->modelMesh);
-		return true;
-	}
+
 	if (!strcmp("cluster", pAttrName))
 	{
 		pParser->ReadInt32(&_this->cluster);
 		return true;
 	}
-	if (!strcmp("model", pAttrName))
+	if (!strcmp("mins", pAttrName))
 	{
-		pParser->ReadStringHash(&_this->modelHash);
+		pParser->ReadInt32Array(&_this->bbox.m_Min.x,3);
+		return true;
+	}
+	if (!strcmp("maxs", pAttrName))
+	{
+		pParser->ReadInt32Array(&_this->bbox.m_Max.x,3);
 		return true;
 	}
 	return CIwManaged::ParseAttribute(pParser,pAttrName);
