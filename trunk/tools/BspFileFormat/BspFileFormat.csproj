@@ -106,6 +106,8 @@
     <Compile Include="BspEmbeddedTexture.cs" />
     <Compile Include="Q3\texture_t.cs" />
     <Compile Include="Q3\vertex_t.cs" />
+    <Compile Include="Utils\FaceToLeafKey.cs" />
+    <Compile Include="Utils\FaceToLeafMap.cs" />
     <Compile Include="Utils\IBspReader.cs" />
     <Compile Include="Utils\ReaderHelper.cs" />
   </ItemGroup>

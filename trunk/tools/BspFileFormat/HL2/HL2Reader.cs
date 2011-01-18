@@ -56,6 +56,50 @@ namespace BspFileFormat.HL2
 				dest.Tree = BuildNode(nodes[0]);
 			}
 			BuildVisibilityList();
+			BuildClusters();
+		}
+		private void BuildClusters()
+		{
+			FaceToLeafMap faceMap = new FaceToLeafMap(faces.Count);
+			for (int i = 0; i < dleaves.Count; ++i)
+			{
+				var dleaf = dleaves[i];
+				BuilFaceToLeafMap(faceMap, i, dleaf);
+				if (dleaf.cluster >= 0)
+				{
+					foreach (var vis in clusters[dleaf.cluster].lists)
+					{
+						dleaf = dleaves[vis];
+						BuilFaceToLeafMap(faceMap, i, dleaf);
+					}
+					foreach (var visC in clusters[dleaf.cluster].visiblity)
+						foreach (var vis in clusters[visC].lists)
+						{
+							dleaf = dleaves[vis];
+							BuilFaceToLeafMap(faceMap, i, dleaf);
+						}
+				}
+			}
+			var keys = faceMap.FindUniqueKeys();
+
+			foreach (var k in keys)
+			{
+				if (k.Faces.Count > 0)
+				{
+					var geo = BuildGeometry(k.Faces);
+					if (geo != null)
+					{
+						foreach (var l in k.Key.Leaves)
+							leaves[l.Key].Geometries.Add(geo);
+					}
+				}
+			}
+		}
+		private void BuilFaceToLeafMap(FaceToLeafMap faceMap, int i, dleaf_t dleaf)
+		{
+			if (dleaf.numleaffaces >= 0 && dleaf.firstleafface >= 0 && dleaf.firstleafface != ushort.MaxValue)
+				for (int j = dleaf.firstleafface; j < dleaf.firstleafface + dleaf.numleaffaces; ++j)
+					faceMap.Faces[(int)listOfFaces[j]].AddLeaf(i);
 		}
 		private void ReadVisibilityList(BinaryReader source)
 		{
@@ -158,27 +202,19 @@ namespace BspFileFormat.HL2
 			res.Mins = new Vector3(dleaf.box.mins[0], dleaf.box.mins[1], dleaf.box.mins[2]);
 			res.Maxs = new Vector3(dleaf.box.maxs[0], dleaf.box.maxs[1], dleaf.box.maxs[2]);
 
-			if (dleaf.firstleafface != ushort.MaxValue)
-				res.Geometry = BuildGeometry(dleaf.firstleafface, dleaf.numleaffaces);
+			//if (dleaf.firstleafface != ushort.MaxValue)
+			//	res.Geometries.Add(BuildGeometry(dleaf.firstleafface, dleaf.numleaffaces));
 			return res;
 		}
 		Dictionary<int, BspTexture> faceLightmapObjects = new Dictionary<int, BspTexture>();
-		private BspGeometry BuildGeometry(uint fromFace, uint numFaces, int modelId = 0, bool setModelId = false)
+		private BspGeometry BuildGeometry(List<int> list)
 		{
+			if (list == null || list.Count == 0)
+				return null;
 			var res = new BspGeometry() { Faces = new List<BspGeometryFace>() };
-
-			for (uint i = fromFace; i < fromFace + numFaces; ++i)
+			foreach (var faceIndex in list)
 			{
-				if (i >= listOfFaces.Length)
-				{
-					throw new ApplicationException(String.Format("Index {0} is out of {1} faces", i, listOfFaces.Length));
-				}
-				ushort faceIndex = listOfFaces[i];
 				var face = faces[faceIndex];
-				if (setModelId)
-					face.modelId = modelId;
-				//else if (face.modelId != modelId)
-				//    continue;
 				if (face.numedges == 0)
 					continue;
 				plane_t plane = planes[face.planenum];

@@ -22,17 +22,17 @@ namespace Tests
 			(new Adapter()).Convert(@"..\data\maps\samplebox.bsp", @"..\data\maps\samplebox.group");
 			//(new Adapter()).Convert(@"..\data\maps\madcrabs.bsp", @"..\data\maps\madcrabs.group");
 		}
-		//[Test]
+		[Test]
 		public void TestCS_1_6_dust()
 		{
 			(new Adapter()).Convert(@"..\data\maps\de_dust.bsp", @"..\data\maps\de_dust.group");
 		}
-		[Test]
+		//[Test]
 		public void TestCS_1_6_mansion()
 		{
 			(new Adapter()).Convert(@"..\data\maps\cs_mansion.bsp", @"..\data\maps\cs_mansion.group");
 		}
-		[Test]
+		//[Test]
 		public void TestCS_1_6_aztec()
 		{
 			(new Adapter()).Convert(@"..\data\maps\de_aztec.bsp", @"..\data\maps\de_aztec.group");

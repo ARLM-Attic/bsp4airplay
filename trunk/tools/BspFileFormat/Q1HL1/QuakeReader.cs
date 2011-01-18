@@ -55,13 +55,13 @@ namespace BspFileFormat.Q1HL1
 			//    foreach (var tex in textures)
 			//        dest.AddTexture(tex);
 
-			if (models != null)
-			{
-				//foreach (var model in models)
-				for (int i = 1; i < models.Count; ++i)
-					dest.AddModel(BuildGeometry(models[i], i));
-				//BuildGeometry(models[0], 0);
-			}
+			//if (models != null)
+			//{
+			//    //foreach (var model in models)
+			//    for (int i = 1; i < models.Count; ++i)
+			//        dest.AddModel(BuildGeometry(models[i], i));
+			//    //BuildGeometry(models[0], 0);
+			//}
 
 			BuildLeaves();
 			if (nodes != null && nodes.Count > 0)
@@ -69,9 +69,48 @@ namespace BspFileFormat.Q1HL1
 				dest.Tree = BuildNode(nodes[0]);
 			}
 			BuildVisibilityList();
+			BuildClusters();
 
 
 			ReaderHelper.BuildEntities(entities, dest);
+		}
+
+		private void BuildClusters()
+		{
+			FaceToLeafMap faceMap = new FaceToLeafMap(faces.Count);
+			for (int i=0; i<dleaves.Count; ++i)
+			{
+				var dleaf = dleaves[i];
+				BuilFaceToLeafMap(faceMap, i, dleaf);
+				foreach (var vis in dleaf.VisibleLeaves)
+				{
+					dleaf = dleaves[vis];
+					BuilFaceToLeafMap(faceMap, i, dleaf);
+				}
+			}
+			var keys = faceMap.FindUniqueKeys();
+
+			foreach (var k in keys)
+			{
+				if (k.Faces.Count > 0)
+				{
+					var geo = BuildGeometry(k.Faces);
+					if (geo != null)
+					{
+						foreach (var l in k.Key.Leaves)
+							leaves[l.Key].Geometries.Add(geo);
+					}
+				}
+			}
+		}
+
+		
+
+		private void BuilFaceToLeafMap(FaceToLeafMap faceMap, int i, dleaf_t dleaf)
+		{
+			if (dleaf.lface_num >= 0)
+				for (int j = dleaf.lface_id; j < dleaf.lface_id + dleaf.lface_num; ++j)
+					faceMap.Faces[listOfFaces[j]].AddLeaf(i);
 		}
 
 		
@@ -153,18 +192,16 @@ namespace BspFileFormat.Q1HL1
 		}
 
 		Dictionary<int, BspTexture> faceLightmapObjects = new Dictionary<int, BspTexture>();
-		private BspGeometry BuildGeometry(uint fromFace, uint numFaces, int modelId = 0, bool setModelId = false)
+		private BspGeometry BuildGeometry(List<int> list)
 		{
+			if (list == null || list.Count == 0)
+				return null;
 			var res = new BspGeometry() { Faces = new List<BspGeometryFace>() };
 
-			for (uint i = fromFace; i < fromFace + numFaces; ++i)
+			foreach (var faceIndex in list)
 			{
-				ushort faceIndex = listOfFaces[i];
 				var face = faces[faceIndex];
-				if (setModelId)
-					face.modelId = modelId;
-				//else if (face.modelId != modelId)
-				//    continue;
+
 				if (face.ledge_num == 0)
 					continue;
 
@@ -238,7 +275,7 @@ namespace BspFileFormat.Q1HL1
 				if (textures[texture_id].Name == "sky")
 				{
 					for (int j = 0; j < (int)face.ledge_num; ++j)
-						faceVertices[j].UV0 = new Vector2(0,0);
+						faceVertices[j].UV0 = new Vector2(0, 0);
 				}
 				BspTexture lightMap = null;
 				if (face.lightmap != -1)
@@ -270,9 +307,18 @@ namespace BspFileFormat.Q1HL1
 			}
 			return res;
 		}
-		private BspGeometry BuildGeometry(model_t model, int modelid)
+		private BspGeometry BuildGeometry(uint fromFace, uint numFaces)
 		{
-			return BuildGeometry(model.face_id, model.face_num, modelid,true);
+			List<int> res = new List<int>();
+			for (uint i = fromFace; i < fromFace + numFaces; ++i)
+			{
+				res.Add(listOfFaces[i]);
+			}
+			return BuildGeometry(res);
+		}
+		private BspGeometry BuildGeometry(model_t model)
+		{
+			return BuildGeometry(model.face_id, model.face_num);
 			
 		}
 		//Dictionary<int, Bitmap> faceLightmaps = new Dictionary<int, Bitmap>();
@@ -333,11 +379,11 @@ namespace BspFileFormat.Q1HL1
 		{
 			for (int i = 0; i < dleaves.Count; ++i)
 			{
-				BuildVisibilityList(leaves[i], dleaves[i].vislist);
+				BuildVisibilityList(leaves[i], dleaves[i], dleaves[i].vislist);
 			}
 		}
 
-		private void BuildVisibilityList(BspTreeLeaf bspTreeLeaf, int v)
+		private void BuildVisibilityList(BspTreeLeaf bspTreeLeaf, dleaf_t leaf, int v)
 		{
 			if (v < 0)
 				return;
@@ -358,6 +404,7 @@ namespace BspFileFormat.Q1HL1
 							if (L >= leaves.Count)
 								throw new ApplicationException(string.Format("leaf index {0} is out of {1}",L,leaves.Count));
 							bspTreeLeaf.VisibleLeaves.Add(leaves[L]);
+							leaf.VisibleLeaves.Add(L);
 						}
 					}
 				}
@@ -389,8 +436,6 @@ namespace BspFileFormat.Q1HL1
 			var res = new BspTreeLeaf();
 			res.Mins = new Vector3(dleaf.box.mins[0], dleaf.box.mins[1], dleaf.box.mins[2]);
 			res.Maxs = new Vector3(dleaf.box.maxs[0], dleaf.box.maxs[1], dleaf.box.maxs[2]);
-			if (dleaf.lface_num > 0)
-				res.Geometry = BuildGeometry(dleaf.lface_id, dleaf.lface_num);
 			if (dleaf.lface_num > 0)
 				res.Colliders.Add(BuildFaceSoup(dleaf.lface_id, dleaf.lface_num));
 			return res;

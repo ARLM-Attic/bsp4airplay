@@ -38,6 +38,7 @@ namespace BspFileFormat.Q3
 			ReadNodes(source);
 			ReadLeaves(source);
 			ReadVisibility(source);
+
 			listOfFaces = ReaderHelper.ReadUInt32Array(source, header.leaffaces.size, header.leaffaces.offset);
 			listOfVertices = ReaderHelper.ReadUInt32Array(source, header.meshverts.size, header.meshverts.offset);
 			vertices = ReaderHelper.ReadStructs<vertex_t>(source, header.vertexes.size, header.vertexes.offset + startOfTheFile, 11 * 4);
@@ -46,6 +47,7 @@ namespace BspFileFormat.Q3
 			BuildLeaves();
 			if (nodes != null && nodes.Count > 0)
 				dest.Tree = BuildNode(nodes[0]);
+			BuildClusters();
 
 			ReaderHelper.BuildEntities(entities, dest);
 		}
@@ -176,28 +178,65 @@ namespace BspFileFormat.Q3
 							leaves[i].VisibleLeaves.Add(leaves[k]);
 				}
 		}
+		private void BuildClusters()
+		{
+			FaceToLeafMap faceMap = new FaceToLeafMap(faces.Count);
+			for (int i = 0; i < dleaves.Count; ++i)
+			{
+				var dleaf = dleaves[i];
+				BuilFaceToLeafMap(faceMap, i, dleaf);
+				if (dleaf.cluster >= 0)
+				{
+					foreach (var vis in clusters[dleaf.cluster].lists)
+					{
+						dleaf = dleaves[vis];
+						BuilFaceToLeafMap(faceMap, i, dleaf);
+					}
+					foreach (var visC in clusters[dleaf.cluster].visiblity)
+						foreach (var vis in clusters[visC].lists)
+						{
+							dleaf = dleaves[vis];
+							BuilFaceToLeafMap(faceMap, i, dleaf);
+						}
+				}
+			}
+			var keys = faceMap.FindUniqueKeys();
 
+			foreach (var k in keys)
+			{
+				if (k.Faces.Count > 0)
+				{
+					var geo = BuildGeometry(k.Faces);
+					if (geo != null)
+					{
+						foreach (var l in k.Key.Leaves)
+							leaves[l.Key].Geometries.Add(geo);
+					}
+				}
+			}
+		}
+		private void BuilFaceToLeafMap(FaceToLeafMap faceMap, int i, leaf_t dleaf)
+		{
+			if (dleaf.leafface >= 0 && dleaf.n_leaffaces >= 0)
+				for (int j = dleaf.leafface; j < dleaf.leafface + dleaf.n_leaffaces; ++j)
+					faceMap.Faces[(int)listOfFaces[j]].AddLeaf(i);
+		}
 		private BspTreeLeaf BuildLeaf(leaf_t dleaf)
 		{
 			var res = new BspTreeLeaf();
 			res.Mins = new Vector3(dleaf.box.mins[0], dleaf.box.mins[1], dleaf.box.mins[2]);
 			res.Maxs = new Vector3(dleaf.box.maxs[0], dleaf.box.maxs[1], dleaf.box.maxs[2]);
-			res.Geometry = BuildGeometry((uint)dleaf.leafface, (uint)dleaf.n_leaffaces);
+			//res.Geometries.Add(BuildGeometry((uint)dleaf.leafface, (uint)dleaf.n_leaffaces));
 			return res;
 		}
 
-		private BspGeometry BuildGeometry(uint fromFace, uint numFaces)
+		private BspGeometry BuildGeometry(List<int> list)
 		{
+			if (list == null || list.Count == 0)
+				return null;
 			var res = new BspGeometry() { Faces = new List<BspGeometryFace>() };
-			for (uint i = fromFace; i < fromFace + numFaces; ++i)
+			foreach (var faceIndex in list)
 			{
-				if (i < 0 || i >= (uint)listOfFaces.Length)
-					throw new ArgumentOutOfRangeException(String.Format("{0}>={1}", i, listOfFaces.Length));
-				int faceIndex = (int)listOfFaces[(int)i];
-				if (faceIndex < 0 || faceIndex >= faces.Count)
-				{
-					throw new ArgumentOutOfRangeException(String.Format("{0}>={1}", faceIndex, faces.Count));
-				}
 				var face = faces[faceIndex];
 				if (face.numOfVerts == 0)
 					continue;

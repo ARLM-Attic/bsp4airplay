@@ -20,6 +20,8 @@ namespace BspFileFormat.Q1HL1
 		public byte sndslime;             //   0xFF is maximum volume
 		public byte sndlava;              //
 
+		public List<int> VisibleLeaves = new List<int>();
+
 		public void Read(System.IO.BinaryReader source)
 		{
 			type = source.ReadInt32();

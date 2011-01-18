@@ -9,6 +9,6 @@ namespace BspFileFormat
 	{
 		public List<BspTreeLeaf> VisibleLeaves = new List<BspTreeLeaf>();
 		public List<BspCollisionObject> Colliders = new List<BspCollisionObject>();
-		public BspGeometry Geometry;
+		public List<BspGeometry> Geometries = new List<BspGeometry>();
 	}
 }

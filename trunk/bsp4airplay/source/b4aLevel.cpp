@@ -97,7 +97,6 @@ void Cb4aLevel::BeginRender(const CIwVec3 & viewer)
 	Cb4aLeaf* currentLeaf = &leaves[node];
 	visibleArea = currentLeaf->GetBBox();
 	currentLeaf->SetVisible(frameid);
-	currentLeaf->Render(this);
 
 	for (uint32 i=0;i<currentLeaf->visible_leaves.size(); ++i)
 	{
@@ -108,12 +107,13 @@ void Cb4aLevel::BeginRender(const CIwVec3 & viewer)
 			visibleArea.BoundVec(&b.m_Min);
 			visibleArea.BoundVec(&b.m_Max);
 			visibleLeaf->SetVisible(frameid);
-			visibleLeaf->Render(this);
 		}
 	}
 	int32 farZ = (visibleArea.m_Max-visibleArea.m_Min).GetLengthSafe();
 	if (farZ < 16) farZ = 16;
 	IwGxSetFarZNearZ(farZ,8);
+
+	currentLeaf->Render(this);
 
 	for (uint32 i=0;i<buffers.size(); ++i)
 		buffers[i].Flush(this);

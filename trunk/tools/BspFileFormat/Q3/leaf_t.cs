@@ -12,6 +12,7 @@ namespace BspFileFormat.Q3
 		public int n_leaffaces;
 		public int leafbrush;
 		public int n_leafbrushes;
+
 		public void Read(System.IO.BinaryReader source)
 		{
 			cluster = source.ReadInt32();

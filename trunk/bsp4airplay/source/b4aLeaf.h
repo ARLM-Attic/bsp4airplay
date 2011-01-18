@@ -37,9 +37,9 @@ namespace Bsp4Airplay
 		CIwBBox bbox;
 		CIwSphere sphere;
 		CIwArray<int32> visible_leaves;
+		CIwArray<int32> visible_clusters;
 		Cb4aColliderList colliders;
 
-		int32 cluster;
 		uint32 lastVisibleOnFrame;
 	public:
 

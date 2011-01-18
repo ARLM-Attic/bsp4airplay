@@ -17,7 +17,6 @@ namespace Bsp4Airplay
 //Constructor
 Cb4aLeaf::Cb4aLeaf()
 {
-	cluster = -1;
 	lastVisibleOnFrame = 0;
 }
 
@@ -37,8 +36,9 @@ void  Cb4aLeaf::Serialise ()
 		sphere.t.z = (bbox.m_Min.z+bbox.m_Max.z)/2;
 		sphere.SetRadius((bbox.m_Max-sphere.t).GetLength());
 	}
-	
-	IwSerialiseInt32(cluster);
+	visible_clusters.SerialiseHeader();
+	for (uint32 i=0; i<visible_clusters.size(); ++i)
+		IwSerialiseInt32(visible_clusters[i]);
 	visible_leaves.SerialiseHeader();
 	for (uint32 i=0; i<visible_leaves.size(); ++i)
 		IwSerialiseInt32(visible_leaves[i]);
@@ -47,8 +47,7 @@ void  Cb4aLeaf::Serialise ()
 }
 void Cb4aLeaf::RenderProjection(Cb4aLevel* l,CIwTexture* tex, const CIwMat& view, const CIwVec3& whz)
 {
-	if (cluster<0)
-		return;
+
 	//l->RenderCluster(cluster);
 }
 void Cb4aLeaf::AddCollider(Ib4aCollider* c)
@@ -58,9 +57,8 @@ void Cb4aLeaf::AddCollider(Ib4aCollider* c)
 
 void Cb4aLeaf::Render(Cb4aLevel*l)
 {
-	if (cluster<0)
-		return;
-	l->RenderCluster(cluster);
+	for (CIwArray<int32>::iterator i=visible_clusters.begin(); i!=visible_clusters.end();++i)
+		l->RenderCluster(*i);
 }
 b4aCollisionResult Cb4aLeaf::TraceSphere(const Cb4aLevel*l, int32 sphere, Cb4aTraceContext& context) const
 {
@@ -121,20 +119,26 @@ bool ParseLeaf::ParseAttribute(CIwTextParserITX *pParser, const char *pAttrName)
 	{
 		int32 n;
 		pParser->ReadInt32(&n);
-		_this->visible_leaves.set_capacity(n);
+		_this->visible_leaves.resize(n);
 		return true;
 	}
-	if (!strcmp("visible_leaf", pAttrName))
+	if (!strcmp("num_visible_clusters", pAttrName))
 	{
 		int32 n;
 		pParser->ReadInt32(&n);
-		_this->visible_leaves.push_back(n);
+		_this->visible_clusters.resize(n);
 		return true;
 	}
-
-	if (!strcmp("cluster", pAttrName))
+	if (!strcmp("visible_leaves", pAttrName))
 	{
-		pParser->ReadInt32(&_this->cluster);
+		for (uint32 i=0; i<_this->visible_leaves.size(); ++i)
+		pParser->ReadInt32(&_this->visible_leaves[i]);
+		return true;
+	}
+	if (!strcmp("visible_clusters", pAttrName))
+	{
+		for (uint32 i=0; i<_this->visible_clusters.size(); ++i)
+		pParser->ReadInt32(&_this->visible_clusters[i]);
 		return true;
 	}
 	if (!strcmp("mins", pAttrName))

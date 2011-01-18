@@ -48,10 +48,52 @@ namespace BspFileFormat.Q2
 				dest.Tree = BuildNode(nodes[0]);
 			}
 			BuildVisibilityList();
-
+			BuildClusters();
 			ReaderHelper.BuildEntities(entities, dest);
 		}
+		private void BuildClusters()
+		{
+			FaceToLeafMap faceMap = new FaceToLeafMap(faces.Count);
+			for (int i = 0; i < dleaves.Count; ++i)
+			{
+				var dleaf = dleaves[i];
+				BuilFaceToLeafMap(faceMap, i, dleaf);
+				if (dleaf.cluster >= 0)
+				{
+					foreach (var vis in clusters[dleaf.cluster].lists)
+					{
+						dleaf = dleaves[vis];
+						BuilFaceToLeafMap(faceMap, i, dleaf);
+					}
+					foreach (var visC in clusters[dleaf.cluster].visiblity)
+						foreach (var vis in clusters[visC].lists)
+						{
+							dleaf = dleaves[vis];
+							BuilFaceToLeafMap(faceMap, i, dleaf);
+						}
+				}
+			}
+			var keys = faceMap.FindUniqueKeys();
 
+			foreach (var k in keys)
+			{
+				if (k.Faces.Count > 0)
+				{
+					var geo = BuildGeometry(k.Faces);
+					if (geo != null)
+					{
+						foreach (var l in k.Key.Leaves)
+							leaves[l.Key].Geometries.Add(geo);
+					}
+				}
+			}
+		}
+		private void BuilFaceToLeafMap(FaceToLeafMap faceMap, int i, leaf_t dleaf)
+		{
+			if (dleaf.first_leaf_face >= 0 && dleaf.num_leaf_faces >= 0)
+				for (int j = dleaf.first_leaf_face; j < dleaf.first_leaf_face + dleaf.num_leaf_faces; ++j)
+					faceMap.Faces[(int)listOfFaces[j]].AddLeaf(i);
+		}
 		private void ReadVisibilityList(BinaryReader source)
 		{
 			SeekDir(source, header.visibility);
@@ -154,7 +196,7 @@ namespace BspFileFormat.Q2
 			var res = new BspTreeLeaf();
 			res.Mins = new Vector3(dleaf.box.mins[0], dleaf.box.mins[1], dleaf.box.mins[2]);
 			res.Maxs = new Vector3(dleaf.box.maxs[0], dleaf.box.maxs[1], dleaf.box.maxs[2]);
-			res.Geometry = BuildGeometry(dleaf.first_leaf_face, dleaf.num_leaf_faces);
+			//res.Geometries.Add(BuildGeometry(dleaf.first_leaf_face, dleaf.num_leaf_faces));
 			return res;
 		}
 		private void ReadListOfEdges(BinaryReader source)
@@ -168,12 +210,13 @@ namespace BspFileFormat.Q2
 			}
 		}
 		Dictionary<int, BspTexture> faceLightmapObjects = new Dictionary<int, BspTexture>();
-		private BspGeometry BuildGeometry(uint fromFace, uint numFaces)
+		private BspGeometry BuildGeometry(List<int> list)
 		{
+			if (list == null || list.Count == 0)
+				return null;
 			var res = new BspGeometry() { Faces = new List<BspGeometryFace>() };
-			for (uint i = fromFace; i < fromFace + numFaces; ++i)
+			foreach (var faceIndex in list)
 			{
-				ushort faceIndex = listOfFaces[i];
 				var face = faces[faceIndex];
 				plane_t plane = planes[face.plane];
 				var surf = texInfos[face.texture_info];

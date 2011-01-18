@@ -15,7 +15,9 @@ namespace Bsp2AirplayAdapter
 	{
 		Dictionary<BspTreeNode, int> nodeIndices = new Dictionary<BspTreeNode, int>();
 		Dictionary<BspTreeLeaf, int> leafIndices = new Dictionary<BspTreeLeaf, int>();
+		Dictionary<BspGeometry, int> clusterIndices = new Dictionary<BspGeometry, int>();
 		List<BspTreeLeaf> allLeaves = new List<BspTreeLeaf>();
+		List<BspGeometry> allClusters = new List<BspGeometry>();
 		Dictionary<BspTexture, int> textureIndices = new Dictionary<BspTexture, int>();
 		//Dictionary<BspTexture, int> lightmapIndices = new Dictionary<BspTexture, int>();
 		CIwResGroup group;
@@ -25,15 +27,18 @@ namespace Bsp2AirplayAdapter
 		BspTexture commonLightmap;
 		public void Convert(BspDocument bsp, CIwResGroup group)
 		{
-			CollectAllLeaves(bsp.Tree);
-			BuildLightmapAtlas(bsp);
-
 			this.group = group;
 			this.level = new Cb4aLevel();
 			level.Name = bsp.Name;
-			group.AddRes(new CIwTexture() { FilePath="../textures/checkers.png"});
-			writer = new LevelVBWriter(level);
+			group.AddRes(new CIwTexture() { FilePath = "../textures/checkers.png" });
 			group.AddRes(level);
+			writer = new LevelVBWriter(level);
+
+			CollectAllLeaves(bsp.Tree);
+			CollectAllClusters();
+			BuildLightmapAtlas(bsp);
+			BuildClusters();
+
 
 			//level.Materials.Add(new Cb4aLevelMaterial() { Texture="checkers" });
 
@@ -46,17 +51,55 @@ namespace Bsp2AirplayAdapter
 				AddTreeNode(level, bsp.Tree);
 		}
 
+		private void BuildClusters()
+		{
+			int i = 0;
+			foreach (var c in allClusters)
+			{
+				int j = WriteVB(c, writer);
+				if (j != i)
+					throw new ApplicationException("j!=i");
+				++i;
+			}
+		}
+
+		private void CollectAllClusters()
+		{
+			foreach (BspTreeLeaf l in allLeaves)
+			{
+				foreach (var c in l.Geometries)
+				{
+					int i;
+					if (!clusterIndices.TryGetValue(c, out i))
+					{
+						if (c.Faces.Count > 0)
+						{
+							i = allClusters.Count;
+							allClusters.Add(c);
+						}
+						else
+						{
+							i = -1;
+						}
+						clusterIndices.Add(c, i);
+					}
+				}
+			}
+		}
+
 		private void AddLeaves(Cb4aLevel level)
 		{
-			for (int i=0; i<allLeaves.Count;++i)
+			for (int i = 0; i < allLeaves.Count; ++i)
 			{
 				var bspTreeLeaf = allLeaves[i];
 				i = level.Leaves.Count;
 				var ll = new Cb4aLeaf() { Index = i, mins = GetVec3(bspTreeLeaf.Mins), maxs = GetVec3(bspTreeLeaf.Maxs) };
 				level.Leaves.Add(ll);
-				if (bspTreeLeaf.Geometry != null && bspTreeLeaf.Geometry.Faces.Count > 0)
+				foreach (var g in bspTreeLeaf.Geometries)
 				{
-					ll.Cluster = WriteVB(bspTreeLeaf, writer);
+					int clusterIndix = clusterIndices[g];
+					if (clusterIndix >= 0)
+						ll.Clusters.Add(clusterIndix);
 				}
 				if (bspTreeLeaf.Colliders != null)
 				{
@@ -185,14 +228,12 @@ namespace Bsp2AirplayAdapter
 
 		private void UpdateLightmap(BspTexture result, Atlas atlas)
 		{
-			foreach (var leaf in allLeaves)
+			foreach (var geo in allClusters)
 			{
-				if (leaf.Geometry == null)
-					continue;
 				Size dstSize = new Size(atlas.Bitmap.Width, atlas.Bitmap.Height);
-				for (int i = 0; i < leaf.Geometry.Faces.Count; ++i)
+				for (int i = 0; i < geo.Faces.Count; ++i)
 				{
-					var f = leaf.Geometry.Faces[i];
+					var f = geo.Faces[i];
 					if (f.Lightmap != null)
 					{
 						if (f.Lightmap.Equals(result))
@@ -202,7 +243,7 @@ namespace Bsp2AirplayAdapter
 						ff.Vertex0 = CorrectLightmapCoords(f.Vertex0, dstSize, item);
 						ff.Vertex1 = CorrectLightmapCoords(f.Vertex1, dstSize, item);
 						ff.Vertex2 = CorrectLightmapCoords(f.Vertex2, dstSize, item);
-						leaf.Geometry.Faces[i] = ff;
+						geo.Faces[i] = ff;
 					}
 				}
 			}
@@ -244,11 +285,9 @@ namespace Bsp2AirplayAdapter
 		}
 		private void CollectAllLightmaps(Dictionary<Bitmap, bool> lightmaps)
 		{
-			foreach (var leaf in allLeaves)
+			foreach (var geo in allClusters)
 			{
-				if (leaf.Geometry == null)
-					continue;
-				foreach (var f in leaf.Geometry.Faces)
+				foreach (var f in geo.Faces)
 					if (f.Lightmap != null)
 						lightmaps[((BspEmbeddedTexture)f.Lightmap).mipMaps[0]] = true;
 			}
@@ -286,31 +325,31 @@ namespace Bsp2AirplayAdapter
 			group.AddRes(new CIwTexture() { FilePath = subfolder + t.Name + ".png", Bitmap = bmp });
 		}
 
-		private int WriteVB(BspTreeLeaf bspTreeLeaf, LevelVBWriter writer)
+		private int WriteVB(BspGeometry geometry, LevelVBWriter writer)
 		{
-			if (bspTreeLeaf.Geometry == null)
+			if (geometry == null)
 				return -1;
-			if (bspTreeLeaf.Geometry.Faces.Count == 0)
+			if (geometry.Faces.Count == 0)
 				return -1;
 
-			TessalateFaces(bspTreeLeaf.Geometry);
+			TessalateFaces(geometry);
 
 			var clusterIndex = level.clusters.Count;
 			var cluster = new Cb4aLevelVBCluster();
 			level.clusters.Add(cluster);
 
-			writer.PrepareVertexBuffer(bspTreeLeaf.Geometry.Faces.Count * 3);
+			writer.PrepareVertexBuffer(geometry.Faces.Count * 3);
 			cluster.VertexBuffer = level.VertexBuffers.Count - 1;
 			Dictionary<int, bool> materialMap = new Dictionary<int, bool>();
-			List<int> materialInices = new List<int>(bspTreeLeaf.Geometry.Faces.Count);
-			foreach (var f in bspTreeLeaf.Geometry.Faces)
+			List<int> materialInices = new List<int>(geometry.Faces.Count);
+			foreach (var f in geometry.Faces)
 			{
 				RegisterTexture(f.Texture);
 				if (f.Lightmap != null && commonLightmap != f.Lightmap)
 					throw new ApplicationException("not atlased lightmap");
 				RegisterTexture(f.Lightmap);
 				int matIndex = writer.WriteMaterial(BuildMaterial(f));
-                materialInices.Add(matIndex);
+				materialInices.Add(matIndex);
 				materialMap[matIndex] = true;
 			}
 			foreach (int t in materialMap.Keys)
@@ -320,11 +359,11 @@ namespace Bsp2AirplayAdapter
 				cluster.Subclusters.Add(sub);
 				CIwVec3 mins = new CIwVec3(int.MaxValue, int.MaxValue, int.MaxValue);
 				CIwVec3 maxs = new CIwVec3(int.MinValue, int.MinValue, int.MinValue);
-				for (int i=0; i<materialInices.Count; ++i)
+				for (int i = 0; i < materialInices.Count; ++i)
 				{
 					if (materialInices[i] == t)
 					{
-						var f = bspTreeLeaf.Geometry.Faces[i];
+						var f = geometry.Faces[i];
 
 						//TODO: slice face into more faces
 						BuildFace(writer, sub, ref mins, ref maxs, f);
@@ -338,7 +377,7 @@ namespace Bsp2AirplayAdapter
 				sub.Mins = mins;
 				sub.Maxs = maxs;
 			}
-			
+
 			return clusterIndex;
 		}
 
