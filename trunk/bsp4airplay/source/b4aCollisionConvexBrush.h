@@ -3,33 +3,21 @@
 #include <IwGx.h>
 #include "Bsp4Airplay.h"
 #include "Ib4aCollider.h"
+#include "b4aPlane.h"
 
 namespace Bsp4Airplay
 {
-	class Cb4aCollisionMeshSoup;
-
-
-	struct Cb4aCollisionMeshSoupFace
+	class Cb4aCollisionConvexBrush : public CIwManaged, public Ib4aCollider
 	{
-		int start;
-		int num;
-
-		b4aCollisionResult TraceLine(const Cb4aCollisionMeshSoup& soup, Cb4aTraceContext& context) const;
-		b4aCollisionResult TraceSphere(const Cb4aCollisionMeshSoup& soup, int32 r, Cb4aTraceContext& context) const;
-	};
-	class Cb4aCollisionMeshSoup : public CIwManaged, public Ib4aCollider
-	{
-		friend struct Cb4aCollisionMeshSoupFace;
-		CIwArray<Cb4aCollisionMeshSoupFace> faces;
 		CIwArray<Cb4aCollisionMeshSoupPlane> planes;
 		public:
 		//Declare managed class
-		IW_MANAGED_DECLARE(Cb4aCollisionMeshSoup);
+		IW_MANAGED_DECLARE(Cb4aCollisionConvexBrush);
 
 		//Constructor
-		Cb4aCollisionMeshSoup();
+		Cb4aCollisionConvexBrush();
 		//Desctructor
-		virtual ~Cb4aCollisionMeshSoup();
+		virtual ~Cb4aCollisionConvexBrush();
 
 		virtual void  Serialise ();
 

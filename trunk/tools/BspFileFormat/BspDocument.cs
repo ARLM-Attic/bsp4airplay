@@ -84,6 +84,8 @@ namespace BspFileFormat
 					reader = new Quake2Reader();
 				else if (magic == 0x2E)
 					reader = new Quake3Reader();
+				else if (magic == 0x2F)
+					reader = new QuakeLiveReader();
 			}
 			if (reader == null)
 				throw new ApplicationException("Format is not supported");

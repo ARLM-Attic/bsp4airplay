@@ -10,6 +10,8 @@ files
 	b4aColliderList.h
 	b4aCollisionMeshSoup.cpp
 	b4aCollisionMeshSoup.h
+	b4aCollisionConvexBrush.cpp
+	b4aCollisionConvexBrush.h
 	b4aEntity.cpp
 	b4aEntity.h
 	b4aLeaf.cpp
@@ -20,8 +22,6 @@ files
 	b4aLevelMaterial.h
 	b4aLevelVB.cpp
 	b4aLevelVB.h
-	b4aLevelVBCluster.cpp
-	b4aLevelVBCluster.h
 	b4aLevelVBSubcluster.cpp
 	b4aLevelVBSubcluster.h
 	b4aNode.cpp

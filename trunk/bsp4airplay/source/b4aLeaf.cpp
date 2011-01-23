@@ -73,6 +73,8 @@ b4aCollisionResult Cb4aLeaf::TraceSphere(const Cb4aLevel*l, int32 sphere, Cb4aTr
 			break;
 		case COLLISION_ATSTART:
 			return COLLISION_ATSTART;
+		default:
+			break;
 		}
 	}
 	return res;
@@ -91,6 +93,8 @@ b4aCollisionResult Cb4aLeaf::TraceLine(const Cb4aLevel*l, Cb4aTraceContext& cont
 			break;
 		case COLLISION_ATSTART:
 			return COLLISION_ATSTART;
+		default:
+			break;
 		}
 	}
 	return res;

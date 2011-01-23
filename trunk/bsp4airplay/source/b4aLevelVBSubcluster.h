@@ -36,6 +36,7 @@ namespace Bsp4Airplay
 		CIwBBox bbox;
 		CIwSphere sphere;
 		uint32 material;
+		uint32 vb;
 	public:
 
 		//Constructor

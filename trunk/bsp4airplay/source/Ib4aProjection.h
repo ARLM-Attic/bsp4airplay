@@ -25,9 +25,7 @@ namespace Bsp4Airplay
 	struct Cb4aFlashlightProjectionVertex
 	{
 		CIwSVec3 pos;
-		int16 n;
 		CIwSVec2 uv0;
-		CIwVec3 uv1;
 
 		static void Lerp(Cb4aFlashlightProjectionVertex*dst, const Cb4aFlashlightProjectionVertex& v0, int32 d0, const Cb4aFlashlightProjectionVertex& v1, int32 d1);
 	};
@@ -45,6 +43,7 @@ namespace Bsp4Airplay
 		CIwBBox projectionBox;
 		CIwArray<CIwSVec3> positions;
 		CIwArray<CIwSVec2> uv0;
+		CIwArray<CIwColour> col;
 		CIwArray<uint16> indices;
 		Cb4aPlane frustum[6];
 	public:

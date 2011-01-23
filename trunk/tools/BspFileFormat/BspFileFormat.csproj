@@ -44,6 +44,7 @@
     <Compile Include="BspGeometry.cs" />
     <Compile Include="BspGeometryFace.cs" />
     <Compile Include="BspGeometryVertex.cs" />
+    <Compile Include="BspMath\Plane.cs" />
     <Compile Include="BspTexture.cs" />
     <Compile Include="BspTextureReference.cs" />
     <Compile Include="BspTreeElement.cs" />
@@ -95,6 +96,7 @@
     <Compile Include="Q2\plane_t.cs" />
     <Compile Include="Q2\Quake2Reader.cs" />
     <Compile Include="Q2\texinfo_t.cs" />
+    <Compile Include="Q3\brush_t.cs" />
     <Compile Include="Q3\cluster_t.cs" />
     <Compile Include="Q3\dentry_t.cs" />
     <Compile Include="Q3\face_t.cs" />
@@ -104,6 +106,7 @@
     <Compile Include="Q3\plane_t.cs" />
     <Compile Include="Q3\Quake3Reader.cs" />
     <Compile Include="BspEmbeddedTexture.cs" />
+    <Compile Include="Q3\QuakeLiveReader.cs" />
     <Compile Include="Q3\texture_t.cs" />
     <Compile Include="Q3\vertex_t.cs" />
     <Compile Include="Utils\FaceToLeafKey.cs" />

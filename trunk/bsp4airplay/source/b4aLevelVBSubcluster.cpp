@@ -20,6 +20,7 @@ Cb4aLevelVBSubcluster::Cb4aLevelVBSubcluster()
 	sphere.SetRadius(0);
 	sphere.t = CIwVec3::g_Zero;
 	material= 0;
+	vb =0;
 	bbox.m_Max = bbox.m_Min = CIwVec3::g_Zero;
 }
 
@@ -47,6 +48,7 @@ void  Cb4aLevelVBSubcluster::Serialise ()
 		sphere.SetRadius((bbox.m_Max-sphere.t).GetLength());
 	}
 	IwSerialiseUInt32(material);
+	IwSerialiseUInt32(vb);
 
 	indices.SerialiseHeader();
 	for (uint32 i=0; i<indices.size(); ++i)
@@ -67,8 +69,8 @@ void* Bsp4Airplay::Cb4aLevelVBSubclusterFactory()
 void  ParseLevelVBSubcluster::ParseOpen (CIwTextParserITX *pParser)
 {
 	CIwManaged::ParseOpen(pParser);
-	ParseLevelVBCluster* level = dynamic_cast<ParseLevelVBCluster*>(pParser->GetObject(-1));
-	_this = level->AllocateSubcluster();
+	Cb4aLevel* level = dynamic_cast<Cb4aLevel*>(pParser->GetObject(-1));
+	_this = level->AllocateCluster();
 }
 // function invoked by the text parser when parsing attributes for objects of this type
 bool ParseLevelVBSubcluster::ParseAttribute(CIwTextParserITX *pParser, const char *pAttrName)
@@ -77,6 +79,11 @@ bool ParseLevelVBSubcluster::ParseAttribute(CIwTextParserITX *pParser, const cha
 	if (!strcmp("material", pAttrName))
 	{
 		pParser->ReadUInt32(&_this->material);
+		return true;
+	}
+	if (!strcmp("vb", pAttrName))
+	{
+		pParser->ReadUInt32(&_this->vb);
 		return true;
 	}
 	if (!strcmp("mins", pAttrName))

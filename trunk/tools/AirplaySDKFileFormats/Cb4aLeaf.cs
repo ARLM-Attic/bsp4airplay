@@ -1,6 +1,7 @@
 using System;
 using System.Globalization;
 using System.Collections.Generic;
+using AirplaySDKFileFormats.Model;
 
 namespace AirplaySDKFileFormats
 {
@@ -40,6 +41,24 @@ namespace AirplaySDKFileFormats
 			{
 				((CIwParseable)l).WrtieToStream(writer);
 			}
+		}
+
+	
+		public void SortClusters(Cb4aLevel level)
+		{
+			if (Clusters.Count == 0) return;
+			var ar = Clusters.ToArray();
+			Array.Sort(ar, (x, y) => {
+				var a = level.subclusters[x];
+				var b = level.subclusters[y];
+				if (a.VertexBuffer != b.VertexBuffer)
+					return a.VertexBuffer - b.VertexBuffer;
+				if (a.Material != b.Material)
+					return a.Material - b.Material;
+				return 0;
+			});
+			Clusters.Clear();
+			Clusters.AddRange(ar);
 		}
 	}
 }

@@ -4,6 +4,7 @@
 
 namespace Bsp4Airplay
 {
+
 	struct Cb4aPlane
 	{
 		CIwVec3 v;
@@ -71,6 +72,13 @@ namespace Bsp4Airplay
 	const int32 b4aCollisionEpsilon=4096;
 
 	typedef iwfixed (*PlaneDistanceCalculator)(const CIwVec3 & viewer, const Cb4aPlane& plane);
+
+	struct Cb4aCollisionMeshSoupPlane
+	{
+		Cb4aPlane plane;
+		PlaneDistanceCalculator calc;
+	};
+
 	inline iwfixed GenericPlaneDistanceCalculator(const CIwVec3 & viewer, const Cb4aPlane& plane)	{	return b4aPlaneDist(viewer,plane);	}
 	inline iwfixed PlaneDistanceCalculatorX(const CIwVec3 & viewer, const Cb4aPlane& plane) { return viewer.x-plane.k; }
 	inline iwfixed PlaneDistanceCalculatorY(const CIwVec3 & viewer, const Cb4aPlane& plane) { return viewer.y-plane.k; }

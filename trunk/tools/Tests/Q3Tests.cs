@@ -15,5 +15,10 @@ namespace Tests
 		{
 			(new Adapter()).Convert(@"..\data\maps\q3shw18.bsp", @"..\data\maps\q3shw18.group");
 		}
+		[Test]
+		public void TestQ3_qzdm1()
+		{
+			(new Adapter()).Convert(@"..\data\maps\qzdm1.bsp", @"..\data\maps\qzdm1.group");
+		}
 	}
 }

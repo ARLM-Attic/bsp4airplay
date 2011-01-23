@@ -126,7 +126,31 @@ void Cb4aLevelVertexBuffer::Flush(Cb4aLevel* l)
 	if (renderQueue.empty())
 		return;
 
-	std::sort(renderQueue.begin(),renderQueue.end(), SortByMaterial);
+	//This sould not happen since materials are sorted in tool
+	uint32 prevVB=0;
+	uint32 prevMat=0;
+	for (CIwArray<Cb4aLevelVBSubcluster*>::iterator q=renderQueue.begin();q!=renderQueue.end();++q)
+	{
+		if (prevVB > (*q)->vb)
+		{
+			std::sort(renderQueue.begin(),renderQueue.end(), SortByMaterial);
+			break;
+		}
+		if (prevVB < (*q)->vb)
+		{
+			prevVB = (*q)->vb;
+			prevMat=0;
+		}
+		if (prevMat > (*q)->material)
+		{
+			std::sort(renderQueue.begin(),renderQueue.end(), SortByMaterial);
+			break;
+		}
+		if (prevMat < (*q)->material)
+			prevMat = (*q)->material;
+	}
+
+	//std::sort(renderQueue.begin(),renderQueue.end(), SortByMaterial);
 
 	if (false)
 	{

@@ -196,9 +196,27 @@ namespace BspFileFormat.Q2
 			var res = new BspTreeLeaf();
 			res.Mins = new Vector3(dleaf.box.mins[0], dleaf.box.mins[1], dleaf.box.mins[2]);
 			res.Maxs = new Vector3(dleaf.box.maxs[0], dleaf.box.maxs[1], dleaf.box.maxs[2]);
-			//res.Geometries.Add(BuildGeometry(dleaf.first_leaf_face, dleaf.num_leaf_faces));
+			//for (int i = dleaf.first_leaf_brush; i < dleaf.first_leaf_brush + dleaf.num_leaf_brushes; ++i)
+			//{
+			//    BspCollisionObject b = BuildLeafBrush((int)listOfBrushes[i]);
+			//    if (b != null)
+			//        res.Colliders.Add(b);
+			//}
 			return res;
 		}
+		//private BspCollisionObject BuildLeafBrush(int brushIndex)
+		//{
+		//    var b = this.brushes[brushIndex];
+		//    BspCollisionConvexBrush brush = new BspCollisionConvexBrush();
+		//    for (int i = b.brushside; i < b.brushside + b.n_brushsides; ++i)
+		//    {
+		//        var p = new Plane();
+		//        p.Normal = this.planes[brushsides[i].plane].normal;
+		//        p.Distance = this.planes[brushsides[i].plane].dist;
+		//        brush.Planes.Add(p);
+		//    }
+		//    return brush;
+		//}
 		private void ReadListOfEdges(BinaryReader source)
 		{
 			SeekDir(source, header.faceEdgeTable);

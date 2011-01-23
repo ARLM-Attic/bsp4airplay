@@ -68,7 +68,9 @@ int Cb4aLevel::FindEntityByClassName(const char* name, int startFrom) const
 void Cb4aLevel::RenderCluster(int32 i)
 {
 	if (i < 0) return;
-	clusters[i].Render(this);
+	Cb4aLevelVBSubcluster& cluster = clusters[i];
+	if (cluster.IsVisible())
+		ScheduleRender(cluster.vb, &cluster);
 }
 void Cb4aLevel::ResetFrameCounter()
 {
@@ -173,7 +175,7 @@ Cb4aEntity* Cb4aLevel::AllocateEntity()
 	entities.push_back();
 	return &entities.back();
 }
-Cb4aLevelVBCluster* Cb4aLevel::AllocateCluster()
+Cb4aLevelVBSubcluster* Cb4aLevel::AllocateCluster()
 {
 	clusters.push_back();
 	return &clusters.back();

@@ -9,6 +9,7 @@ namespace AirplaySDKFileFormats.Model
 	{
 		public List<int> Indices = new List<int>();
 		public int Material=0;
+		public int VertexBuffer = 0;
 		public CIwVec3 Mins;
 		public CIwVec3 Maxs;
 		public override void WrtieBodyToStream(CTextWriter writer)
@@ -17,6 +18,7 @@ namespace AirplaySDKFileFormats.Model
 			writer.WriteKeyVal("material", Material);
 			writer.WriteVec3("mins", Mins);
 			writer.WriteVec3("maxs", Maxs);
+			writer.WriteKeyVal("vb", VertexBuffer);
 			IList<int> res = Indices;
 			//res = BuildStrip(Indices);
 			writer.WriteKeyVal("num_indices", res.Count);

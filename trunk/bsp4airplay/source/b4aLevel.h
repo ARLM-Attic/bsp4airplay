@@ -4,7 +4,7 @@
 #include "b4aNode.h"
 #include "b4aEntity.h"
 #include "b4aLevelVB.h"
-#include "b4aLevelVBCluster.h"
+#include "b4aLevelVBSubcluster.h"
 #include "b4aLevelMaterial.h"
 #include "Ib4aProjection.h"
 
@@ -22,7 +22,7 @@ namespace Bsp4Airplay
 		CIwArray<Cb4aNode> nodes;
 		CIwArray<Cb4aEntity> entities;
 		CIwArray<Cb4aLevelMaterial> materials;
-		CIwArray<Cb4aLevelVBCluster> clusters;
+		CIwArray<Cb4aLevelVBSubcluster> clusters;
 		uint32 defaultTextureHash;
 		CIwBBox visibleArea;
 	public:
@@ -66,7 +66,7 @@ namespace Bsp4Airplay
 		Cb4aLeaf* AllocateLeaf();
 		Cb4aNode* AllocateNode();
 		Cb4aEntity* AllocateEntity();
-		Cb4aLevelVBCluster* AllocateCluster();
+		Cb4aLevelVBSubcluster* AllocateCluster();
 		Cb4aLevelVertexBuffer* AllocateLevelVertexBuffer();
 		Cb4aLevelMaterial* AllocateLevelMaterial();
 		// function invoked by the text parser when parsing attributes for objects of this type

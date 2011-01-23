@@ -11,7 +11,8 @@ namespace AirplaySDKFileFormats
 		public List<Cb4aLeaf> Leaves = new List<Cb4aLeaf>();
 		public List<Cb4aEntity> Entities = new List<Cb4aEntity>();
 		public List<Cb4aLevelVertexBuffer> VertexBuffers = new List<Cb4aLevelVertexBuffer>();
-		public List<Cb4aLevelVBCluster> clusters = new List<Cb4aLevelVBCluster>();
+		//public List<Cb4aLevelVBCluster> clusters = new List<Cb4aLevelVBCluster>();
+		public List<Cb4aLevelVBSubcluster> subclusters = new List<Cb4aLevelVBSubcluster>();
 		public List<Cb4aLevelMaterial> Materials = new List<Cb4aLevelMaterial>();
 
 		public override void WrtieBodyToStream(CTextWriter writer)
@@ -27,8 +28,8 @@ namespace AirplaySDKFileFormats
 			{
 				l.WrtieToStream(writer);
 			}
-			writer.WriteKeyVal("num_clusters", clusters.Count);
-			foreach (var l in clusters)
+			writer.WriteKeyVal("num_clusters", subclusters.Count);
+			foreach (var l in subclusters)
 			{
 				l.WrtieToStream(writer);
 			}

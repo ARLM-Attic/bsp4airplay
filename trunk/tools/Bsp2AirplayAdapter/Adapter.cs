@@ -18,6 +18,7 @@ namespace Bsp2AirplayAdapter
 		Dictionary<BspGeometry, int> clusterIndices = new Dictionary<BspGeometry, int>();
 		List<BspTreeLeaf> allLeaves = new List<BspTreeLeaf>();
 		List<BspGeometry> allClusters = new List<BspGeometry>();
+		List<List<int>> subclustersInCluster = new List<List<int>>();
 		Dictionary<BspTexture, int> textureIndices = new Dictionary<BspTexture, int>();
 		//Dictionary<BspTexture, int> lightmapIndices = new Dictionary<BspTexture, int>();
 		CIwResGroup group;
@@ -99,8 +100,12 @@ namespace Bsp2AirplayAdapter
 				{
 					int clusterIndix = clusterIndices[g];
 					if (clusterIndix >= 0)
-						ll.Clusters.Add(clusterIndix);
+					{
+						foreach (var sub in subclustersInCluster[clusterIndix])
+							ll.Clusters.Add(sub);
+					}
 				}
+				ll.SortClusters(level);
 				if (bspTreeLeaf.Colliders != null)
 				{
 					foreach (var collider in bspTreeLeaf.Colliders)
@@ -119,8 +124,21 @@ namespace Bsp2AirplayAdapter
 		{
 			if (collider is BspCollisionFaceSoup)
 				return BuildCollisionFaceSoup((BspCollisionFaceSoup)collider);
+			if (collider is BspCollisionConvexBrush)
+				return BuildCollisionConvexBrush((BspCollisionConvexBrush)collider);
 			return null;
 		}
+
+		private Ib4aCollider BuildCollisionConvexBrush(BspCollisionConvexBrush bspCollisionConvexBrush)
+		{
+			var brush = new Cb4aCollisionConvexBrush();
+			foreach (var f in bspCollisionConvexBrush.Planes)
+			{
+				brush.Planes.Add(new CIwPlane(){v = GetVec3Fixed(f.Normal), k = (int)(f.Distance*AirplaySDKMath.IW_GEOM_ONE)});
+			}
+			return brush;
+		}
+
 
 		private Ib4aCollider BuildCollisionFaceSoup(BspCollisionFaceSoup bspCollisionFaceSoup)
 		{
@@ -334,12 +352,12 @@ namespace Bsp2AirplayAdapter
 
 			TessalateFaces(geometry);
 
-			var clusterIndex = level.clusters.Count;
-			var cluster = new Cb4aLevelVBCluster();
-			level.clusters.Add(cluster);
+			var clusterIndex = subclustersInCluster.Count;
+			var cluster = new List<int>();
+			subclustersInCluster.Add(cluster);
 
 			writer.PrepareVertexBuffer(geometry.Faces.Count * 3);
-			cluster.VertexBuffer = level.VertexBuffers.Count - 1;
+			//cluster.VertexBuffer = level.VertexBuffers.Count - 1;
 			Dictionary<int, bool> materialMap = new Dictionary<int, bool>();
 			List<int> materialInices = new List<int>(geometry.Faces.Count);
 			foreach (var f in geometry.Faces)
@@ -356,7 +374,9 @@ namespace Bsp2AirplayAdapter
 			{
 				var sub = new Cb4aLevelVBSubcluster();
 				sub.Material = t;
-				cluster.Subclusters.Add(sub);
+				sub.VertexBuffer = level.VertexBuffers.Count - 1;
+				cluster.Add(level.subclusters.Count);
+				level.subclusters.Add(sub);
 				CIwVec3 mins = new CIwVec3(int.MaxValue, int.MaxValue, int.MaxValue);
 				CIwVec3 maxs = new CIwVec3(int.MinValue, int.MinValue, int.MinValue);
 				for (int i = 0; i < materialInices.Count; ++i)

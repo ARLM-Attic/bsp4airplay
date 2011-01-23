@@ -117,6 +117,8 @@ b4aCollisionResult Cb4aCollisionMeshSoup::TraceSphere(int32 sphere, Cb4aTraceCon
 			break;
 		case COLLISION_ATSTART:
 			return COLLISION_ATSTART;
+		default:
+			break;
 		}
 	}
 	return res;
@@ -134,6 +136,8 @@ b4aCollisionResult Cb4aCollisionMeshSoup::TraceLine(Cb4aTraceContext& context) c
 			break;
 		case COLLISION_ATSTART:
 			return COLLISION_ATSTART;
+		default:
+			break;
 		}
 	}
 	return res;

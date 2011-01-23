@@ -82,7 +82,7 @@ int32 keyboardEvent (s3eKeyboardEvent* systemData, void* userData)
 	case s3eKeyL:
 		if (flashlight == 0)
 			flashlight = new Cb4aFlashlightProjection();
-		flashlight->Prepare(flashlight_tex, IwGxGetViewMatrix(),CIwVec3(256,256,256));
+		flashlight->Prepare(flashlight_tex, IwGxGetViewMatrix(),CIwVec3(256,256,512));
 		break;
 	default:
 		return 0;
@@ -150,7 +150,7 @@ int main(int argc, char* argv[])
 
 	CIwResGroup* fx_group = IwGetResManager()->LoadGroup("./fx.group");
 	flashlight_tex = (CIwTexture*)fx_group->GetResNamed("flashlight","CIwTexture");
-	//flashlight_tex->SetClamping(true);
+	flashlight_tex->SetClamping(true);
 	CIwTexture* flare_tex = (CIwTexture*)fx_group->GetResNamed("flare","CIwTexture");
 
 	//CIwVec3 rawDown(0,0,-4096);
@@ -160,8 +160,9 @@ int main(int argc, char* argv[])
 	//const char* defaultGroupName = "maps/al_test_map_02.group";
 	//const char* defaultGroupName = "maps/sg0503.group";
 	//const char* defaultGroupName = "maps/de_dust.group";
+	const char* defaultGroupName = "maps/qzdm1.group";
 	//const char* defaultGroupName = "maps/q3shw18.group";
-	const char* defaultGroupName = "maps/cs_mansion.group";
+	//const char* defaultGroupName = "maps/cs_mansion.group";
 	//const char* defaultGroupName = "maps/de_aztec.group";
 	//const char* defaultGroupName = "maps/match1.group";
 	const char* groupName = (argc > 1)?argv[1]:defaultGroupName;

@@ -8,7 +8,7 @@ using BspFileFormat.BspMath;
 
 namespace BspFileFormat.Q3
 {
-	class Quake3Reader : IBspReader
+	public class Quake3Reader : IBspReader
 	{
 		protected long startOfTheFile;
 		protected header_t header;
@@ -24,8 +24,11 @@ namespace BspFileFormat.Q3
 		protected List<cluster_t> clusters = new List<cluster_t>();
 
 		protected uint[] listOfFaces;
+		protected uint[] listOfBrushes;
 		protected uint[] listOfVertices;
 		private List<texture_t> texInfo;
+		private List<brushside_t> brushsides;
+		private List<brush_t> brushes;
 
 		public void ReadBsp(System.IO.BinaryReader source, BspDocument dest)
 		{
@@ -38,11 +41,13 @@ namespace BspFileFormat.Q3
 			ReadNodes(source);
 			ReadLeaves(source);
 			ReadVisibility(source);
-
+			listOfBrushes = ReaderHelper.ReadUInt32Array(source, header.leafbrushes.size, header.leafbrushes.offset);
 			listOfFaces = ReaderHelper.ReadUInt32Array(source, header.leaffaces.size, header.leaffaces.offset);
 			listOfVertices = ReaderHelper.ReadUInt32Array(source, header.meshverts.size, header.meshverts.offset);
 			vertices = ReaderHelper.ReadStructs<vertex_t>(source, header.vertexes.size, header.vertexes.offset + startOfTheFile, 11 * 4);
 			faces = ReaderHelper.ReadStructs<face_t>(source, header.faces.size, header.faces.offset + startOfTheFile, 26*4);
+			brushsides = ReaderHelper.ReadStructs<brushside_t>(source, header.brushsides.size, header.brushsides.offset + startOfTheFile, 8);
+			brushes = ReaderHelper.ReadStructs<brush_t>(source, header.brushes.size, header.brushes.offset + startOfTheFile, 12);
 
 			BuildLeaves();
 			if (nodes != null && nodes.Count > 0)
@@ -226,8 +231,35 @@ namespace BspFileFormat.Q3
 			var res = new BspTreeLeaf();
 			res.Mins = new Vector3(dleaf.box.mins[0], dleaf.box.mins[1], dleaf.box.mins[2]);
 			res.Maxs = new Vector3(dleaf.box.maxs[0], dleaf.box.maxs[1], dleaf.box.maxs[2]);
+
+			for (int i = dleaf.leafbrush; i < dleaf.leafbrush + dleaf.n_leafbrushes; ++i)
+			{
+				BspCollisionObject b = BuildLeafBrush((int)listOfBrushes[i]);
+				if (b != null)
+					res.Colliders.Add(b);
+			}
+
 			//res.Geometries.Add(BuildGeometry((uint)dleaf.leafface, (uint)dleaf.n_leaffaces));
 			return res;
+		}
+
+		private BspCollisionObject BuildLeafBrush(int brushIndex)
+		{
+			var b = this.brushes[brushIndex];
+			var t= texInfo[b.texture];
+			//if (!((0 != (t.flags & texture_t.SURFACE_SLICK)) ||
+			//    (0 != (t.flags & texture_t.SURFACE_BOUNCE)) ||
+			//    (0 != (t.flags & texture_t.SURFACE_LADDER))))
+			//    return null;
+			BspCollisionConvexBrush brush = new BspCollisionConvexBrush();
+			for (int i = b.brushside; i < b.brushside + b.n_brushsides; ++i)
+			{
+				var p = new Plane();
+				p.Normal = this.planes[brushsides[i].plane].normal;
+				p.Distance = this.planes[brushsides[i].plane].dist;
+				brush.Planes.Add(p);
+			}
+			return brush;
 		}
 
 		private BspGeometry BuildGeometry(List<int> list)
