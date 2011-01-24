@@ -118,7 +118,7 @@ namespace BspFileFormat.Q3
 			textures = new List<BspTexture>();
 			foreach (var t in texInfo)
 			{
-				textures.Add(new BspTextureReference() { Name = t.name, Sky = 0 != (t.flags & texture_t.SURFACE_PORTALSKY) });
+				textures.Add(new BspTextureReference() { Name = t.name, Sky = 0 != (t.flags & texture_t.SURF_SKY) });
 			}
 		}
 		private void ReadPlanes(BinaryReader source)
@@ -247,10 +247,8 @@ namespace BspFileFormat.Q3
 		{
 			var b = this.brushes[brushIndex];
 			var t= texInfo[b.texture];
-			//if (!((0 != (t.flags & texture_t.SURFACE_SLICK)) ||
-			//    (0 != (t.flags & texture_t.SURFACE_BOUNCE)) ||
-			//    (0 != (t.flags & texture_t.SURFACE_LADDER))))
-			//    return null;
+			if (!t.IsSolid)
+				return null;
 			BspCollisionConvexBrush brush = new BspCollisionConvexBrush();
 			for (int i = b.brushside; i < b.brushside + b.n_brushsides; ++i)
 			{
@@ -355,7 +353,7 @@ namespace BspFileFormat.Q3
 			v.Normal = src.vNormal;
 			v.UV0 = src.vTextureCoord;
 			v.UV1 = src.vLightmapCoord;
-			if (0 != (texInfo[face.texinfo_id].flags & texture_t.SURFACE_PORTALSKY))
+			if (0 != (texInfo[face.texinfo_id].flags & texture_t.SURF_SKY))
 			{
 				v.UV0 = Vector2.g_Zero;
 				v.UV1 = Vector2.g_Zero;
