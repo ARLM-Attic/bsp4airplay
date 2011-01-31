@@ -159,8 +159,8 @@ int main(int argc, char* argv[])
 	//const char* defaultGroupName = "maps/samplebox.group";
 	//const char* defaultGroupName = "maps/al_test_map_02.group";
 	//const char* defaultGroupName = "maps/sg0503.group";
-	//const char* defaultGroupName = "maps/de_dust.group";
-	const char* defaultGroupName = "maps/qzdm1.group";
+	const char* defaultGroupName = "maps/de_dust.group";
+	//const char* defaultGroupName = "maps/qzdm1.group";
 	//const char* defaultGroupName = "maps/q3shw18.group";
 	//const char* defaultGroupName = "maps/cs_mansion.group";
 	//const char* defaultGroupName = "maps/de_aztec.group";

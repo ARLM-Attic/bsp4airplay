@@ -134,7 +134,9 @@ namespace Bsp2AirplayAdapter
 			var brush = new Cb4aCollisionConvexBrush();
 			foreach (var f in bspCollisionConvexBrush.Planes)
 			{
-				brush.Planes.Add(new CIwPlane(){v = GetVec3Fixed(f.Normal), k = (int)(f.Distance*AirplaySDKMath.IW_GEOM_ONE)});
+				CIwPlane plane = new CIwPlane() { v = GetVec3Fixed(f.Normal), k = GetFixed(f.Distance) };
+				//brush.Planes.Add(writer.WritePlane(plane));
+				brush.Planes.Add(plane);
 			}
 			return brush;
 		}
@@ -375,8 +377,6 @@ namespace Bsp2AirplayAdapter
 				var sub = new Cb4aLevelVBSubcluster();
 				sub.Material = t;
 				sub.VertexBuffer = level.VertexBuffers.Count - 1;
-				cluster.Add(level.subclusters.Count);
-				level.subclusters.Add(sub);
 				CIwVec3 mins = new CIwVec3(int.MaxValue, int.MaxValue, int.MaxValue);
 				CIwVec3 maxs = new CIwVec3(int.MinValue, int.MinValue, int.MinValue);
 				for (int i = 0; i < materialInices.Count; ++i)
@@ -396,6 +396,11 @@ namespace Bsp2AirplayAdapter
 				}
 				sub.Mins = mins;
 				sub.Maxs = maxs;
+				if (sub.Indices.Count > 0)
+				{
+					cluster.Add(level.subclusters.Count);
+					level.subclusters.Add(sub);
+				}
 			}
 
 			return clusterIndex;
@@ -471,9 +476,14 @@ namespace Bsp2AirplayAdapter
 			if (f.Vertex1.Position.Z > maxs.z) maxs.z = (int)f.Vertex1.Position.Z;
 			if (f.Vertex2.Position.Z > maxs.z) maxs.z = (int)f.Vertex2.Position.Z;
 
-			sub.Indices.Add(writer.Write(GetLevelVBItem(f.Vertex2)));
-			sub.Indices.Add(writer.Write(GetLevelVBItem(f.Vertex1)));
-			sub.Indices.Add(writer.Write(GetLevelVBItem(f.Vertex0)));
+			var index0 = writer.Write(GetLevelVBItem(f.Vertex0));
+			var index1 = writer.Write(GetLevelVBItem(f.Vertex1));
+			var index2 = writer.Write(GetLevelVBItem(f.Vertex2));
+			if ((index0 == index1) || (index0 == index2) || (index2 == index1))
+				return;
+			sub.Indices.Add(index2);
+			sub.Indices.Add(index1);
+			sub.Indices.Add(index0);
 		}
 
 		private void TessalateFace(IList<BspGeometryFace> faces, BspGeometryFace f)
@@ -596,14 +606,20 @@ namespace Bsp2AirplayAdapter
 				var node = new Cb4aNode() { Index = i, mins = GetVec3(bspTreeNode.Mins), maxs = GetVec3(bspTreeNode.Maxs) };
 				nodeIndices[bspTreeNode] = i;
 				l.Nodes.Add(node);
-				node.PlaneDistance = bspTreeNode.PlaneDistance;
-				node.PlaneNormal = GetVec3Fixed(bspTreeNode.PlaneNormal);
+				node.Plane = writer.WritePlane(new CIwPlane() { v = GetVec3Fixed(bspTreeNode.PlaneNormal), k = (int)(bspTreeNode.PlaneDistance) });
+				//node.PlaneDistance = bspTreeNode.PlaneDistance;
+				//node.PlaneNormal = GetVec3Fixed(bspTreeNode.PlaneNormal);
 				node.IsFrontLeaf = bspTreeNode.Front is BspTreeLeaf;
 				node.Front = AddTreeNode(l, bspTreeNode.Front);
 				node.IsBackLeaf = bspTreeNode.Back is BspTreeLeaf;
 				node.Back = AddTreeNode(l, bspTreeNode.Back);
 			}
 			return i;
+		}
+
+		private int GetFixed(float x)
+		{
+			return (int)(x * AirplaySDKMath.IW_GEOM_ONE);
 		}
 
 		private CIwVec3 GetVec3Fixed(BspFileFormat.BspMath.Vector3 vector3)

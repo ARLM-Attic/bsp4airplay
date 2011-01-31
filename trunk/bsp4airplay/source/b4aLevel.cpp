@@ -34,6 +34,16 @@ void  Cb4aLevel::Serialise ()
 	for (uint32 i=0; i<materials.size(); ++i)
 		materials[i].Serialise();
 
+	planes.SerialiseHeader();
+	for (uint32 i=0; i<planes.size(); ++i)
+	{
+		Cb4aPlane& plane = planes[i].plane;
+		plane.v.Serialise();
+		IwSerialiseInt32(plane.k);
+		if (IwSerialiseIsReading())
+			planes[i].calc = GetDistanceCalculator(plane);
+	}
+
 	buffers.SerialiseHeader();
 	for (uint32 i=0; i<buffers.size(); ++i)
 		buffers[i].Serialise();
@@ -94,7 +104,7 @@ void Cb4aLevel::BeginRender(const CIwVec3 & viewer)
 		buffers[i].ClearQueue();
 
 	int node = 0;
-	while (!nodes[node].WalkNode(viewer, &node));
+	while (!nodes[node].WalkNode(this, viewer, &node));
 
 	Cb4aLeaf* currentLeaf = &leaves[node];
 	visibleArea = currentLeaf->GetBBox();
@@ -206,6 +216,21 @@ bool Cb4aLevel::ParseAttribute(CIwTextParserITX *pParser, const char *pAttrName)
 		int num_nodes;
 		pParser->ReadInt32(&num_nodes);
 		nodes.set_capacity(num_nodes);
+		return true;
+	}
+	if (!strcmp("num_planes", pAttrName))
+	{
+		int num_planes;
+		pParser->ReadInt32(&num_planes);
+		planes.set_capacity(num_planes);
+		return true;
+	}
+	if (!strcmp("plane", pAttrName))
+	{
+		iwfixed planeValues[4];
+		pParser->ReadInt32Array(&planeValues[0],4);
+		planes.push_back();
+		planes.back().plane = Cb4aPlane(CIwVec3(planeValues[0],planeValues[1],planeValues[2]),planeValues[3]);
 		return true;
 	}
 	if (!strcmp("num_entities", pAttrName))

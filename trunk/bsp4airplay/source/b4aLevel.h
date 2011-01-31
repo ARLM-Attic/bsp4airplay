@@ -20,6 +20,7 @@ namespace Bsp4Airplay
 		CIwArray<Cb4aLevelVertexBuffer> buffers;
 		CIwArray<Cb4aLeaf> leaves;
 		CIwArray<Cb4aNode> nodes;
+		CIwArray<Cb4aCollisionMeshSoupPlane> planes;
 		CIwArray<Cb4aEntity> entities;
 		CIwArray<Cb4aLevelMaterial> materials;
 		CIwArray<Cb4aLevelVBSubcluster> clusters;
@@ -47,9 +48,9 @@ namespace Bsp4Airplay
 
 		bool TraceLine(Cb4aTraceContext& context) const;
 		bool TraceSphere(int32 r, Cb4aTraceContext& context) const;
-
-		inline const Cb4aNode& GetNode(uint i) const { return nodes[i];}
-		inline const Cb4aLeaf& GetLeaf(uint i) const { return leaves[i];}
+		inline const Cb4aNode& GetNode(uint32 i) const { return nodes[i];}
+		inline const Cb4aCollisionMeshSoupPlane& GetPlane(uint32 i) const { return planes[i];}
+		inline const Cb4aLeaf& GetLeaf(uint32 i) const { return leaves[i];}
 		inline bool IsInVisibleArea(const CIwVec3 & v) const { return visibleArea.ContainsVec(v);}
 		int FindEntityByClassName(const char* name,int startFrom=0) const;
 		inline uint32 GetNumEntities() const {return entities.size();}

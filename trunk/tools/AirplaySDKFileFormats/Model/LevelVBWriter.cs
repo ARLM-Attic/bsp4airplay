@@ -8,6 +8,7 @@ namespace AirplaySDKFileFormats.Model
 	{
 		Dictionary<LevelVBItem, int> map = new Dictionary<LevelVBItem, int>();
 		Dictionary<Cb4aLevelMaterial, int> materials = new Dictionary<Cb4aLevelMaterial, int>();
+		Dictionary<CIwPlane, int> planes = new Dictionary<CIwPlane, int>();
 		private Cb4aLevel level;
 
 		public LevelVBWriter(Cb4aLevel level)
@@ -47,8 +48,22 @@ namespace AirplaySDKFileFormats.Model
 				var lastVB = level.VertexBuffers[level.VertexBuffers.Count - 1];
 				index = lastVB.vb.Count;
 				lastVB.vb.Add(levelVBItem);
+				map[levelVBItem] = index;
 			}
 			return index;
 		}
+
+		public int WritePlane(CIwPlane plane)
+		{
+			int index;
+			if (!planes.TryGetValue(plane, out index))
+			{
+				index = level.Planes.Count;
+				level.Planes.Add(plane);
+				planes[plane] = index;
+			}
+			return index;
+		}
+
 	}
 }

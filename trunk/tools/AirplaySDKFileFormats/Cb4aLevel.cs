@@ -10,6 +10,7 @@ namespace AirplaySDKFileFormats
 		public List<Cb4aNode> Nodes = new List<Cb4aNode>();
 		public List<Cb4aLeaf> Leaves = new List<Cb4aLeaf>();
 		public List<Cb4aEntity> Entities = new List<Cb4aEntity>();
+		public List<CIwPlane> Planes = new List<CIwPlane>();
 		public List<Cb4aLevelVertexBuffer> VertexBuffers = new List<Cb4aLevelVertexBuffer>();
 		//public List<Cb4aLevelVBCluster> clusters = new List<Cb4aLevelVBCluster>();
 		public List<Cb4aLevelVBSubcluster> subclusters = new List<Cb4aLevelVBSubcluster>();
@@ -22,6 +23,14 @@ namespace AirplaySDKFileFormats
 			foreach (var l in Materials)
 			{
 				l.WrtieToStream(writer);
+			}
+			if (Planes.Count > 0)
+			{
+				writer.WriteKeyVal("num_planes", Planes.Count);
+				foreach (var l in Planes)
+				{
+					writer.WriteArray("plane", new int[] { (int)l.v.x, (int)l.v.y, (int)l.v.z, (int)(l.k * AirplaySDKMath.IW_GEOM_ONE) });
+				}
 			}
 			writer.WriteKeyVal("num_vbs", VertexBuffers.Count);
 			foreach (var l in VertexBuffers)

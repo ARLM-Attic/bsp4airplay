@@ -77,6 +77,11 @@ namespace Bsp4Airplay
 	{
 		Cb4aPlane plane;
 		PlaneDistanceCalculator calc;
+
+		inline iwfixed Calculate(const CIwVec3 & viewer) const
+		{
+			return calc(viewer,plane);
+		}
 	};
 
 	inline iwfixed GenericPlaneDistanceCalculator(const CIwVec3 & viewer, const Cb4aPlane& plane)	{	return b4aPlaneDist(viewer,plane);	}
