@@ -7,7 +7,7 @@ using AirplaySDKFileFormats.Model;
 using System.IO;
 using Atlasing;
 using System.Drawing;
-using BspFileFormat.BspMath;
+using ReaderUtils;
 
 namespace Bsp2AirplayAdapter
 {
@@ -622,7 +622,7 @@ namespace Bsp2AirplayAdapter
 			return (int)(x * AirplaySDKMath.IW_GEOM_ONE);
 		}
 
-		private CIwVec3 GetVec3Fixed(BspFileFormat.BspMath.Vector3 vector3)
+		private CIwVec3 GetVec3Fixed(ReaderUtils.Vector3 vector3)
 		{
 			return new CIwVec3(
 				(int)(vector3.X*AirplaySDKMath.IW_GEOM_ONE),
@@ -634,7 +634,7 @@ namespace Bsp2AirplayAdapter
 		{
 			return new CIwColour() { r=col.R, g=col.G,b=col.B,a=col.A };
 		}
-		private CIwVec2 GetVec2Fixed(BspFileFormat.BspMath.Vector2 vector3)
+		private CIwVec2 GetVec2Fixed(Vector2 vector3)
 		{
 			return new CIwVec2(
 				(int)(vector3.X * AirplaySDKMath.IW_GEOM_ONE),
@@ -642,7 +642,7 @@ namespace Bsp2AirplayAdapter
 				);
 		}
 
-		private CIwVec3 GetVec3(BspFileFormat.BspMath.Vector3 vector3)
+		private CIwVec3 GetVec3(ReaderUtils.Vector3 vector3)
 		{
 			return new CIwVec3(
 				(int)(vector3.X),

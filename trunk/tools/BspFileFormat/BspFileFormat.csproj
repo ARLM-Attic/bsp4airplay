@@ -44,7 +44,6 @@
     <Compile Include="BspGeometry.cs" />
     <Compile Include="BspGeometryFace.cs" />
     <Compile Include="BspGeometryVertex.cs" />
-    <Compile Include="BspMath\Plane.cs" />
     <Compile Include="BspTexture.cs" />
     <Compile Include="BspTextureReference.cs" />
     <Compile Include="BspTreeElement.cs" />
@@ -58,9 +57,6 @@
     <Compile Include="HL2\edge_t.cs" />
     <Compile Include="HL2\header_t.cs" />
     <Compile Include="HL2\HL2Reader.cs" />
-    <Compile Include="BspMath\MathHelper.cs" />
-    <Compile Include="BspMath\Vector2.cs" />
-    <Compile Include="BspMath\Vector3.cs" />
     <Compile Include="HL2\HL2Reader17.cs" />
     <Compile Include="HL2\HL2Reader19.cs" />
     <Compile Include="HL2\HL2Reader20.cs" />
@@ -112,9 +108,13 @@
     <Compile Include="Utils\FaceToLeafKey.cs" />
     <Compile Include="Utils\FaceToLeafMap.cs" />
     <Compile Include="Utils\IBspReader.cs" />
-    <Compile Include="Utils\ReaderHelper.cs" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <ProjectReference Include="..\ReaderUtils\ReaderUtils.csproj">
+      <Project>{0BCB3995-A250-4A3A-AFDB-DDC01FB20A36}</Project>
+      <Name>ReaderUtils</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

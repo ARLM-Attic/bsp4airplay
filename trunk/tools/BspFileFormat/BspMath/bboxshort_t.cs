@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using BspFileFormat.Utils;
-using BspFileFormat.BspMath;
+using ReaderUtils;
 
 namespace BspFileFormat.BspMath
 {

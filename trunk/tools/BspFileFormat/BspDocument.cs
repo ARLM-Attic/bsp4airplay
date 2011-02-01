@@ -7,20 +7,24 @@ using BspFileFormat.Utils;
 using BspFileFormat.HL2;
 using BspFileFormat.Q3;
 using BspFileFormat.Q2;
+using ReaderUtils;
 
 namespace BspFileFormat
 {
-	public class BspDocument
+	public class BspDocument: IEntityContainer
 	{
-		List<BspEntity> entities = new List<BspEntity>();
-		public IList<BspEntity> Entities
+		List<Entity> entities = new List<Entity>();
+		public IList<Entity> Entities
 		{
 			get
 			{
 				return entities;
 			}
 		}
-
+		public void AddEntity(Entity e)
+		{
+			Entities.Add(e);
+		}
 		List<BspGeometry> models = new List<BspGeometry>();
 		public IList<BspGeometry> Models
 		{

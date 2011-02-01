@@ -54,6 +54,10 @@
       <Project>{AE0150A6-6DCB-4F21-8656-F0C19326590E}</Project>
       <Name>BspFileFormat</Name>
     </ProjectReference>
+    <ProjectReference Include="..\ReaderUtils\ReaderUtils.csproj">
+      <Project>{0BCB3995-A250-4A3A-AFDB-DDC01FB20A36}</Project>
+      <Name>ReaderUtils</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

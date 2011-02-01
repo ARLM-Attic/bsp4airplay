@@ -2,7 +2,7 @@
 	using System.Runtime.InteropServices;
 	using System.Xml.Serialization;
 
-namespace BspFileFormat.BspMath
+namespace ReaderUtils
 {
 		/// <summary>
 		/// Represents a 3D vector using three single-precision floating-point numbers.

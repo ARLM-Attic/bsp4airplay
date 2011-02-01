@@ -1,26 +1,35 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using BspFileFormat.BspMath;
 using System.Globalization;
 using System.IO;
 using System.Drawing;
 
-namespace BspFileFormat.Utils
+namespace ReaderUtils
 {
+	public class Entity
+	{
+		public string ClassName;
+		public Vector3 Origin = Vector3.Zero;
+		public List<KeyValuePair<string, string>> Values = new List<KeyValuePair<string, string>>();
+	}
+	public interface IEntityContainer
+	{
+		void AddEntity(Entity entity);
+	}
 	public static class ReaderHelper
 	{
-		public static void BuildEntities(string entities, BspDocument dest)
+		public static void BuildEntities(string entities, IEntityContainer dest)
 		{
 			var lines = entities.Split(new char[]{'\n','\r'}, StringSplitOptions.RemoveEmptyEntries);
-			BspEntity entity = null;
+			Entity entity = null;
 			foreach (var rawline in lines)
 			{
 				var line = rawline.Trim();
 				if (line == "{")
 				{
-					entity = new BspEntity();
-					dest.Entities.Add(entity);
+					entity = new Entity();
+					dest.AddEntity(entity);
 					continue;
 				}
 				if (line == "}")
@@ -77,7 +86,7 @@ namespace BspFileFormat.Utils
 			return planes;
 		}
 
-		internal static ushort[] ReadUInt16Array(BinaryReader source, uint bufSize, uint offset)
+		public static ushort[] ReadUInt16Array(BinaryReader source, uint bufSize, uint offset)
 		{
 			source.BaseStream.Seek(offset, SeekOrigin.Begin);
 			int size = (int)(bufSize / 2);
@@ -88,7 +97,7 @@ namespace BspFileFormat.Utils
 			}
 			return listOfFaces;
 		}
-		internal static uint[] ReadUInt32Array(BinaryReader source, uint bufSize, uint offset)
+		public static uint[] ReadUInt32Array(BinaryReader source, uint bufSize, uint offset)
 		{
 			source.BaseStream.Seek(offset, SeekOrigin.Begin);
 			int size = (int)(bufSize / 4);
@@ -99,7 +108,7 @@ namespace BspFileFormat.Utils
 			}
 			return listOfFaces;
 		}
-		internal static int[] ReadInt32Array(BinaryReader source, uint bufSize, uint offset)
+		public static int[] ReadInt32Array(BinaryReader source, uint bufSize, uint offset)
 		{
 			source.BaseStream.Seek(offset, SeekOrigin.Begin);
 			int size = (int)(bufSize / 4);
@@ -111,7 +120,7 @@ namespace BspFileFormat.Utils
 			return listOfFaces;
 		}
 
-		internal static string ReadStringSZ(BinaryReader source)
+		public static string ReadStringSZ(BinaryReader source)
 		{
 			var buf = new List<byte>(16);
 			for (; ; )
@@ -123,7 +132,7 @@ namespace BspFileFormat.Utils
 			return Encoding.ASCII.GetString(buf.ToArray());
 		}
 
-		internal static Bitmap BuildSafeLightmap(System.Drawing.Bitmap faceLightmap)
+		public static Bitmap BuildSafeLightmap(System.Drawing.Bitmap faceLightmap)
 		{
 			var res = new Bitmap(faceLightmap.Width + 1, faceLightmap.Height + 1);
 			using (var gr = Graphics.FromImage(res))
@@ -137,7 +146,7 @@ namespace BspFileFormat.Utils
 			return res;
 		}
 
-		internal static Bitmap BuildSafeLightmapBothSides(Bitmap faceLightmap)
+		public static Bitmap BuildSafeLightmapBothSides(Bitmap faceLightmap)
 		{
 			var res = new Bitmap(faceLightmap.Width + 2, faceLightmap.Height + 2);
 			using (var gr = Graphics.FromImage(res))

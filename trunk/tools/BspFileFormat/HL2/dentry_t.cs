@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using BspFileFormat.BspMath;
+using ReaderUtils;
 using System.IO;
 
 namespace BspFileFormat.HL2

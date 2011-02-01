@@ -1,4 +1,4 @@
-using BspFileFormat.BspMath;
+using ReaderUtils;
 
 namespace BspFileFormat.Q2
 {

@@ -4,7 +4,7 @@ using System.Text;
 using BspFileFormat.Utils;
 using System.IO;
 using System.Drawing;
-using BspFileFormat.BspMath;
+using ReaderUtils;
 
 namespace BspFileFormat.Q3
 {

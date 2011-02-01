@@ -33,13 +33,21 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Data" />
+    <Reference Include="System.Drawing" />
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="HL1\MdlReader.cs" />
+    <Compile Include="HL1\mdl_header.cs" />
     <Compile Include="IModelReader.cs" />
     <Compile Include="ModelDocument.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ReaderUtils\ReaderUtils.csproj">
+      <Project>{0BCB3995-A250-4A3A-AFDB-DDC01FB20A36}</Project>
+      <Name>ReaderUtils</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

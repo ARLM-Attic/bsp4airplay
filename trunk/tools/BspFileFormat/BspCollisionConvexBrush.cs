@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using BspFileFormat.BspMath;
+using ReaderUtils;
 namespace BspFileFormat
 {
 	public class BspCollisionConvexBrush : BspCollisionObject

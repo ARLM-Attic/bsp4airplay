@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace BspFileFormat.BspMath
+namespace ReaderUtils
 {
 		/// <summary>
 		/// Contains common mathematical functions and constants.

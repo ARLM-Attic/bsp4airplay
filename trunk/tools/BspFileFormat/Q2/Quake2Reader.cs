@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using BspFileFormat.Utils;
 using System.IO;
-using BspFileFormat.BspMath;
+using ReaderUtils;
 using System.Drawing;
 
 namespace BspFileFormat.Q2

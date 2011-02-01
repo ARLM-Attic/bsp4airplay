@@ -1,7 +1,7 @@
 ﻿	using System;
 	using System.Runtime.InteropServices;
 
-namespace BspFileFormat.BspMath
+namespace ReaderUtils
 {
 		/// <summary>Represents a 2D vector using two single-precision floating-point numbers.</summary>
 		/// <remarks>

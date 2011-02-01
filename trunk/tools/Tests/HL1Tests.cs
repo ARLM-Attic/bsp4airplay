@@ -9,6 +9,7 @@ using Bsp2AirplayAdapter;
 using DemFileFormat.Quake1;
 using DemFileFormat;
 using DemFileFormat.HL1;
+using ModelFileFormat;
 
 namespace Tests
 {
@@ -22,7 +23,7 @@ namespace Tests
 			(new Adapter()).Convert(@"..\data\maps\samplebox.bsp", @"..\data\maps\samplebox.group");
 			//(new Adapter()).Convert(@"..\data\maps\madcrabs.bsp", @"..\data\maps\madcrabs.group");
 		}
-		[Test]
+		//[Test]
 		public void TestCS_1_6_dust()
 		{
 			(new Adapter()).Convert(@"..\data\maps\de_dust.bsp", @"..\data\maps\de_dust.group");
@@ -36,6 +37,11 @@ namespace Tests
 		public void TestCS_1_6_aztec()
 		{
 			(new Adapter()).Convert(@"..\data\maps\de_aztec.bsp", @"..\data\maps\de_aztec.group");
+		}
+		[Test]
+		public void TestCSModel()
+		{
+			var mdl = ModelDocument.Load(@"D:\Program Files\Valve\cstrike\models\player\guerilla\guerilla.mdl");
 		}
 		//[Test]
 		public void TestDemo()

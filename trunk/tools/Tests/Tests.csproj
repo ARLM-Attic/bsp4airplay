@@ -88,6 +88,10 @@
       <Project>{B16DB9C7-54AE-43A9-8176-82A6E1637673}</Project>
       <Name>ModelFileFormat</Name>
     </ProjectReference>
+    <ProjectReference Include="..\ReaderUtils\ReaderUtils.csproj">
+      <Project>{0BCB3995-A250-4A3A-AFDB-DDC01FB20A36}</Project>
+      <Name>ReaderUtils</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
