@@ -1,6 +1,6 @@
-
 using AirplaySDKFileFormats.Model;
 using System.Collections.Generic;
+
 namespace AirplaySDKFileFormats
 {
 	public class CIwModel : CIwResource

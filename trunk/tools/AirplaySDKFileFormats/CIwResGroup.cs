@@ -62,21 +62,36 @@ namespace AirplaySDKFileFormats
 			}
 			if (geos.Count > 0)
 			{
-				if (!Directory.Exists(subdir))
-					Directory.CreateDirectory(subdir);
 				foreach (var l in geos)
 				{
 					var geoFileName = l.Name;
 					foreach (var c in Path.GetInvalidFileNameChars())
-						geoFileName = geoFileName.Replace(c,'_');
-					writer.WriteLine(string.Format("\"./{0}/{1}.geo\"", Path.GetFileName(subdir),geoFileName));
-					using (CTextWriter subWriter = new CTextWriter(Path.Combine(subdir, geoFileName + ".geo")))
+						geoFileName = geoFileName.Replace(c, '_');
+					writer.WriteLine(string.Format("\"./{0}.geo\"",  geoFileName));
+					using (CTextWriter subWriter = new CTextWriter(Path.Combine(writer.FileDirectory, geoFileName + ".geo")))
 					{
 						l.WrtieToStream(subWriter);
 						subWriter.Close();
 					}
 				}
 			}
+			//if (geos.Count > 0)
+			//{
+			//    if (!string.IsNullOrEmpty(subdir) && !Directory.Exists(subdir))
+			//        Directory.CreateDirectory(subdir);
+			//    foreach (var l in geos)
+			//    {
+			//        var geoFileName = l.Name;
+			//        foreach (var c in Path.GetInvalidFileNameChars())
+			//            geoFileName = geoFileName.Replace(c,'_');
+			//        writer.WriteLine(string.Format("\"./{0}/{1}.geo\"", Path.GetFileName(subdir),geoFileName));
+			//        using (CTextWriter subWriter = new CTextWriter(Path.Combine(subdir, geoFileName + ".geo")))
+			//        {
+			//            l.WrtieToStream(subWriter);
+			//            subWriter.Close();
+			//        }
+			//    }
+			//}
 			foreach (var l in others)
 			{
 				l.WrtieToStream(writer);

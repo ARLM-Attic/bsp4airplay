@@ -84,6 +84,10 @@
       <Project>{6630CE9C-B9F1-4C5D-88A6-136151516D57}</Project>
       <Name>DemFileFormat</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Mdl2AirplayAdapter\Mdl2AirplayAdapter.csproj">
+      <Project>{CFF9F0D0-92B2-4A3C-BEB0-0B3127FA014C}</Project>
+      <Name>Mdl2AirplayAdapter</Name>
+    </ProjectReference>
     <ProjectReference Include="..\ModelFileFormat\ModelFileFormat.csproj">
       <Project>{B16DB9C7-54AE-43A9-8176-82A6E1637673}</Project>
       <Name>ModelFileFormat</Name>

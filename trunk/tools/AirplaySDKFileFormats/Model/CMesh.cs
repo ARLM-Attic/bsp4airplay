@@ -9,7 +9,7 @@ namespace AirplaySDKFileFormats.Model
 	public class CMesh : CIwParseable
 	{
 		public string Name;
-		public float Scale;
+		public float Scale=1;
 		public CVerts Verts = new CVerts();
 		public CVertNorms VertNorms = new CVertNorms();
 		public CVertCols VertCols = new CVertCols();
@@ -19,7 +19,7 @@ namespace AirplaySDKFileFormats.Model
 		public override void WrtieBodyToStream(CTextWriter writer)
 		{
 			writer.WriteString("name", Name);
-			writer.WriteLine("scale 1.0");
+			writer.WriteLine(string.Format("scale {0}", Scale));
 			Verts.WrtieToStream(writer);
 			VertNorms.WrtieToStream(writer);
 			VertCols.WrtieToStream(writer);

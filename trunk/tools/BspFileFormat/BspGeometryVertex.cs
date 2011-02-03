@@ -16,7 +16,7 @@ namespace BspFileFormat
 
 		public override int GetHashCode()
 		{
-			return Position.GetHashCode() ^ Normal.GetHashCode() ^ UV0.GetHashCode() ^ UV1.GetHashCode();
+			return Position.GetHashCode() ^ Normal.GetHashCode() ^ UV0.GetHashCode() ^ UV1.GetHashCode() ^ Color.GetHashCode();
 		}
 
 		public override bool Equals(object obj)
@@ -33,7 +33,8 @@ namespace BspFileFormat
 				Position == other.Position &&
 				Normal == other.Normal &&
 				UV0 == other.UV0 &&
-				UV1 == other.UV1;
+				UV1 == other.UV1 &&
+				Color == other.Color;
 		}
 	}
 }

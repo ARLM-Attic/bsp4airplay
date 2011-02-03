@@ -8,6 +8,9 @@ namespace ModelFileFormat
 	public class ModelDocument
 	{
 		public string Name { get; set; }
+
+		public List<ModelMesh> Meshes = new List<ModelMesh>();
+
 		public static ModelDocument Load(string p)
 		{
 			string name = Path.GetFileNameWithoutExtension(p);

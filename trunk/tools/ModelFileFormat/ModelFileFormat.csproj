@@ -38,9 +38,22 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="HL1\MdlReader.cs" />
-    <Compile Include="HL1\mdl_header.cs" />
+    <Compile Include="HL1\header_t.cs" />
+    <Compile Include="HL1\mesh_vertex_t.cs" />
+    <Compile Include="HL1\mstudio_bodyparts_t.cs" />
+    <Compile Include="HL1\mstudio_mesh_t.cs" />
+    <Compile Include="HL1\mstudio_model_t.cs" />
+    <Compile Include="HL1\mstudio_texture_t.cs" />
     <Compile Include="IModelReader.cs" />
+    <Compile Include="ModelBone.cs" />
+    <Compile Include="ModelBoneWeight.cs" />
     <Compile Include="ModelDocument.cs" />
+    <Compile Include="ModelEmbeddedTexture.cs" />
+    <Compile Include="ModelFace.cs" />
+    <Compile Include="ModelMesh.cs" />
+    <Compile Include="ModelTexture.cs" />
+    <Compile Include="ModelTextureReference.cs" />
+    <Compile Include="ModelVertex.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

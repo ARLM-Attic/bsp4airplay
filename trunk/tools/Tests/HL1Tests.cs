@@ -10,6 +10,7 @@ using DemFileFormat.Quake1;
 using DemFileFormat;
 using DemFileFormat.HL1;
 using ModelFileFormat;
+using Mdl2AirplayAdapter;
 
 namespace Tests
 {
@@ -41,7 +42,7 @@ namespace Tests
 		[Test]
 		public void TestCSModel()
 		{
-			var mdl = ModelDocument.Load(@"D:\Program Files\Valve\cstrike\models\player\guerilla\guerilla.mdl");
+			(new ModelAdapter()).Convert(@"D:\Program Files\Valve\cstrike\models\player\guerilla\guerilla.mdl", @"..\data\models\guerilla.group");
 		}
 		//[Test]
 		public void TestDemo()
