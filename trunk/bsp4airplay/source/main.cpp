@@ -153,8 +153,8 @@ int main(int argc, char* argv[])
 	flashlight_tex->SetClamping(true);
 	CIwTexture* flare_tex = (CIwTexture*)fx_group->GetResNamed("flare","CIwTexture");
 
-	CIwResGroup* model_group = IwGetResManager()->LoadGroup("./models/guerilla.group");
-	CIwModel* guerilla = (CIwModel*)fx_group->GetResNamed("guerilla","CIwModel");
+	CIwResGroup* model_group = IwGetResManager()->LoadGroup("./models/v_m4a1.group");
+	CIwModel* guerilla = (CIwModel*)fx_group->GetResNamed("v_m4a1","CIwModel");
 
 	//CIwVec3 rawDown(0,0,-4096);
 	CIwVec3 rawDown(0,0,0);
@@ -253,6 +253,7 @@ int main(int argc, char* argv[])
 			view.SetTrans(CIwVec3::g_Zero);
 			CIwVec3 rawForward = view.RowZ();
 			CIwVec3 rawRight = view.RowX();
+			CIwVec3 rawUp = -view.RowY();
 			
 
 			CIwVec3 forward = CIwVec3(rawForward.x*16,rawForward.y*16,rawForward.z*16);
@@ -382,8 +383,12 @@ int main(int argc, char* argv[])
 			IwGxSetMaterial(mat);
 			RenderFlares(level, 16);
 
-			model.t = view.t + CIwVec3(rawForward.x/64,rawForward.y/64,rawForward.z/64);
-			model.ScaleRot(IW_GEOM_ONE/8);
+			model.t = view.t// + CIwVec3(rawForward.x/2048,rawForward.y/2048,rawForward.z/2048)
+				- CIwVec3(rawUp.x/150,rawUp.y/150,rawUp.z/150);
+			model.CopyRot(view);
+			model.PreRotateZ(IW_GEOM_ONE/2);
+			model.PreRotateX(IW_GEOM_ONE/4);
+			model.ScaleRot(IW_GEOM_ONE/4); //8
 			IwGxSetModelMatrix(&model);
 			guerilla->Render();
 
