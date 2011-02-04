@@ -153,6 +153,9 @@ int main(int argc, char* argv[])
 	flashlight_tex->SetClamping(true);
 	CIwTexture* flare_tex = (CIwTexture*)fx_group->GetResNamed("flare","CIwTexture");
 
+	CIwResGroup* model_group = IwGetResManager()->LoadGroup("./models/guerilla.group");
+	CIwModel* guerilla = (CIwModel*)fx_group->GetResNamed("guerilla","CIwModel");
+
 	//CIwVec3 rawDown(0,0,-4096);
 	CIwVec3 rawDown(0,0,0);
 
@@ -230,6 +233,7 @@ int main(int argc, char* argv[])
 			//IwGxClear(IW_GX_COLOUR_BUFFER_F | IW_GX_DEPTH_BUFFER_F);
 
 			CIwMat view;
+			CIwMat model;
 			//if (spawnEnt >= 0)
 			/*{
 				const Bsp4Airplay::Cb4aEntity* e = level->GetEntityAt(spawnEnt);
@@ -309,6 +313,9 @@ int main(int argc, char* argv[])
 
 			IwGxSetViewMatrix(&view);
 
+			model.SetIdentity();
+			IwGxSetModelMatrix(&model);
+
 			int32 screenWidth2 =IwGxGetScreenWidth()/2;
 			//int32 screenHeight2 =IwGxGetScreenHeight()/2;
 			//CIwVec3 testV = view.TransposeTransformVec(view.t+view.RotateVec(CIwVec3(-screenWidth2,-screenHeight2,screenWidth2)));
@@ -374,6 +381,11 @@ int main(int argc, char* argv[])
 			
 			IwGxSetMaterial(mat);
 			RenderFlares(level, 16);
+
+			model.t = view.t + CIwVec3(rawForward.x/64,rawForward.y/64,rawForward.z/64);
+			model.ScaleRot(IW_GEOM_ONE/8);
+			IwGxSetModelMatrix(&model);
+			guerilla->Render();
 
 			IwGxFlush();
 			IwGxSwapBuffers();

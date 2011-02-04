@@ -40,9 +40,30 @@ namespace ModelFileFormat.HL1
 			bones = ReaderHelper.ReadStructs<mstudio_bone_t>(source, (uint)header.numbones * 112, header.boneindex + startOfTheFile, 112);
 			foreach (var b in bones)
 			{
-				var bone = new ModelBone();
+				var bone = new ModelBone() { 
+					Position = new Vector3(b.value[0], b.value[1], b.value[2]), 
+					Rotaton = BuildQuaternion(b) };
 				modelBones.Add(bone);
+				if (b.parent > 0)
+					bone.EvalMatrix(modelBones[b.parent]);
+				else
+					bone.EvalMatrix();
 			}
+		}
+
+		private Quaternion BuildQuaternion(mstudio_bone_t b)
+		{
+			var ax = b.value[3];
+			var ay = b.value[4];
+			var az = b.value[5];
+			return 
+				Quaternion.FromAxisAngle(Vector3.UnitZ, az)*
+				Quaternion.FromAxisAngle(Vector3.UnitY, ay)*
+				Quaternion.FromAxisAngle(Vector3.UnitX, ax);
+
+			//return Quaternion.FromAxisAngle(Vector3.UnitX, ax) *
+			//    Quaternion.FromAxisAngle(Vector3.UnitY, ay) *
+			//    Quaternion.FromAxisAngle(Vector3.UnitZ, az);
 		}
 
 		private ModelMesh BuildMesh(mstudio_bodyparts_t bp)
@@ -87,15 +108,24 @@ namespace ModelFileFormat.HL1
 						source.BaseStream.Seek(mdl.vertinfoindex + startOfTheFile, SeekOrigin.Begin);
 						mdl.Weights = source.ReadBytes(mdl.numverts);
 					}
+					Vector3 mins = new Vector3(float.MaxValue, float.MaxValue, float.MaxValue);
+					Vector3 maxs = new Vector3(float.MinValue, float.MinValue, float.MinValue);
 					if (mdl.vertindex != 0)
 					{
 						mdl.Vertices = new Vector3[mdl.numverts];
 						source.BaseStream.Seek(mdl.vertindex + startOfTheFile, SeekOrigin.Begin);
 						for (int i = 0; i < mdl.numverts; ++i)
 						{
-							mdl.Vertices[i].X = source.ReadSingle()*3;
-							mdl.Vertices[i].Y = source.ReadSingle() * 3;
-							mdl.Vertices[i].Z = source.ReadSingle() * 3;
+							mdl.Vertices[i].X = source.ReadSingle();
+							mdl.Vertices[i].Y = source.ReadSingle();
+							mdl.Vertices[i].Z = source.ReadSingle();
+
+							if (mins.X > mdl.Vertices[i].X) mins.X = mdl.Vertices[i].X;
+							if (mins.Y > mdl.Vertices[i].Y) mins.Y = mdl.Vertices[i].Y;
+							if (mins.Z > mdl.Vertices[i].Z) mins.Z = mdl.Vertices[i].Z;
+							if (maxs.X < mdl.Vertices[i].X) maxs.X = mdl.Vertices[i].X;
+							if (maxs.Y < mdl.Vertices[i].Y) maxs.Y = mdl.Vertices[i].Y;
+							if (maxs.Z < mdl.Vertices[i].Z) maxs.Z = mdl.Vertices[i].Z;
 						}
 					}
 					if (mdl.numnorms != 0)
@@ -107,6 +137,11 @@ namespace ModelFileFormat.HL1
 							mdl.Normals[i].X = source.ReadSingle();
 							mdl.Normals[i].Y = source.ReadSingle();
 							mdl.Normals[i].Z = source.ReadSingle();
+							var l = mdl.Normals[i].Length;
+							if (Math.Abs(l - 1) > 0.1)
+							{
+								throw new ArgumentException("Normal length is not 1");
+							}
 						}
 					}
 					mdl.Meshes = ReaderHelper.ReadStructs<mstudio_mesh_t>(source, (uint)mdl.nummesh * 20,
@@ -186,18 +221,22 @@ namespace ModelFileFormat.HL1
 				return;
 			mesh.Faces.Add(new ModelFace() {
 				Texture = modelTextures[textureId],
-				Vertex2 = BuildVertex(v0, mdl, textureId),
+				Vertex0 = BuildVertex(v0, mdl, textureId),
 				Vertex1 = BuildVertex(v1, mdl, textureId),
-				Vertex0 = BuildVertex(v2, mdl, textureId)
+				Vertex2 = BuildVertex(v2, mdl, textureId)
 			});
 		}
 
 		private ModelVertex BuildVertex(mesh_vertex_t v0, mstudio_model_t mdl, int textureId)
 		{
 			var tex = this.textures[textureId];
-			return new ModelVertex() { Position = mdl.Vertices[v0.v], Normal = mdl.Normals[v0.n], UV0 = new Vector2((float)v0.s / (float)tex.width, 
+			var boneID = mdl.Weights[v0.v];
+			var bone = modelBones[boneID];
+			var pos = mdl.Vertices[v0.v];
+			pos = bone.Transform(pos);
+			return new ModelVertex() { Position = pos, Normal = mdl.Normals[v0.n], UV0 = new Vector2((float)v0.s / (float)tex.width, 
 				(float)v0.t / (float)tex.height),
-									   Bones = new ModelBoneWeight[] { new ModelBoneWeight() { Weight = 1.0f, Bone = modelBones[mdl.Weights[v0.v]] } }
+									   Bones = new ModelBoneWeight[] { new ModelBoneWeight() { Weight = 1.0f, Bone = bone } }
 			};
 		}
 

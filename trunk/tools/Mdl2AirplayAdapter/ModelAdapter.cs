@@ -13,6 +13,7 @@ namespace Mdl2AirplayAdapter
 		private CIwResGroup group;
 		private CIwModel modelMesh;
 		private ModelWriter writer;
+		float scale = 8;
 		public void Convert(ModelDocument model, CIwResGroup group)
 		{
 			this.group = group;
@@ -23,15 +24,16 @@ namespace Mdl2AirplayAdapter
 			group.AddRes(modelMesh);
 
             var mesh = new CMesh();
+			mesh.Scale = 1.0f / scale;
 			modelMesh.ModelBlocks.Add(mesh);
 			writer = new ModelWriter(mesh);
 
 			WriteMaterials(model);
-
+			//WriteMesh(model.Meshes[1]);
 			foreach (var m in model.Meshes)
 			{
 				WriteMesh(m);
-				break;
+				//break;
 			}
 
 			//
@@ -62,14 +64,19 @@ namespace Mdl2AirplayAdapter
 				var surface = writer.GetSurfaceIndex(face.Texture.Name);
 
 				var srcV = face.Vertex0;
-				var v0 = writer.GetVertex(GetVec3(srcV.Position), GetVec3Fixed(srcV.Normal), GetVec2Fixed(srcV.UV0), CIwVec2.g_Zero, CIwColour.White);
+				var v0 = BuildVertex(srcV);
 				srcV = face.Vertex1;
-				var v1 = writer.GetVertex(GetVec3(srcV.Position), GetVec3Fixed(srcV.Normal), GetVec2Fixed(srcV.UV0), CIwVec2.g_Zero, CIwColour.White);
+				var v1 = BuildVertex(srcV);
 				srcV = face.Vertex2;
-				var v2 = writer.GetVertex(GetVec3(srcV.Position), GetVec3Fixed(srcV.Normal), GetVec2Fixed(srcV.UV0), CIwVec2.g_Zero, CIwColour.White);
+				var v2 = BuildVertex(srcV);
 
 				writer.AddTriangle(surface, v0, v1, v2);
 			}
+		}
+
+		private CTrisVertex BuildVertex(ModelVertex srcV)
+		{
+			return writer.GetVertex(GetVec3(srcV.Position * scale), GetVec3Fixed(srcV.Normal), GetVec2Fixed(srcV.UV0), CIwVec2.g_Zero, CIwColour.White);
 		}
 
 		public void Convert(string modelFilePath, string groupFilePath)

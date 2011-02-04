@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Globalization;
 
 namespace AirplaySDKFileFormats.Model
 {
@@ -19,7 +20,7 @@ namespace AirplaySDKFileFormats.Model
 		public override void WrtieBodyToStream(CTextWriter writer)
 		{
 			writer.WriteString("name", Name);
-			writer.WriteLine(string.Format("scale {0}", Scale));
+			writer.WriteLine(string.Format(CultureInfo.InvariantCulture, "scale {0}", Scale));
 			Verts.WrtieToStream(writer);
 			VertNorms.WrtieToStream(writer);
 			VertCols.WrtieToStream(writer);

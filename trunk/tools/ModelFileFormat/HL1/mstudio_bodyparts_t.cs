@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.IO;
+using ReaderUtils;
 
 namespace ModelFileFormat.HL1
 {
@@ -39,6 +40,11 @@ namespace ModelFileFormat.HL1
 				source.ReadSingle(),source.ReadSingle(),source.ReadSingle()};
 			scale = new float[]{source.ReadSingle(),source.ReadSingle(),source.ReadSingle(),
 				source.ReadSingle(),source.ReadSingle(),source.ReadSingle()};
+		}
+
+		internal Vector3 Transform(Vector3 pos)
+		{
+			return new Vector3(pos.X + value[0], pos.Y + value[1], pos.Z + value[2]);
 		}
 	}
 }
