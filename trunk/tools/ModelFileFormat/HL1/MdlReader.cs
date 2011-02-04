@@ -20,6 +20,8 @@ namespace ModelFileFormat.HL1
 		private List<mstudio_bodyparts_t> bodyParts;
 		private List<mstudio_bone_t> bones;
 		private List<ModelBone> modelBones = new List<ModelBone>();
+		private List<mstudio_seq_desc_t> sequences;
+		private List<mstudio_seqgroup_t> seqgroups;
 		#region IModelReader Members
 
 		public void ReadModel(BinaryReader source, ModelDocument dest)
@@ -29,10 +31,28 @@ namespace ModelFileFormat.HL1
 			ReadTextures(source);
 			ReadBones(source);
 			ReadBodyParts(source);
+			ReadAnimations(source);
 			//dest.Name = header.name;
 
 			foreach (var bp in bodyParts)
 				dest.Meshes.Add(BuildMesh(bp));
+			BuildAnimations(dest);
+		}
+
+		private void BuildAnimations(ModelDocument dest)
+		{
+			foreach (var seq in sequences)
+			{
+				var a = new ModelAnimation() { Name=seq.label };
+				
+				dest.Animations.Add(a);
+			}
+		}
+
+		private void ReadAnimations(BinaryReader source)
+		{
+			seqgroups = ReaderHelper.ReadStructs<mstudio_seqgroup_t>(source, (uint)header.numseqgroups * 104, header.seqgroupindex + startOfTheFile, 104);
+			sequences = ReaderHelper.ReadStructs<mstudio_seq_desc_t>(source, (uint)header.numseq * 176, header.seqindex + startOfTheFile, 176);
 		}
 
 		private void ReadBones(BinaryReader source)
@@ -42,12 +62,13 @@ namespace ModelFileFormat.HL1
 			{
 				var bone = new ModelBone() { 
 					Position = new Vector3(b.value[0], b.value[1], b.value[2]), 
+					Parent = b.parent,
 					Rotaton = BuildQuaternion(b) };
 				modelBones.Add(bone);
-				if (b.parent > 0)
-					bone.EvalMatrix(modelBones[b.parent]);
-				else
-					bone.EvalMatrix();
+			}
+			foreach (var bone in modelBones)
+			{
+				bone.EvalMatrix(modelBones);
 			}
 		}
 

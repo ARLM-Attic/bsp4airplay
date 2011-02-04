@@ -5,9 +5,8 @@ using System.IO;
 
 namespace ModelFileFormat
 {
-	public class ModelMesh
+	public class ModelAnimation
 	{
-		public List<ModelFace> Faces = new List<ModelFace>();
-		
+		public string Name { get; set; }
 	}
 }

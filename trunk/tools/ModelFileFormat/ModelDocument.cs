@@ -10,7 +10,8 @@ namespace ModelFileFormat
 		public string Name { get; set; }
 
 		public List<ModelMesh> Meshes = new List<ModelMesh>();
-
+		public List<ModelAnimation> Animations = new List<ModelAnimation>();
+		
 		public static ModelDocument Load(string p)
 		{
 			string name = Path.GetFileNameWithoutExtension(p);
@@ -37,7 +38,15 @@ namespace ModelFileFormat
 			var magic = r.ReadUInt32();
 
 			if (magic == 0x54534449)
-				reader = new HL1.MdlReader();
+			{
+				magic = r.ReadUInt32();
+				if (magic >= 48)
+					reader = new HL2.MdlReader();
+				else
+					reader = new HL1.MdlReader();
+			}
+			else if (magic == 0x4F504449)
+				reader = new Q1.MdlReader();
 
 			if (reader == null)
 				throw new ApplicationException("Format is not supported");

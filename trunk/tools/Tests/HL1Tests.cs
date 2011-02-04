@@ -44,6 +44,12 @@ namespace Tests
 		{
 			(new ModelAdapter()).Convert(@"D:\Program Files\Valve\cstrike\models\player\guerilla\guerilla.mdl", @"..\data\models\guerilla.group");
 		}
+		[Test]
+		public void TestCSHandsModel()
+		{
+			(new ModelAdapter()).Convert(@"D:\Program Files\Valve\cstrike\models\v_m4a1.mdl", @"..\data\models\v_m4a1.group");
+		}
+		
 		//[Test]
 		public void TestDemo()
 		{

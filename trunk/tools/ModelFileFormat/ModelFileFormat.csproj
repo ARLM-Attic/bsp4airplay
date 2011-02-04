@@ -44,7 +44,9 @@
     <Compile Include="HL1\mstudio_mesh_t.cs" />
     <Compile Include="HL1\mstudio_model_t.cs" />
     <Compile Include="HL1\mstudio_texture_t.cs" />
+    <Compile Include="HL2\MdlReader.cs" />
     <Compile Include="IModelReader.cs" />
+    <Compile Include="ModelAnimation.cs" />
     <Compile Include="ModelBone.cs" />
     <Compile Include="ModelBoneWeight.cs" />
     <Compile Include="ModelDocument.cs" />
@@ -55,6 +57,7 @@
     <Compile Include="ModelTextureReference.cs" />
     <Compile Include="ModelVertex.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Q1\MdlReader.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ReaderUtils\ReaderUtils.csproj">
