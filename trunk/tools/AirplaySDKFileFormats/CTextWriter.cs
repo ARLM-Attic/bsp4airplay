@@ -135,5 +135,11 @@ namespace AirplaySDKFileFormats
 		{
 			throw new NotImplementedException();
 		}
+
+		internal void WriteQuat(string name, CIwQuat val)
+		{
+			WriteArray(name, new float[] { val.w, val.x, val.y, val.z });
+
+		}
 	}
 }

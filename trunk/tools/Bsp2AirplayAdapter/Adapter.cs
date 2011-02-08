@@ -564,36 +564,41 @@ namespace Bsp2AirplayAdapter
 			};
 		}
 
-		private void WriteGeometry(BspGeometry bspGeometry, ModelWriter modelWriter)
-		{
-			foreach (var face in bspGeometry.Faces)
-			{
+		//private void WriteGeometry(BspGeometry bspGeometry, ModelWriter modelWriter)
+		//{
+		//    foreach (var face in bspGeometry.Faces)
+		//    {
 				
-				var surface = modelWriter.GetSurfaceIndex(face.Texture.Name);
-				CIwVec2 v0uv0 = GetVec2Fixed(face.Vertex0.UV0);
-				CIwVec2 v1uv0 = GetVec2Fixed(face.Vertex1.UV0);
-				CIwVec2 v2uv0 = GetVec2Fixed(face.Vertex2.UV0);
-				while (v0uv0.x > 32767 || v1uv0.x > 32767 || v2uv0.x > 32767)
-				{
-					v0uv0.x = v0uv0.x-AirplaySDKMath.IW_GEOM_ONE;
-					v1uv0.x = v1uv0.x-AirplaySDKMath.IW_GEOM_ONE;
-					v2uv0.x = v2uv0.x-AirplaySDKMath.IW_GEOM_ONE;
-				}
-				while (v0uv0.y > 32767 || v1uv0.y > 32767 || v2uv0.y > 32767)
-				{
-					v0uv0.y -= AirplaySDKMath.IW_GEOM_ONE;
-					v1uv0.y -= AirplaySDKMath.IW_GEOM_ONE;
-					v2uv0.y -= AirplaySDKMath.IW_GEOM_ONE;
-				}
-				BspGeometryVertex vertex = face.Vertex0;
-				var v0 = modelWriter.GetVertex(GetVec3(vertex.Position), GetVec3Fixed(vertex.Normal), v0uv0, GetVec2Fixed(vertex.UV1), CIwColour.White);
-				vertex = face.Vertex1;
-				var v1 = modelWriter.GetVertex(GetVec3(vertex.Position), GetVec3Fixed(vertex.Normal), v1uv0, GetVec2Fixed(vertex.UV1), CIwColour.White);
-				vertex = face.Vertex2;
-				var v2 = modelWriter.GetVertex(GetVec3(vertex.Position), GetVec3Fixed(vertex.Normal), v2uv0, GetVec2Fixed(vertex.UV1), CIwColour.White);
-				modelWriter.AddTriangle(surface, v0, v1, v2);
-			}
-		}
+		//        var surface = modelWriter.GetSurfaceIndex(face.Texture.Name);
+		//        CIwVec2 v0uv0 = GetVec2Fixed(face.Vertex0.UV0);
+		//        CIwVec2 v1uv0 = GetVec2Fixed(face.Vertex1.UV0);
+		//        CIwVec2 v2uv0 = GetVec2Fixed(face.Vertex2.UV0);
+		//        while (v0uv0.x > 32767 || v1uv0.x > 32767 || v2uv0.x > 32767)
+		//        {
+		//            v0uv0.x = v0uv0.x-AirplaySDKMath.IW_GEOM_ONE;
+		//            v1uv0.x = v1uv0.x-AirplaySDKMath.IW_GEOM_ONE;
+		//            v2uv0.x = v2uv0.x-AirplaySDKMath.IW_GEOM_ONE;
+		//        }
+		//        while (v0uv0.y > 32767 || v1uv0.y > 32767 || v2uv0.y > 32767)
+		//        {
+		//            v0uv0.y -= AirplaySDKMath.IW_GEOM_ONE;
+		//            v1uv0.y -= AirplaySDKMath.IW_GEOM_ONE;
+		//            v2uv0.y -= AirplaySDKMath.IW_GEOM_ONE;
+		//        }
+		//        BspGeometryVertex vertex = face.Vertex0;
+		//        var v0 = GetVertex(modelWriter, v0uv0, vertex);
+		//        vertex = face.Vertex1;
+		//        var v1 = GetVertex(modelWriter, v1uv0, vertex);
+		//        vertex = face.Vertex2;
+		//        var v2 = GetVertex(modelWriter, v2uv0, vertex);
+		//        modelWriter.AddTriangle(surface, v0, v1, v2);
+		//    }
+		//}
+
+		//private CTrisVertex GetVertex(ModelWriter modelWriter, CIwVec2 v0uv0, BspGeometryVertex vertex)
+		//{
+		//    return modelWriter.GetVertex(GetVec3(vertex.Position), GetVec3Fixed(vertex.Normal), v0uv0, GetVec2Fixed(vertex.UV1), CIwColour.White);
+		//}
 
 		
 

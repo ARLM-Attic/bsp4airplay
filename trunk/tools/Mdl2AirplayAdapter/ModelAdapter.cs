@@ -13,7 +13,7 @@ namespace Mdl2AirplayAdapter
 		private CIwResGroup group;
 		private CIwModel modelMesh;
 		private ModelWriter writer;
-		float scale = 8;
+		float scale = 1;
 		public void Convert(ModelDocument model, CIwResGroup group)
 		{
 			this.group = group;
@@ -26,8 +26,9 @@ namespace Mdl2AirplayAdapter
             var mesh = new CMesh();
 			mesh.Scale = 1.0f / scale;
 			modelMesh.ModelBlocks.Add(mesh);
-			writer = new ModelWriter(mesh);
+			writer = new ModelWriter(modelMesh);
 
+			WriteSkeleton(model);
 			WriteMaterials(model);
 			//WriteMesh(model.Meshes[1]);
 			foreach (var m in model.Meshes)
@@ -35,10 +36,46 @@ namespace Mdl2AirplayAdapter
 				WriteMesh(m);
 				//break;
 			}
-
 			//
 
 
+		}
+
+		private void WriteSkeleton(ModelDocument model)
+		{
+			foreach (var bone in model.Bones)
+				FixBoneName(bone);
+			foreach (var bone in model.Bones)
+				WriteBone(bone);
+		}
+
+		private void FixBoneName(ModelBone bone)
+		{
+			bone.Name = FixBoneName(bone.Name);
+			foreach (var b in bone.ChildBones)
+				FixBoneName(b);
+		}
+
+		private void WriteBone(ModelBone bone)
+		{
+			writer.WriteBone(new CIwAnimBone() { Name = bone.Name, parent = (bone.Parent != null) ? bone.Parent.Name : null, pos = GetVec3(bone.Position), rot = GetQuat(bone.Rotaton) });
+			foreach (var b in bone.ChildBones)
+				WriteBone(b);
+		}
+
+		private string FixBoneName(string p)
+		{
+			return p.Replace(' ','_');
+		}
+
+		private CIwQuat GetQuat(Quaternion quaternion)
+		{
+			return new CIwQuat(
+				(quaternion.W),
+				(quaternion.X),
+				(quaternion.Y),
+				(quaternion.Z)
+				);
 		}
 
 		private void WriteMaterials(ModelDocument model)
@@ -76,7 +113,30 @@ namespace Mdl2AirplayAdapter
 
 		private CTrisVertex BuildVertex(ModelVertex srcV)
 		{
-			return writer.GetVertex(GetVec3(srcV.Position * scale), GetVec3Fixed(srcV.Normal), GetVec2Fixed(srcV.UV0), CIwVec2.g_Zero, CIwColour.White);
+			return writer.GetVertex(
+				GetVec3(srcV.Position * scale),
+				GetBones(srcV.Bones),
+ 				GetWeights(srcV.Bones),
+				GetVec3Fixed(srcV.Normal), 
+				GetVec2Fixed(srcV.UV0), 
+				CIwVec2.g_Zero, 
+				CIwColour.White);
+		}
+
+		private IList<float> GetWeights(IList<ModelBoneWeight> modelBoneWeight)
+		{
+			var bones = new float[modelBoneWeight.Count];
+			for (int i = 0; i < bones.Length; ++i)
+				bones[i] = modelBoneWeight[i].Weight;
+			return bones;
+		}
+
+		private CIwAnimSkinSetKey GetBones(IList<ModelBoneWeight> modelBoneWeight)
+		{
+			var bones = new string [modelBoneWeight.Count];
+			for (int i=0; i<bones.Length; ++i)
+				bones[i] = modelBoneWeight[i].Bone.Name;
+			return new CIwAnimSkinSetKey() { Bones=bones };
 		}
 
 		public void Convert(string modelFilePath, string groupFilePath)

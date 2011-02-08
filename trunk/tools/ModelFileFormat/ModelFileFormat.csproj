@@ -41,8 +41,11 @@
     <Compile Include="HL1\header_t.cs" />
     <Compile Include="HL1\mesh_vertex_t.cs" />
     <Compile Include="HL1\mstudio_bodyparts_t.cs" />
+    <Compile Include="HL1\mstudio_bone_t.cs" />
     <Compile Include="HL1\mstudio_mesh_t.cs" />
     <Compile Include="HL1\mstudio_model_t.cs" />
+    <Compile Include="HL1\mstudio_seqgroup_t.cs" />
+    <Compile Include="HL1\mstudio_seq_desc_t.cs" />
     <Compile Include="HL1\mstudio_texture_t.cs" />
     <Compile Include="HL2\MdlReader.cs" />
     <Compile Include="IModelReader.cs" />

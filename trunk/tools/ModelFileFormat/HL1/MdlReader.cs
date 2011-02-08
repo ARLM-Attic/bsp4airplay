@@ -37,6 +37,14 @@ namespace ModelFileFormat.HL1
 			foreach (var bp in bodyParts)
 				dest.Meshes.Add(BuildMesh(bp));
 			BuildAnimations(dest);
+			BuildBones(dest);
+		}
+
+		private void BuildBones(ModelDocument dest)
+		{
+			foreach (var bone in modelBones)
+				if (bone.Parent == null)
+					dest.Bones.Add(bone);
 		}
 
 		private void BuildAnimations(ModelDocument dest)
@@ -60,11 +68,19 @@ namespace ModelFileFormat.HL1
 			bones = ReaderHelper.ReadStructs<mstudio_bone_t>(source, (uint)header.numbones * 112, header.boneindex + startOfTheFile, 112);
 			foreach (var b in bones)
 			{
-				var bone = new ModelBone() { 
-					Position = new Vector3(b.value[0], b.value[1], b.value[2]), 
-					Parent = b.parent,
-					Rotaton = BuildQuaternion(b) };
-				modelBones.Add(bone);
+				modelBones.Add(new ModelBone(){
+					Name = b.name,
+					Position = new Vector3(b.value[0], b.value[1], b.value[2]),
+					Rotaton = BuildQuaternion(b)
+				});
+			}
+			for (int boneIndex = 0; boneIndex < bones.Count; ++boneIndex)
+			{
+				var bone = modelBones[boneIndex];
+				if (bones[boneIndex].parent >= 0)
+				{
+					modelBones[bones[boneIndex].parent].AddChild(bone);
+				}
 			}
 			foreach (var bone in modelBones)
 			{

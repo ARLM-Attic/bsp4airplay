@@ -11,7 +11,7 @@ namespace ModelFileFormat
 
 		public List<ModelMesh> Meshes = new List<ModelMesh>();
 		public List<ModelAnimation> Animations = new List<ModelAnimation>();
-		
+		public List<ModelBone> Bones = new List<ModelBone>();
 		public static ModelDocument Load(string p)
 		{
 			string name = Path.GetFileNameWithoutExtension(p);

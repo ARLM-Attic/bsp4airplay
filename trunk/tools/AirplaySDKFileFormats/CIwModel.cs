@@ -8,6 +8,7 @@ namespace AirplaySDKFileFormats
 		public List<CMesh> ModelBlocks = new List<CMesh>();
 		public CIwVec3 mins;
 		public CIwVec3 maxs;
+		public CIwAnimSkin Skin;
 
 		public override void WrtieBodyToStream(CTextWriter writer)
 		{

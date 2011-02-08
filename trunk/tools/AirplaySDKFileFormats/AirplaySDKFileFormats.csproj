@@ -46,6 +46,15 @@
     <Compile Include="Cb4aLevelVertexBuffer.cs" />
     <Compile Include="Cb4aNode.cs" />
     <Compile Include="Cb4aTreeElement.cs" />
+    <Compile Include="CIwAnim.cs" />
+    <Compile Include="CIwAnimBone.cs" />
+    <Compile Include="CIwAnimKeyFrame.cs" />
+    <Compile Include="CIwAnimKeyFrameBone.cs" />
+    <Compile Include="CIwAnimSkel.cs" />
+    <Compile Include="CIwAnimSkin.cs" />
+    <Compile Include="CIwAnimSkinSet.cs" />
+    <Compile Include="CIwAnimSkinSetKey.cs" />
+    <Compile Include="CIwAnimSkinSetVertWeights.cs" />
     <Compile Include="CIwColour.cs" />
     <Compile Include="CIwManaged.cs" />
     <Compile Include="CIwManagedList.cs" />
@@ -54,6 +63,7 @@
     <Compile Include="CIwModelBlock.cs" />
     <Compile Include="CIwParseable.cs" />
     <Compile Include="CIwPlane.cs" />
+    <Compile Include="CIwQuat.cs" />
     <Compile Include="CIwResGroup.cs" />
     <Compile Include="CIwResource.cs" />
     <Compile Include="CIwTextParserITX.cs" />

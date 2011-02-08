@@ -22,7 +22,7 @@ namespace AirplaySDKFileFormats
 			base.WrtieBodyToStream(writer);
 
 			writer.WriteLine("shared true");
-		
+
 
 			var materials = new List<CIwMaterial>();
 			var geos = new List<CIwModel>();
@@ -40,7 +40,7 @@ namespace AirplaySDKFileFormats
 					others.Add((CIwManaged)l);
 			}
 			string name = Path.GetFileNameWithoutExtension(writer.FileName);
-			string subdir = Path.Combine(writer.FileDirectory,name);
+			string subdir = Path.Combine(writer.FileDirectory, name);
 			if (textures.Count > 0)
 			{
 				foreach (var l in textures)
@@ -67,11 +67,37 @@ namespace AirplaySDKFileFormats
 					var geoFileName = l.Name;
 					foreach (var c in Path.GetInvalidFileNameChars())
 						geoFileName = geoFileName.Replace(c, '_');
-					writer.WriteLine(string.Format("\"./{0}.geo\"",  geoFileName));
-					using (CTextWriter subWriter = new CTextWriter(Path.Combine(writer.FileDirectory, geoFileName + ".geo")))
+					writer.WriteLine(string.Format("\"./{0}.geo\"", geoFileName));
+					
+					string fullGeoFileName = Path.Combine(writer.FileDirectory, geoFileName + ".geo");
+
+					using (CTextWriter subWriter = new CTextWriter(fullGeoFileName))
 					{
 						l.WrtieToStream(subWriter);
 						subWriter.Close();
+					}
+
+					if (l.Skin != null)
+					{
+						if (l.Skin.skeleton != null)
+						{
+							writer.WriteLine(string.Format("\"./{0}.skel\"", geoFileName));
+							fullGeoFileName = Path.ChangeExtension(fullGeoFileName, ".skel");
+							using (CTextWriter subWriter = new CTextWriter(fullGeoFileName))
+							{
+								l.Skin.skeleton.WrtieToStream(subWriter);
+								subWriter.Close();
+							}
+						}
+
+						writer.WriteLine(string.Format("\"./{0}.skin\"", geoFileName));
+						fullGeoFileName = Path.ChangeExtension(fullGeoFileName, ".skin");
+						using (CTextWriter subWriter = new CTextWriter(fullGeoFileName))
+						{
+							l.Skin.WrtieToStream(subWriter);
+							subWriter.Close();
+						}
+						
 					}
 				}
 			}

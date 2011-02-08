@@ -3,6 +3,7 @@
 #include <s3eKeyboard.h>
 #include <IwGx.h>
 #include <IwGraphics.h>
+#include <IwAnim.h>
 #include <Bsp4Airplay.h>
 #include <b4aPlane.h>
 #include <Ib4aProjection.h>
@@ -138,6 +139,7 @@ int main(int argc, char* argv[])
 	IwGxInit();
 	IwResManagerInit();
 	IwGraphicsInit();
+	IwAnimInit();
 	Bsp4Airplay::Bsp4AirpayInit();
 	s3eKeyboardRegister(S3E_KEYBOARD_KEY_EVENT, (s3eCallback)keyboardEvent, 0);
 
@@ -153,8 +155,17 @@ int main(int argc, char* argv[])
 	flashlight_tex->SetClamping(true);
 	CIwTexture* flare_tex = (CIwTexture*)fx_group->GetResNamed("flare","CIwTexture");
 
+	CIwResGroup* npc_group = IwGetResManager()->LoadGroup("./models/guerilla.group");
+	CIwModel* npc_model = (CIwModel*)npc_group->GetResNamed("guerilla","CIwModel");
+	CIwAnimSkin* npc_skin = (CIwAnimSkin*)npc_group->GetResNamed("guerilla","CIwAnimSkin");
+	CIwAnimSkel* npc_skel = (CIwAnimSkel*)npc_group->GetResNamed("guerilla","CIwAnimSkel");
+	CIwAnimPlayer* npc_player = new CIwAnimPlayer;
+	npc_player->SetSkel(npc_skel);
+
 	CIwResGroup* model_group = IwGetResManager()->LoadGroup("./models/v_m4a1.group");
-	CIwModel* guerilla = (CIwModel*)fx_group->GetResNamed("v_m4a1","CIwModel");
+	CIwModel* hands_model = (CIwModel*)fx_group->GetResNamed("v_m4a1","CIwModel");
+	CIwAnimSkin* hands_skin = (CIwAnimSkin*)npc_group->GetResNamed("v_m4a1","CIwAnimSkin");
+	CIwAnimSkel* hands_skel = (CIwAnimSkel*)npc_group->GetResNamed("v_m4a1","CIwAnimSkel");
 
 	//CIwVec3 rawDown(0,0,-4096);
 	CIwVec3 rawDown(0,0,0);
@@ -209,6 +220,7 @@ int main(int argc, char* argv[])
 	}
 	const Bsp4Airplay::Cb4aEntity* spawnEnt = (spawnEntIndex>=0)?level->GetEntityAt(spawnEntIndex):0;
 	CIwVec3 playerOrigin = spawnEnt ? (spawnEnt->GetOrigin()) : CIwVec3::g_Zero;
+	CIwVec3 npcOrigin = playerOrigin;
 	playerOrigin.x <<= IW_GEOM_POINT;
 	playerOrigin.y <<= IW_GEOM_POINT;
 	playerOrigin.z <<= IW_GEOM_POINT;
@@ -388,9 +400,21 @@ int main(int argc, char* argv[])
 			model.CopyRot(view);
 			model.PreRotateZ(IW_GEOM_ONE/2);
 			model.PreRotateX(IW_GEOM_ONE/4);
-			model.ScaleRot(IW_GEOM_ONE/4); //8
+			//model.ScaleRot(IW_GEOM_ONE/4); //8
 			IwGxSetModelMatrix(&model);
-			guerilla->Render();
+			
+			IwAnimSetSkelContext(hands_skel);
+			IwAnimSetSkinContext(hands_skin);
+			hands_model->Render();
+
+			model.SetIdentity();
+			model.t = npcOrigin;
+			IwGxSetModelMatrix(&model);
+			IwAnimSetSkelContext(npc_player->GetSkel());
+			IwAnimSetSkinContext(npc_skin);
+			npc_model->Render();
+			IwAnimSetSkelContext(0);
+			IwAnimSetSkinContext(0);
 
 			IwGxFlush();
 			IwGxSwapBuffers();
@@ -398,7 +422,10 @@ int main(int argc, char* argv[])
 		if (flashlight)
 			delete flashlight;
 	}
+	delete npc_player;
+
 	Bsp4Airplay::Bsp4AirpayTerminate();
+	IwAnimTerminate();
 	IwGraphicsTerminate();
 	IwResManagerTerminate();
 	IwGxTerminate();

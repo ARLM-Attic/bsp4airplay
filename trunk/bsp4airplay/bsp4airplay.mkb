@@ -41,5 +41,6 @@ subprojects
 	iwgraphics
 	iwgx
 	iwutil
+	iwanim
 	bsp4airplay.mkf
 }
