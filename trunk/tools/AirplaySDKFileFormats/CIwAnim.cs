@@ -10,9 +10,16 @@ namespace AirplaySDKFileFormats
 		public override void WrtieBodyToStream(CTextWriter writer)
 		{
 			base.WrtieBodyToStream(writer);
-
-			foreach (var bone in KeyFrames)
-				bone.WrtieToStream(writer);
+			writer.WriteString("skeleton", skeleton.Name);
+			if (KeyFrames.Count == 0)
+			{
+				(new CIwAnimKeyFrame()).WrtieToStream(writer);
+			}
+			else
+			{
+				foreach (var bone in KeyFrames)
+					bone.WrtieToStream(writer);
+			}
 		}
 	}
 }

@@ -6,6 +6,37 @@ using ReaderUtils;
 
 namespace ModelFileFormat.HL1
 {
+	public class mstudioanim_t
+	{
+		public ushort[]   offset = new ushort[6];
+		public List<mstudioanimvalue_t>[] values = new List<mstudioanimvalue_t>[6];
+		public void Read(BinaryReader source)
+		{
+			offset[0] = source.ReadUInt16();
+			offset[1] = source.ReadUInt16();
+			offset[2] = source.ReadUInt16();
+			offset[3] = source.ReadUInt16();
+			offset[4] = source.ReadUInt16();
+			offset[5] = source.ReadUInt16();
+		}
+	}
+	// animation frames
+	public class mstudioanimvalue_t
+	{
+		public byte valid;
+		public byte total;
+		public short[] values;
+
+		public void Read(BinaryReader source)
+		{
+			valid = source.ReadByte();
+			total = source.ReadByte();
+			values = new short[valid];
+			for (int i = 0; i < valid; ++i)
+				values[i] = source.ReadInt16();
+		}
+	}
+
 	public class mstudio_seq_desc_t
 	{
 		public string label; // sequence label
@@ -38,6 +69,7 @@ namespace ModelFileFormat.HL1
 		public int exitnode; // transition node at exit
 		public int nodeflags; // transition rules
 		public int nextseq; // auto advancing sequences
+		public mstudioanim_t[,] blends;
 
 		public void Read(BinaryReader source)
 		{

@@ -50,6 +50,8 @@
     <Compile Include="HL2\MdlReader.cs" />
     <Compile Include="IModelReader.cs" />
     <Compile Include="ModelAnimation.cs" />
+    <Compile Include="ModelAnimationFrame.cs" />
+    <Compile Include="ModelAnimationFrameBone.cs" />
     <Compile Include="ModelBone.cs" />
     <Compile Include="ModelBoneWeight.cs" />
     <Compile Include="ModelDocument.cs" />

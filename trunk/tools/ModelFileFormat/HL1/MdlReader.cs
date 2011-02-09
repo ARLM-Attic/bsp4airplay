@@ -52,7 +52,25 @@ namespace ModelFileFormat.HL1
 			foreach (var seq in sequences)
 			{
 				var a = new ModelAnimation() { Name=seq.label };
-				
+				if (seq.blends != null)
+				{
+					int blend = 0;
+					//IList<ModelAnimationFrameBone>[] = b
+					var f = new ModelAnimationFrame() { Time=0};
+					a.Frames.Add(f);
+					for (int bone = 0; bone < bones.Count; ++bone)
+					{
+						mstudioanim_t animBlend = seq.blends[blend, bone];
+						f.Bones.Add(new ModelAnimationFrameBone() {Bone=modelBones[bone],Position=modelBones[bone].Position,Rotation=modelBones[bone].Rotaton });
+					}
+					f = new ModelAnimationFrame() { Time = 1 };
+					a.Frames.Add(f);
+					for (int bone = 0; bone < bones.Count; ++bone)
+					{
+						mstudioanim_t animBlend = seq.blends[blend, bone];
+						f.Bones.Add(new ModelAnimationFrameBone() { Bone = modelBones[bone], Position = modelBones[bone].Position, Rotation = modelBones[bone].Rotaton });
+					}
+				}
 				dest.Animations.Add(a);
 			}
 		}
@@ -61,6 +79,47 @@ namespace ModelFileFormat.HL1
 		{
 			seqgroups = ReaderHelper.ReadStructs<mstudio_seqgroup_t>(source, (uint)header.numseqgroups * 104, header.seqgroupindex + startOfTheFile, 104);
 			sequences = ReaderHelper.ReadStructs<mstudio_seq_desc_t>(source, (uint)header.numseq * 176, header.seqindex + startOfTheFile, 176);
+			foreach (mstudio_seq_desc_t seq in sequences)
+			{
+				var group = seqgroups[seq.seqgroup];
+				source.BaseStream.Seek(startOfTheFile + group.data + seq.animindex, SeekOrigin.Begin);
+				seq.blends = new mstudioanim_t[seq.numblends, bones.Count];
+				for (int frame = 0; frame < seq.numblends; ++frame)
+				{
+					for (int bone = 0; bone < bones.Count; ++bone)
+					{
+						var b = new mstudioanim_t();
+						b.Read(source);
+						seq.blends[frame, bone] = b;
+					}
+				}
+				for (int blend = 0; blend < seq.numblends; ++blend)
+				{
+					for (int bone = 0; bone < bones.Count; ++bone)
+					{
+						mstudioanim_t animBlend = seq.blends[blend, bone];
+						for (int i = 0; i < 6; ++i)
+						{
+							ushort offset = animBlend.offset[i];
+							if (offset > 0)
+							{
+								if (animBlend.values[i] == null)
+									animBlend.values[i] = new List<mstudioanimvalue_t>();
+								source.BaseStream.Seek(startOfTheFile + group.data + seq.animindex + offset, SeekOrigin.Begin);
+								var framesCount = seq.numframes;
+								while (framesCount > 0)
+								{
+									var v = new mstudioanimvalue_t();
+									v.Read(source);
+									animBlend.values[i].Add(v);
+									framesCount -= v.total;
+								}
+							}
+						}
+					}
+				}
+			}
+
 		}
 
 		private void ReadBones(BinaryReader source)

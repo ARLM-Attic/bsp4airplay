@@ -36,9 +36,36 @@ namespace Mdl2AirplayAdapter
 				WriteMesh(m);
 				//break;
 			}
-			//
+			WriteAnimations(model,modelMesh);
 
 
+		}
+
+		private void WriteAnimations(ModelDocument model, CIwModel modelMesh)
+		{
+			if (model.Animations == null || model.Animations.Count == 0)
+				return;
+			modelMesh.Skin.Animations = new List<CIwAnim>();
+			foreach (var a in model.Animations)
+			{
+				var anim = new CIwAnim() { Name = a.Name, skeleton=modelMesh.Skin.skeleton };
+				if (a.Frames != null)
+				foreach (var f in a.Frames)
+				{
+					var frame = new CIwAnimKeyFrame();
+					frame.time = f.Time;
+					foreach (var b in f.Bones)
+					{
+						var bone = new CIwAnimKeyFrameBone();
+						bone.bone = b.Bone.Name;
+						bone.pos = GetVec3(b.Position);
+						bone.rot = GetQuat(b.Rotation);
+						frame.bones.Add(bone);
+					}
+					anim.KeyFrames.Add(frame);
+				}
+				modelMesh.Skin.Animations.Add(anim);
+			}
 		}
 
 		private void WriteSkeleton(ModelDocument model)

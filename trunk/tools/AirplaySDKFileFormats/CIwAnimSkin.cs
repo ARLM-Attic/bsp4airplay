@@ -6,7 +6,7 @@ namespace AirplaySDKFileFormats
 	public class CIwAnimSkin : CIwResource
 	{
 		public List<CIwAnimSkinSet> SkinSets = new List<CIwAnimSkinSet>();
-
+		public List<CIwAnim> Animations;
 		public CIwAnimSkel skeleton;
 		public CIwModel model;
 

@@ -97,7 +97,29 @@ namespace AirplaySDKFileFormats
 							l.Skin.WrtieToStream(subWriter);
 							subWriter.Close();
 						}
-						
+						if (l.Skin.Animations != null)
+						{
+							var fullAnimFileName = Path.Combine(Path.Combine(Path.GetDirectoryName(fullGeoFileName), ".."), "animations");
+							if (!Directory.Exists(fullAnimFileName))
+								Directory.CreateDirectory(fullAnimFileName);
+							fullAnimFileName = Path.Combine(fullAnimFileName, geoFileName);
+							if (!Directory.Exists(fullAnimFileName))
+								Directory.CreateDirectory(fullAnimFileName);
+							foreach (var a in l.Skin.Animations)
+							{
+								string animationName = a.Name;
+								foreach (var c in Path.GetInvalidFileNameChars())
+									animationName = animationName.Replace(c, '_');
+
+								writer.WriteLine(string.Format("\"../animations/{0}/{1}.anim\"", geoFileName, animationName));
+								fullGeoFileName = Path.Combine(fullAnimFileName, animationName+".anim");
+								using (CTextWriter subWriter = new CTextWriter(fullGeoFileName))
+								{
+									a.WrtieToStream(subWriter);
+									subWriter.Close();
+								}
+							}
+						}
 					}
 				}
 			}
