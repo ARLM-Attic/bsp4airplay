@@ -219,6 +219,7 @@ namespace BspFileFormat.HL2
 					continue;
 				plane_t plane = planes[face.planenum];
 				var surf = surfaces[face.texinfo];
+				var texture_id = (int)surf.texdata;
 				var faceVertices = new BspGeometryVertex[face.numedges];
 
 				Vector2 minUV0 = new Vector2(float.MaxValue, float.MaxValue);
@@ -268,6 +269,14 @@ namespace BspFileFormat.HL2
 				minUV0.X = (float)System.Math.Floor(minUV0.X);
 				minUV0.Y = (float)System.Math.Floor(minUV0.Y);
 
+				if (textures[texture_id].Name == "TOOLS/TOOLSSKYBOX")
+				{
+					minUV0.X = 0;
+					minUV0.Y = 0;
+					for (int j = 0; j < (int)face.numedges; ++j)
+						faceVertices[j].UV0 = new Vector2(0, 0);
+				}
+
 
 				var sizeLightmap = new Vector2(face.LightmapTextureSizeInLuxels[0] + 1, face.LightmapTextureSizeInLuxels[1] + 1);
 				for (int j = 0; j < (int)face.numedges; ++j)
@@ -306,7 +315,7 @@ namespace BspFileFormat.HL2
 				{
 					BspGeometryVertex vert1 = faceVertices[j];
 					BspGeometryVertex vert2 = faceVertices[j + 1];
-					var geoFace = new BspGeometryFace() { Vertex0 = vert0, Vertex1 = vert1, Vertex2 = vert2, Texture = textures[(int)surfaces[face.texinfo].texdata], Lightmap = lightMap };
+					var geoFace = new BspGeometryFace() { Vertex0 = vert0, Vertex1 = vert1, Vertex2 = vert2, Texture = textures[texture_id], Lightmap = lightMap };
 					res.Faces.Add(geoFace);
 				}
 			}
@@ -439,7 +448,7 @@ namespace BspFileFormat.HL2
 			float maxValue = float.MinValue;
 			for (uint i = 0; i < size / 4; ++i)
 			{
-				float k = (float)Math.Pow(2.0, (double)bytes[i*4+3]);
+				float k = (float)Math.Pow(2.0, (double)(sbyte)bytes[i*4+3]);
 				float v = (float)bytes[i * 4 + 0] * k;
 				if (!float.IsInfinity(v) && v > maxValue) maxValue = v;
 				lightmap[i].X = v;
@@ -452,6 +461,8 @@ namespace BspFileFormat.HL2
 				if (!float.IsInfinity(v) && v > maxValue) maxValue = v;
 				lightmap[i].Z = v;
 			}
+			if (maxValue > 255)
+				maxValue = 255;
 			for (uint i = 0; i < size / 4; ++i)
 			{
 				lightmap[i].X = ClampTo255(lightmap[i].X * 255.0f / maxValue);

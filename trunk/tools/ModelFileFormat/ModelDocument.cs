@@ -40,9 +40,9 @@ namespace ModelFileFormat
 			if (magic == 0x54534449)
 			{
 				magic = r.ReadUInt32();
-				if (magic >= 48)
+				if (magic == 44 || magic == 48)
 					reader = new HL2.MdlReader();
-				else
+				else if (magic == 10)
 					reader = new HL1.MdlReader();
 			}
 			else if (magic == 0x4F504449)

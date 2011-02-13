@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.IO;
 
 namespace ModelFileFormat.HL2
 {
@@ -9,11 +10,23 @@ namespace ModelFileFormat.HL2
 	/// </summary>
 	class MdlReader : IModelReader
 	{
+		private long startOfTheFile;
+
 		#region IModelReader Members
 
-		public void ReadModel(System.IO.BinaryReader source, ModelDocument dest)
+		public void ReadModel(BinaryReader source, ModelDocument dest)
 		{
-			throw new NotImplementedException();
+			startOfTheFile = source.BaseStream.Position;
+			//ReadHeader(source);
+			//ReadTextures(source);
+			//ReadBones(source);
+			//ReadBodyParts(source);
+			//ReadAnimations(source);
+
+			//foreach (var bp in bodyParts)
+			//    dest.Meshes.Add(BuildMesh(bp));
+			//BuildAnimations(dest);
+			//BuildBones(dest);
 		}
 
 		#endregion
